@@ -38,6 +38,11 @@ curl http://<windows-tailscale-ip>:8000/api/v1/collections  # ChromaDB
 sb-ingest pdf ~/Documents/portfolio.pdf --tag financial --tag 2025
 ```
 
+### Ingest a URL
+```bash
+sb-ingest url https://example.com/article --tag research
+```
+
 ### Query your brain
 ```bash
 sb-query "What are my portfolio returns for 2025?"
@@ -71,7 +76,7 @@ second-brain/
 ## Ingesters (Roadmap)
 
 - [x] PDF
-- [ ] URLs / web pages
+- [x] URLs / web pages
 - [ ] Notes (markdown)
 - [ ] Forwarded emails
 - [ ] YouTube (transcript via yt-dlp)
