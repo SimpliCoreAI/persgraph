@@ -1,6 +1,6 @@
 """ChromaDB vector store wrapper."""
 
-from typing import Any
+from typing import Any, Optional
 
 import chromadb
 from chromadb.api.models.Collection import Collection
@@ -20,7 +20,7 @@ class VectorStore:
     def get_or_create(self, name: str) -> Collection:
         return self._client.get_or_create_collection(name)
 
-    def get(self, name: str) -> Collection | None:
+    def get(self, name: str) -> Optional[Collection]:
         try:
             return self._client.get_collection(name)
         except Exception:

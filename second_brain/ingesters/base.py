@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
@@ -22,7 +23,7 @@ class BaseIngester(ABC):
     """All ingesters must implement this interface."""
 
     @abstractmethod
-    def ingest(self, source: str, tags: list[str] | None = None) -> IngestResult:
+    def ingest(self, source: str, tags: Optional[list[str]] = None) -> IngestResult:
         """
         Ingest content from source into the vector store.
 

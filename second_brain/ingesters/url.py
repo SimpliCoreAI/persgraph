@@ -4,6 +4,8 @@ import hashlib
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from typing import Optional
+
 import trafilatura
 
 from ..config import settings
@@ -15,7 +17,7 @@ from .base import BaseIngester, IngestResult
 class URLIngester(BaseIngester):
     """Ingest web pages into the vector store."""
 
-    def ingest(self, source: str, tags: list[str] | None = None) -> IngestResult:
+    def ingest(self, source: str, tags: Optional[list[str]] = None) -> IngestResult:
         tags = tags or []
 
         if not self._is_valid_url(source):
@@ -86,9 +88,31 @@ class URLIngester(BaseIngester):
             tags=tags,
         )
 
-    def _fetch(self, url: str) -> tuple[str, str]:
-        """Fetch URL and extract main content using trafilatura."""
+    def _fetch(self, url: str) -> "tuple[str, str]":
+        """Fetch URL and extract main content using trafilatura with browser headers."""
+        import urllib.request
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+
+        # Try trafilatura first
         downloaded = trafilatura.fetch_url(url)
+
+        # Fallback: manual request with browser headers (handles some paywalls/bots)
+        if not downloaded:
+            try:
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    downloaded = resp.read().decode("utf-8", errors="replace")
+            except Exception:
+                return "", ""
+
         if not downloaded:
             return "", ""
 

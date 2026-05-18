@@ -4,6 +4,8 @@ import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
+from typing import Optional
+
 import pypdf
 
 from ..config import settings
@@ -15,7 +17,7 @@ from .base import BaseIngester, IngestResult
 class PDFIngester(BaseIngester):
     """Ingest PDF files into the vector store."""
 
-    def ingest(self, source: str, tags: list[str] | None = None) -> IngestResult:
+    def ingest(self, source: str, tags: Optional[list[str]] = None) -> IngestResult:
         path = Path(source).resolve()
         tags = tags or []
 
