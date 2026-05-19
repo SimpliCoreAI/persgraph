@@ -56,7 +56,7 @@ def query(
         source = chunk["metadata"].get("filename", chunk["collection"])
         context_parts.append(f"[{i}] ({source}):\n{chunk['text']}")
     context = "\n\n".join(context_parts)
-    prompt = f"{SYSTEM_PROMPT}\n\nContext:\n{context}\n\nQuestion: {question}\n\nAnswer:"
+    prompt = f"{SYSTEM_PROMPT}\n\n### CONTEXT DOCUMENTS:\n{context}\n\n### QUESTION:\n{question}\n\n### ANSWER (based only on the context above):"
 
     # Stream answer live to terminal
     console.print(f"\n[bold blue]🧠 Answer[/bold blue]\n")

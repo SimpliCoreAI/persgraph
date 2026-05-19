@@ -10,10 +10,14 @@ from .embeddings import embedder
 from .vectorstore import vectorstore
 
 
-SYSTEM_PROMPT = """You are a private second brain assistant.
-Answer questions using ONLY the provided context.
-If the answer is not in the context, say so clearly.
-Be concise, precise, and cite your sources by number."""
+SYSTEM_PROMPT = """You are a private second brain assistant. You have been given context documents below.
+
+STRICT RULES:
+- Answer using ONLY the information in the context provided.
+- Do NOT greet the user or ask how to assist.
+- Do NOT say "how can I help you" or similar phrases.
+- If the answer is not in the context, say: "I don't have information about this in my knowledge base."
+- Be concise, factual, and cite sources by number [1], [2], etc."""
 
 # Qwen2.5:72b is large — give it plenty of time
 OLLAMA_TIMEOUT = httpx.Timeout(timeout=600.0, connect=10.0)
@@ -47,12 +51,13 @@ def answer(query: str, top_k: int = 5) -> tuple[str, list[dict[str, Any]]]:
 
     prompt = f"""{SYSTEM_PROMPT}
 
-Context:
+### CONTEXT DOCUMENTS:
 {context}
 
-Question: {query}
+### QUESTION:
+{query}
 
-Answer:"""
+### ANSWER (based only on the context above):"""
 
     client = Client(host=settings.ollama_base_url, timeout=OLLAMA_TIMEOUT)
 
