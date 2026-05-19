@@ -30,17 +30,46 @@ def query(
     top_k: int = typer.Option(5, "--top-k", "-k", help="Number of chunks to retrieve"),
 ) -> None:
     """Ask your Second Brain a question."""
+    import httpx
+    from ollama import Client
+    from second_brain.query import retrieve
+    from second_brain.config import settings
+
+    # Retrieve context
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         console=console,
         transient=True,
     ) as progress:
-        progress.add_task("Thinking...", total=None)
-        response, chunks = answer(question, top_k=top_k)
+        progress.add_task("Searching second brain...", total=None)
+        chunks = retrieve(question, top_k=top_k)
 
-    # Print answer
-    console.print(Panel(Markdown(response), title="🧠 Answer", border_style="blue"))
+    if not chunks:
+        console.print("[red]No relevant content found. Try ingesting some documents first.[/red]")
+        raise typer.Exit(1)
+
+    # Build prompt
+    from second_brain.query import SYSTEM_PROMPT
+    context_parts = []
+    for i, chunk in enumerate(chunks, 1):
+        source = chunk["metadata"].get("filename", chunk["collection"])
+        context_parts.append(f"[{i}] ({source}):\n{chunk['text']}")
+    context = "\n\n".join(context_parts)
+    prompt = f"{SYSTEM_PROMPT}\n\nContext:\n{context}\n\nQuestion: {question}\n\nAnswer:"
+
+    # Stream answer live to terminal
+    console.print(f"\n[bold blue]🧠 Answer[/bold blue]\n")
+    client = Client(
+        host=settings.ollama_base_url,
+        timeout=httpx.Timeout(timeout=600.0, connect=10.0)
+    )
+    response = ""
+    for chunk_resp in client.generate(model=settings.llm_model, prompt=prompt, stream=True):
+        token = chunk_resp["response"]
+        response += token
+        print(token, end="", flush=True)
+    print("\n")
 
     # Print sources
     if chunks:

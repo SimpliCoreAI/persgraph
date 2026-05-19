@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import httpx
 from ollama import Client
 
 from .config import settings
@@ -13,6 +14,9 @@ SYSTEM_PROMPT = """You are a private second brain assistant.
 Answer questions using ONLY the provided context.
 If the answer is not in the context, say so clearly.
 Be concise, precise, and cite your sources by number."""
+
+# Qwen2.5:72b is large — give it plenty of time
+OLLAMA_TIMEOUT = httpx.Timeout(timeout=600.0, connect=10.0)
 
 
 def retrieve(query: str, top_k: int = 5) -> list[dict[str, Any]]:
@@ -50,6 +54,11 @@ Question: {query}
 
 Answer:"""
 
-    client = Client(host=settings.ollama_base_url)
-    response = client.generate(model=settings.llm_model, prompt=prompt)
-    return response["response"].strip(), chunks
+    client = Client(host=settings.ollama_base_url, timeout=OLLAMA_TIMEOUT)
+
+    # Stream response — avoids timeout waiting for full 72B output
+    full_response = ""
+    for chunk_resp in client.generate(model=settings.llm_model, prompt=prompt, stream=True):
+        full_response += chunk_resp["response"]
+
+    return full_response.strip(), chunks
