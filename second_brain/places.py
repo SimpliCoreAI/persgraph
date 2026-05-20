@@ -65,6 +65,7 @@ Tags:"""
 def save(
     name: str,
     city: str,
+    country: str = "",
     category: str = "Restaurant",
     notes: str = "",
     rating: Optional[int] = None,
@@ -80,7 +81,8 @@ def save(
     place_id = str(uuid4())
 
     # Rich text for embedding — combines all fields for best semantic search
-    embed_text = f"{category} in {city}: {name}. {notes}. Tags: {', '.join(tags)}"
+    location = f"{city}, {country}" if country else city
+    embed_text = f"{category} in {location}: {name}. {notes}. Tags: {', '.join(tags)}"
 
     embedding = embedder.embed(embed_text)
 
@@ -88,6 +90,7 @@ def save(
         "id": place_id,
         "name": name,
         "city": city,
+        "country": country,
         "category": category,
         "notes": notes,
         "rating": rating or 0,
@@ -145,6 +148,12 @@ def cities() -> list[str]:
     """Return sorted list of unique cities."""
     items = list_all()
     return sorted(set(i.get("city", "").strip() for i in items if i.get("city")))
+
+
+def countries() -> list[str]:
+    """Return sorted list of unique countries."""
+    items = list_all()
+    return sorted(set(i.get("country", "").strip() for i in items if i.get("country")))
 
 
 def delete(place_id: str) -> bool:
