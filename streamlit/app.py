@@ -1,6 +1,6 @@
 """
 Second Brain — Streamlit Dashboard
-Run: streamlit run streamlit/app.py --server.address 100.x.x.x --server.port 8501
+Run: streamlit run streamlit/app.py
 """
 
 import streamlit as st
@@ -12,23 +12,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Sidebar ──────────────────────────────────────────────────────────────────
+# Sidebar branding only — page nav is handled automatically by Streamlit
 with st.sidebar:
     st.title("🧠 Second Brain")
     st.caption("Private · Local · Yours")
     st.divider()
-    st.markdown("**System**")
-    st.page_link("pages/1_learning_agent.py",  label="🎓 Learning Agent")
-    st.page_link("pages/2_snippets.py",         label="📎 Snippets")
-    st.page_link("pages/3_tasks_notes.py",      label="✅ Tasks & Notes")
-    st.page_link("pages/4_portfolio.py",        label="💼 Portfolio")
-    st.page_link("pages/5_credit_card.py",      label="💳 Credit Card Agent")
-    st.page_link("pages/6_travel.py",           label="🗺️ Travel & POI")
-    st.page_link("pages/7_weekly_briefing.py",  label="📋 Weekly Briefing")
-    st.divider()
     st.caption("Connected to Windows via Tailscale")
 
-# ── Home ─────────────────────────────────────────────────────────────────────
+# ── Home ──────────────────────────────────────────────────────────────────────
 st.title("🧠 Second Brain")
 st.subheader("Your private, local-first AI assistant")
 st.divider()
