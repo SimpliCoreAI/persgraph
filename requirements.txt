@@ -1,0 +1,24 @@
+# Second Brain — Python dependencies
+# Install: pip install -r requirements.txt
+
+# ── Core RAG stack ────────────────────────────────────────────────────────────
+chromadb>=0.5.0          # Vector store (runs on Windows)
+ollama>=0.2.0            # Local LLM client (Qwen2.5, nomic-embed-text)
+httpx>=0.27.0            # HTTP client with timeout control for Ollama
+
+# ── Config ────────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0     # Load .env file
+pydantic-settings>=2.0.0 # Typed settings from env vars
+
+# ── Ingesters ────────────────────────────────────────────────────────────────
+pypdf>=4.0.0             # PDF text extraction
+trafilatura>=1.8.0       # Web page extraction (URL ingester)
+lxml_html_clean          # Required by trafilatura (lxml HTML cleaner)
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+typer>=0.12.0            # CLI framework (sb-ingest, sb-query)
+rich>=13.0.0             # Pretty terminal output
+
+# ── Streamlit UI (Windows only) ───────────────────────────────────────────────
+streamlit>=1.35.0        # Dashboard UI
+plotly>=5.20.0           # Charts (portfolio, CC agent)

@@ -1,0 +1,6 @@
+# Dev dependencies (testing, linting, type checking)
+-r requirements.txt
+
+pytest>=8.0
+ruff>=0.4.0
+mypy>=1.10.0
