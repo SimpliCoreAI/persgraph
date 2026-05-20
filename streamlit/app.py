@@ -25,6 +25,7 @@ with st.sidebar:
     st.page_link("pages/5_credit_card.py",          label="💳 Credit Card Agent")
     st.page_link("pages/6_travel.py",               label="🗺️ Travel & POI")
     st.page_link("pages/7_weekly_briefing.py",      label="📋 Weekly Briefing")
+    st.page_link("pages/8_recurring_events.py",    label="🔁 Recurring Events")
     st.divider()
     st.caption("🔒 Connected via Tailscale")
 
