@@ -1,0 +1,15 @@
+{
+  "daily": {
+    "2026-05-19": {
+      "input_tokens": 121373,
+      "output_tokens": 4900,
+      "cost_usd": 0.437619,
+      "calls": 1
+    }
+  },
+  "total": {
+    "input_tokens": 121373,
+    "output_tokens": 4900,
+    "cost_usd": 0.437619
+  }
+}

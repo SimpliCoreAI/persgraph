@@ -1,4 +1,4 @@
-# Distributed Personal AI System — Architecture Document (v1.4)
+# Distributed Personal AI System — Architecture Document (v1.5)
 
 ## 1. System Overview
 This system is a distributed personal AI assistant composed of two machines running a multi-agent architecture:
@@ -513,44 +513,46 @@ streamlit run app.py --server.address 100.x.x.x --server.port 8501
 - Only stock earnings data fetches from external API
 - Email sent via local SMTP or configured email provider
 
-## 11. Next Steps (Backlog)
+## 11. What's Built (as of May 2026)
 
-**Immediate**
-- Install Python 3.11 from python.org (fix NSSM service blocker)
-- Set up ChromaDB as Windows service via NSSM
-- Install Streamlit on Windows
-- Scaffold Streamlit app with all tabs
+### ✅ Completed
+- **Infrastructure:** Tailscale VPN, SSH fallback, Ollama + ChromaDB on Windows, all bound to Tailscale IP
+- **RAG Pipeline:** PDF ingester, URL ingester, nomic-embed-text embeddings, ChromaDB vector store, Qwen2.5:7b retrieval
+- **CLI tools:** `sb-ingest pdf/url`, `sb-query` with streaming + 600s timeout
+- **Tasks & Notes:** Full CRUD + semantic search via ChromaDB `notes` collection
+- **Streamlit Dashboard:** 8 tabs scaffolded, Learning Agent + Snippets + Tasks & Notes fully wired
+- **Appointment Reminders:** OpenClaw cron at 8am daily → checks ChromaDB → Telegram alert
+- **API Cost Tracking:** `track_api_cost.py` + OpenClaw cron at 8pm daily → Telegram summary
+- **GitHub:** Private repo at github.com/JollyS/second-brain, all code versioned
 
-**Multi-Agent**
-- Implement OpenClaw intent classifier + sequential dispatcher
-- Build Claude Code harness integration
-- Build RAG, Parser, Memory, Analysis sub-agents
-- Build Monitoring Agent
-- Add OpenAI Codex as cost fallback harness
+### 🔲 In Progress
+- Credit Card Agent (requirements phase)
 
-**Pipelines**
-- Build embedding pipeline (nomic‑embed‑text via Ollama)
-- Build RAG pipeline (OpenClaw → ChromaDB → Qwen2.5)
-- Wire ChromaDB into OpenClaw on Mac
+### 📋 Next Steps (Backlog)
 
 **Features**
-- Travel / POI tab (ChromaDB backed)
-- Portfolio analysis tab
-- Learning agent tab
-- Snippets / knowledge base tab
-- Credit Card Agent tab (statement parsing, rewards DB, usage recommendations)
-- Tasks / Appointments / Notes tab (semantic store, ChromaDB)
-- Weekly Briefing Agent (Sunday 8AM, Telegram + Email delivery)
-- File/photo indexing
+- Credit Card Agent (statement parsing, rewards DB, recommendations) — *next*
+- Travel / POI tab — ChromaDB backed, quick-add form
+- Portfolio tab — PDF/CSV upload, Plotly charts
+- Weekly Briefing Agent — Sunday 8AM, Telegram + Email
+- Notes/markdown ingester
+- YouTube ingester (yt-dlp + Whisper)
+- Human feedback loop (👍/👎 on RAG answers)
 
-**Ops**
-- Fix Mac sleep issue (caffeinate / Power Nap — keeps OpenClaw responsive)
-- Automated backups for ChromaDB
-- Monitoring / logging layer
-- UPnP disabled on router
-- SSH key‑only fallback configured
-
-**Phase 2 (Future)**
+**Multi-Agent (Phase 2)**
+- Intent classifier + sequential dispatcher in OpenClaw
+- Claude Code harness integration
+- RAG, Parser, Memory, Analysis sub-agents on Windows
 - Parallel harness dispatch
 - Persistent task store (SQLite)
-- Streamlit direct → Windows reads for latency-sensitive tabs
+
+**Ops**
+- ChromaDB as Windows service (NSSM — after python.org install)
+- Automated ChromaDB backups
+- Mac sleep fix (caffeinate / Power Nap)
+- Monitoring / logging layer
+
+**Hardening**
+- UPnP disabled on router
+- SSH key-only fallback configured
+- Streamlit auth layer (streamlit-authenticator)
