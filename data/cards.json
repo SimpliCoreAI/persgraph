@@ -1,52 +1,62 @@
 [
   {
-    "id": "card_1",
-    "name": "Card 1",
-    "issuer": "Chase",
-    "rewards_type": "points",
-    "points_program": "Chase UR",
-    "annual_fee": 0,
-    "last4": "0000",
-    "rewards_pdf": "data/cc_rewards/card_1.pdf"
-  },
-  {
-    "id": "card_2",
-    "name": "Card 2",
+    "id": "amex_1",
+    "name": "Amex Card 1",
     "issuer": "Amex",
     "rewards_type": "points",
     "points_program": "Amex MR",
     "annual_fee": 0,
     "last4": "0000",
-    "rewards_pdf": "data/cc_rewards/card_2.pdf"
+    "rewards_pdf": "data/cc_rewards/amex_1.pdf"
   },
   {
-    "id": "card_3",
-    "name": "Card 3",
+    "id": "amex_2",
+    "name": "Amex Card 2",
+    "issuer": "Amex",
+    "rewards_type": "points",
+    "points_program": "Amex MR",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/amex_2.pdf"
+  },
+  {
+    "id": "chase_1",
+    "name": "Chase Card 1",
+    "issuer": "Chase",
+    "rewards_type": "points",
+    "points_program": "Chase UR",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/chase_1.pdf"
+  },
+  {
+    "id": "citi_1",
+    "name": "Citi Card 1",
     "issuer": "Citi",
     "rewards_type": "cashback",
     "points_program": "",
     "annual_fee": 0,
     "last4": "0000",
-    "rewards_pdf": "data/cc_rewards/card_3.pdf"
+    "rewards_pdf": "data/cc_rewards/citi_1.pdf"
   },
   {
-    "id": "card_4",
-    "name": "Card 4",
+    "id": "discover_1",
+    "name": "Discover It",
     "issuer": "Discover",
     "rewards_type": "cashback",
     "points_program": "",
     "annual_fee": 0,
     "last4": "0000",
-    "rewards_pdf": "data/cc_rewards/card_4.pdf"
+    "rewards_pdf": "data/cc_rewards/discover_1.pdf"
   },
   {
-    "id": "card_5",
-    "name": "Card 5",
-    "issuer": "",
-    "rewards_type": "points",
+    "id": "robinhood_1",
+    "name": "Robinhood Gold Card",
+    "issuer": "Robinhood",
+    "rewards_type": "cashback",
     "points_program": "",
     "annual_fee": 0,
     "last4": "0000",
-    "rewards_pdf": "data/cc_rewards/card_5.pdf"
+    "rewards_pdf": "data/cc_rewards/robinhood_1.pdf"
   }
 ]
