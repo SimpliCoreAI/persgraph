@@ -13,5 +13,21 @@
     "queued_at": "2026-05-21T01:27:16.534153+00:00",
     "processed_at": "2026-05-21T01:51:44.137246+00:00",
     "error": "No module named 'httpx'"
+  },
+  {
+    "id": "1894b7ba-5e47-4a1d-aa5c-1a1c3e253bed",
+    "type": "url",
+    "payload": {
+      "url": "https://petronellatech.com/blog/openclaw-ai-agent-guide-2026/",
+      "tags": [
+        "openclaw",
+        "ai-agent",
+        "reference"
+      ]
+    },
+    "status": "failed",
+    "queued_at": "2026-05-21T08:06:29.084463+00:00",
+    "processed_at": "2026-05-21T08:12:19.923084+00:00",
+    "error": "No module named 'pypdf'"
   }
 ]
