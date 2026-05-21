@@ -3,6 +3,13 @@
 # This file IS committed to git (no secrets, just paths).
 # Sensitive data (PDFs, statements) stays in external_storage paths below.
 
+# ── Obsidian Vault ────────────────────────────────────────────────────────────
+obsidian:
+  vault_path: "~/AgenticHub/InsightsData"
+  watch: true                  # auto-ingest on file changes
+  extensions: [".md", ".txt"]  # file types to ingest
+  ignore_folders: [".obsidian", ".trash", "templates", "Templates"]
+
 # ── External Storage (Google Drive or local folder) ───────────────────────────
 external_storage:
   # Mount your Google Drive here (e.g. via Google Drive for Desktop)
