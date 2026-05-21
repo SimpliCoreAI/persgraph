@@ -1,0 +1,50 @@
+# Second Brain — Local Config
+# All machine-specific paths and settings go here.
+# This file IS committed to git (no secrets, just paths).
+# Sensitive data (PDFs, statements) stays in external_storage paths below.
+
+# ── External Storage (Google Drive or local folder) ───────────────────────────
+external_storage:
+  # Mount your Google Drive here (e.g. via Google Drive for Desktop)
+  # macOS default: /Users/<you>/Google Drive/My Drive/
+  # Windows default: G:\My Drive\ or similar
+  base_path: "~/Google Drive/My Drive/SecondBrain"
+
+  folders:
+    cc_rewards:     "CC/rewards"         # Rewards PDFs per card
+    cc_statements:  "CC/statements"      # Monthly statements
+    portfolio:      "Finance/portfolio"  # Portfolio exports
+    documents:      "Documents"          # General PDFs
+
+# ── Computed paths (used in code) ────────────────────────────────────────────
+# Full paths = external_storage.base_path + external_storage.folders.<key>
+# Example: ~/Google Drive/My Drive/SecondBrain/CC/rewards
+
+# ── Windows Compute (via Tailscale) ───────────────────────────────────────────
+windows:
+  tailscale_ip: "100.122.130.89"
+  ollama_port: 11434
+  chromadb_port: 8000
+  streamlit_port: 8501
+
+# ── Models ────────────────────────────────────────────────────────────────────
+models:
+  embed: "nomic-embed-text"
+  llm_fast: "qwen2.5:7b"          # Default — fast, good for RAG
+  llm_heavy: "qwen2.5:72b"        # For deep analysis tasks
+
+# ── Cards ─────────────────────────────────────────────────────────────────────
+# Update with your actual card names
+cards_file: "data/cards.json"
+
+# ── Cron schedules ────────────────────────────────────────────────────────────
+cron:
+  appointment_reminder: "0 8 * * *"     # 8am daily
+  api_cost_summary:     "0 20 * * *"    # 8pm daily
+  queue_worker:         "every 30m"
+  weekly_briefing:      "0 8 * * 0"     # Sunday 8am
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+notifications:
+  channel: "telegram"
+  # chat_id managed by OpenClaw automatically

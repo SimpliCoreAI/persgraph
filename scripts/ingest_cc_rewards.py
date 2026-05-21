@@ -18,9 +18,10 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from second_brain.ingesters.pdf import PDFIngester
+from second_brain.app_config import app_config
 
 CARDS_FILE = Path(__file__).parent.parent / "data" / "cards.json"
-CC_REWARDS_DIR = Path(__file__).parent.parent / "data" / "cc_rewards"
+CC_REWARDS_DIR = app_config.cc_rewards_path  # reads from config.yaml → Google Drive path
 COLLECTION = "cc_rewards"
 
 

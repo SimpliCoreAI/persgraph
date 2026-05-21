@@ -9,9 +9,9 @@
       "category": "Restaurant",
       "notes": "Great biryani and cut mirchi"
     },
-    "status": "pending",
+    "status": "failed",
     "queued_at": "2026-05-21T01:27:16.534153+00:00",
-    "processed_at": null,
-    "error": null
+    "processed_at": "2026-05-21T01:51:44.137246+00:00",
+    "error": "No module named 'httpx'"
   }
 ]
