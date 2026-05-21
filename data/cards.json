@@ -1,0 +1,52 @@
+[
+  {
+    "id": "card_1",
+    "name": "Card 1",
+    "issuer": "Chase",
+    "rewards_type": "points",
+    "points_program": "Chase UR",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/card_1.pdf"
+  },
+  {
+    "id": "card_2",
+    "name": "Card 2",
+    "issuer": "Amex",
+    "rewards_type": "points",
+    "points_program": "Amex MR",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/card_2.pdf"
+  },
+  {
+    "id": "card_3",
+    "name": "Card 3",
+    "issuer": "Citi",
+    "rewards_type": "cashback",
+    "points_program": "",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/card_3.pdf"
+  },
+  {
+    "id": "card_4",
+    "name": "Card 4",
+    "issuer": "Discover",
+    "rewards_type": "cashback",
+    "points_program": "",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/card_4.pdf"
+  },
+  {
+    "id": "card_5",
+    "name": "Card 5",
+    "issuer": "",
+    "rewards_type": "points",
+    "points_program": "",
+    "annual_fee": 0,
+    "last4": "0000",
+    "rewards_pdf": "data/cc_rewards/card_5.pdf"
+  }
+]

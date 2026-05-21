@@ -14,6 +14,11 @@ venv/
 # macOS
 .DS_Store
 
+# CC data — PDFs are pushed intentionally for cross-machine transfer, deleted after ingestion
+# Statements stay local only (sensitive transaction data)
+data/cc_statements/*.pdf
+data/cc_statements/*.csv
+
 # IDE
 .vscode/
 .idea/

@@ -17,6 +17,9 @@ from .base import BaseIngester, IngestResult
 class PDFIngester(BaseIngester):
     """Ingest PDF files into the vector store."""
 
+    def __init__(self, collection_override: Optional[str] = None) -> None:
+        self._collection = collection_override or settings.collection_pdfs
+
     def ingest(self, source: str, tags: Optional[list[str]] = None) -> IngestResult:
         path = Path(source).resolve()
         tags = tags or []
@@ -26,7 +29,7 @@ class PDFIngester(BaseIngester):
                 source=source,
                 chunks_total=0,
                 chunks_new=0,
-                collection=settings.collection_pdfs,
+                collection=self._collection,
                 tags=tags,
                 errors=[f"File not found: {path}"],
             )
@@ -38,7 +41,7 @@ class PDFIngester(BaseIngester):
                 source=source,
                 chunks_total=0,
                 chunks_new=0,
-                collection=settings.collection_pdfs,
+                collection=self._collection,
                 tags=tags,
                 errors=["No text extracted — may be a scanned PDF (OCR not supported yet)"],
             )
@@ -48,7 +51,7 @@ class PDFIngester(BaseIngester):
         file_hash = hashlib.md5(path.read_bytes()).hexdigest()
 
         # Check existing docs to skip duplicates
-        collection = vectorstore.get_or_create(settings.collection_pdfs)
+        collection = vectorstore.get_or_create(self._collection)
         existing_ids = set(collection.get()["ids"])
 
         ids, embeddings, documents, metadatas = [], [], [], []
@@ -72,7 +75,7 @@ class PDFIngester(BaseIngester):
 
         if ids:
             vectorstore.upsert(
-                collection_name=settings.collection_pdfs,
+                collection_name=self._collection,
                 ids=ids,
                 embeddings=embeddings,
                 documents=documents,
@@ -83,7 +86,7 @@ class PDFIngester(BaseIngester):
             source=str(path),
             chunks_total=len(chunks),
             chunks_new=len(ids),
-            collection=settings.collection_pdfs,
+            collection=self._collection,
             tags=tags,
         )
 
