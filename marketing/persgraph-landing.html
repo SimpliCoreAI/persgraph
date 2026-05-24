@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PersGraph — Your Personal Data Graph</title>
+  <style>
+    :root {
+      --bg: #080b14;
+      --bg2: #0d1120;
+      --bg3: #111827;
+      --border: rgba(99,179,237,0.12);
+      --accent: #63b3ed;
+      --accent2: #9f7aea;
+      --accent3: #68d391;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --glow: rgba(99,179,237,0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(8,11,20,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      color: var(--text2); text-decoration: none; font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border: none; padding: 0.5rem 1.25rem;
+      border-radius: 8px; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 6rem 2rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,179,237,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(159,122,234,0.06) 0%, transparent 60%);
+    }
+    .graph-canvas {
+      position: absolute; inset: 0; z-index: 0; opacity: 0.35;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 780px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(99,179,237,0.08); border: 1px solid rgba(99,179,237,0.2);
+      color: var(--accent); padding: 0.35rem 1rem; border-radius: 100px;
+      font-size: 0.8rem; font-weight: 500; margin-bottom: 1.5rem;
+    }
+    .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800; letter-spacing: -0.04em; line-height: 1.05;
+      margin-bottom: 1.25rem;
+    }
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text2); max-width: 560px; margin: 0 auto 2.5rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; padding: 0.875rem 2rem; border-radius: 10px;
+      font-size: 1rem; font-weight: 600; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 24px rgba(99,179,237,0.2);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(99,179,237,0.35); }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      padding: 0.875rem 2rem; border-radius: 10px;
+      font-size: 1rem; font-weight: 600; text-decoration: none;
+      border: 1px solid var(--border); transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); background: rgba(99,179,237,0.05); }
+    .hero-stats {
+      display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border);
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.75rem; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 0.8rem; color: var(--text3); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ── Terminal demo ── */
+    .demo-section {
+      padding: 5rem 2rem;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .section-label {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 800;
+      letter-spacing: -0.03em; text-align: center; margin-bottom: 1rem;
+    }
+    .section-sub {
+      color: var(--text2); text-align: center; max-width: 520px;
+      margin: 0 auto 3rem; font-size: 1rem;
+    }
+    .terminal {
+      width: 100%; max-width: 720px;
+      background: #0a0e1a; border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 0 60px rgba(99,179,237,0.08);
+    }
+    .terminal-bar {
+      background: #111827; padding: 0.75rem 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.r { background: #fc6060; } .dot.y { background: #f9c74f; } .dot.g { background: #43d98c; }
+    .terminal-title { color: var(--text3); font-size: 0.8rem; margin-left: auto; margin-right: auto; }
+    .terminal-body { padding: 1.5rem; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875rem; }
+    .t-line { margin-bottom: 0.5rem; display: flex; gap: 0.75rem; }
+    .t-prompt { color: var(--accent3); user-select: none; }
+    .t-cmd { color: var(--text); }
+    .t-out { color: var(--text2); padding-left: 1.5rem; margin-bottom: 1rem; }
+    .t-tag { display: inline-block; background: rgba(99,179,237,0.1); color: var(--accent); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; }
+    .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); vertical-align: text-bottom; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Bento grid ── */
+    .features-section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto;
+      gap: 1rem;
+    }
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.75rem;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .card:hover {
+      border-color: rgba(99,179,237,0.3);
+      box-shadow: 0 0 32px rgba(99,179,237,0.07);
+      transform: translateY(-2px);
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at top left, var(--card-glow, rgba(99,179,237,0.04)), transparent 70%);
+      pointer-events: none;
+    }
+    .card-wide { grid-column: span 2; }
+    .card-tall { grid-row: span 2; }
+    .card-icon {
+      font-size: 1.75rem; margin-bottom: 1rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px;
+      background: var(--icon-bg, rgba(99,179,237,0.08));
+      border-radius: 12px;
+    }
+    .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .card p { color: var(--text2); font-size: 0.875rem; line-height: 1.6; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+    .tag {
+      font-size: 0.7rem; font-weight: 500; padding: 0.2rem 0.6rem;
+      border-radius: 100px; border: 1px solid var(--border);
+      color: var(--text2); background: rgba(255,255,255,0.02);
+    }
+
+    /* ── How it works ── */
+    .howitworks { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; }
+    .step { text-align: center; }
+    .step-num {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-weight: 800; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 0 24px rgba(99,179,237,0.25);
+    }
+    .step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .step p { color: var(--text2); font-size: 0.875rem; }
+    .step-connector {
+      display: flex; align-items: center; justify-content: center;
+      padding-top: 1.5rem; color: var(--text3); font-size: 1.5rem;
+    }
+
+    /* ── Integrations ── */
+    .integrations { padding: 5rem 2rem; text-align: center; }
+    .integration-grid {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 1rem; max-width: 900px; margin: 3rem auto 0;
+    }
+    .int-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      transition: border-color 0.2s, background 0.2s;
+      min-width: 160px;
+    }
+    .int-card:hover { border-color: rgba(99,179,237,0.3); background: rgba(99,179,237,0.04); }
+    .int-icon { font-size: 1.5rem; }
+    .int-info { text-align: left; }
+    .int-name { font-size: 0.875rem; font-weight: 600; }
+    .int-desc { font-size: 0.72rem; color: var(--text3); }
+
+    /* ── Privacy banner ── */
+    .privacy-section {
+      padding: 5rem 2rem; max-width: 900px; margin: 0 auto;
+    }
+    .privacy-card {
+      background: linear-gradient(135deg, rgba(99,179,237,0.06), rgba(159,122,234,0.06));
+      border: 1px solid rgba(99,179,237,0.15);
+      border-radius: 20px; padding: 3rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+      align-items: center;
+    }
+    .privacy-title { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.03em; }
+    .privacy-body { color: var(--text2); font-size: 0.925rem; line-height: 1.7; }
+    .privacy-features { display: flex; flex-direction: column; gap: 1rem; }
+    .pf {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.875rem;
+    }
+    .pf-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .pf-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .pf-desc { font-size: 0.78rem; color: var(--text3); }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 6rem 2rem; text-align: center;
+      background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(99,179,237,0.05), transparent);
+    }
+    .cta-title { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 1rem; }
+    .cta-sub { color: var(--text2); font-size: 1.1rem; margin-bottom: 2.5rem; }
+    .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .cta-note { color: var(--text3); font-size: 0.8rem; margin-top: 1.25rem; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem; display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; max-width: 1200px; margin: 0 auto;
+    }
+    .footer-logo { font-size: 1rem; font-weight: 700; color: var(--accent); }
+    .footer-text { color: var(--text3); font-size: 0.8rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: var(--text3); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      .bento { grid-template-columns: 1fr; }
+      .card-wide { grid-column: span 1; }
+      .steps { grid-template-columns: 1fr; }
+      .privacy-card { grid-template-columns: 1fr; }
+      .integration-grid { gap: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">PersGraph</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#integrations">Integrations</a>
+    <a href="#privacy">Privacy</a>
+  </div>
+  <a href="#cta" class="nav-cta">Get Early Access</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <canvas class="graph-canvas" id="graphCanvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span></span>
+      Local-first · Private · AI-powered
+    </div>
+    <h1>
+      Your personal data,<br/>
+      <span class="gradient">graphed & queryable</span>
+    </h1>
+    <p class="hero-sub">
+      PersGraph ingests everything about you — emails, notes, tasks, finance, travel —
+      and makes it all semantically searchable with AI. Your data, your graph, your machine.
+    </p>
+    <div class="hero-actions">
+      <a href="#cta" class="btn-primary">Get Early Access →</a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Data Sources</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Local & Private</div></div>
+      <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Queryable Memory</div></div>
+      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Cloud Deps</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Terminal demo -->
+<section class="demo-section" id="demo">
+  <div class="section-label">Live Query</div>
+  <h2 class="section-title">Ask anything about yourself</h2>
+  <p class="section-sub">Your entire personal data graph, one natural language query away.</p>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="terminal-title">persgraph — personal data shell</div>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask what are my upcoming appointments this week?</span></div>
+      <div class="t-out">📅 Found <strong>3 appointments</strong> in the next 7 days:<br/>
+        &nbsp;· Dentist — Mon Jun 2, 10:00 AM <span class="t-tag">calendar</span><br/>
+        &nbsp;· Team sync — Wed Jun 4, 2:00 PM <span class="t-tag">calendar</span><span class="t-tag">email</span><br/>
+        &nbsp;· Flight YVR → SFO — Fri Jun 6, 7:45 AM <span class="t-tag">travel</span>
+      </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask how much did I spend on dining last month?</span></div>
+      <div class="t-out">💳 Dining spend — May 2026:<br/>
+        &nbsp;· Total: <strong>$312.40</strong> across 14 transactions <span class="t-tag">chase</span><span class="t-tag">amex</span><br/>
+        &nbsp;· Top spot: Nobu SF · $84.20
+      </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask show my notes about RAG vs agents<span class="cursor"></span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Bento -->
+<section class="features-section" id="features">
+  <div style="text-align:center; margin-bottom:3rem;">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything about you, in one graph</h2>
+    <p class="section-sub">Every data type is ingested, semantically indexed, and instantly retrievable.</p>
+  </div>
+  <div class="bento">
+
+    <!-- Wide card -->
+    <div class="card card-wide" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">🔍</div>
+      <h3>Semantic Search Across Everything</h3>
+      <p>Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you took, an email you half-remember, or a decision you made — PersGraph finds it.</p>
+      <div class="card-tags">
+        <span class="tag">ChromaDB</span>
+        <span class="tag">Ollama embeddings</span>
+        <span class="tag">Local-first</span>
+      </div>
+    </div>
+
+    <!-- Tall card -->
+    <div class="card card-tall" style="--card-glow:rgba(159,122,234,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">📊</div>
+      <h3>Personal Finance Graph</h3>
+      <p>Ingest credit card statements, track rewards, spot spending patterns. Your financial data — structured, semantic, private.</p>
+      <div class="card-tags" style="margin-top:auto">
+        <span class="tag">CC Rewards</span>
+        <span class="tag">Statements</span>
+        <span class="tag">Multi-card</span>
+      </div>
+      <div style="margin-top:1.5rem; padding:1rem; background:rgba(159,122,234,0.06); border-radius:10px; border:1px solid rgba(159,122,234,0.15);">
+        <div style="font-size:0.75rem; color:var(--text3); margin-bottom:0.5rem">May 2026 · Rewards Earned</div>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem"><span>Amex Gold</span><span style="color:var(--accent3)">+2,840 pts</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem"><span>Chase Sapphire</span><span style="color:var(--accent3)">+1,920 pts</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem"><span>Citi DoubleCash</span><span style="color:var(--accent3)">+$18.40</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="--card-glow:rgba(104,211,145,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1)">📧</div>
+      <h3>Email Ingestion</h3>
+      <p>Trusted sender filtering, intent classification, auto-routing to tasks, appointments, or notes. Zero noise.</p>
+      <div class="card-tags"><span class="tag">Gmail IMAP</span><span class="tag">Auto-classify</span></div>
+    </div>
+
+    <div class="card" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">✅</div>
+      <h3>Tasks & Appointments</h3>
+      <p>Captured from email, voice, or message. Synced to Google Calendar. Reminded before it's too late.</p>
+      <div class="card-tags"><span class="tag">Google Calendar</span><span class="tag">Reminders</span></div>
+    </div>
+
+    <div class="card" style="--card-glow:rgba(252,211,77,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(252,211,77,0.08)">🌐</div>
+      <h3>URL & Web Ingestion</h3>
+      <p>Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.</p>
+      <div class="card-tags"><span class="tag">Auto-chunk</span><span class="tag">Embed</span></div>
+    </div>
+
+    <div class="card card-wide" style="--card-glow:rgba(159,122,234,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">✈️</div>
+      <h3>Travel & Places Graph</h3>
+      <p>Log places you've been, want to go, or want to remember. Searchable by city, category, country — with ratings and auto-tagging via local AI.</p>
+      <div class="card-tags">
+        <span class="tag">POI</span><span class="tag">Auto-tag</span><span class="tag">Country filter</span><span class="tag">Ratings</span>
+      </div>
+    </div>
+
+    <div class="card" style="--card-glow:rgba(104,211,145,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1)">📓</div>
+      <h3>Obsidian Sync</h3>
+      <p>Watches your vault, incrementally ingests notes with frontmatter tags. Your thinking, searchable.</p>
+      <div class="card-tags"><span class="tag">Incremental</span><span class="tag">Frontmatter</span></div>
+    </div>
+
+    <div class="card" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">🧠</div>
+      <h3>Wiki Ingestion</h3>
+      <p>Synthesize articles into structured notes with key insights, concepts, and tags — saved to your vault automatically.</p>
+      <div class="card-tags"><span class="tag">AI synthesis</span><span class="tag">Auto-structure</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="howitworks" id="how">
+  <div style="text-align:center">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Simple pipeline, powerful results</h2>
+    <p class="section-sub">Three steps from raw data to queryable intelligence.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Ingest</h3>
+      <p>Drop emails, links, PDFs, notes, finance data — PersGraph pulls it in from every source automatically or on-demand.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Embed</h3>
+      <p>Every piece of data is chunked and embedded locally using Ollama. No cloud, no third party ever sees your data.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Query</h3>
+      <p>Ask anything in natural language via Telegram, terminal, or the web UI. Your personal AI answers from your own graph.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Integrations -->
+<section class="integrations" id="integrations">
+  <div class="section-label">Integrations</div>
+  <h2 class="section-title">Connects to your world</h2>
+  <p class="section-sub">PersGraph speaks to the tools you already use — all processed locally.</p>
+  <div class="integration-grid">
+    <div class="int-card"><div class="int-icon">📧</div><div class="int-info"><div class="int-name">Gmail</div><div class="int-desc">Email ingestion</div></div></div>
+    <div class="int-card"><div class="int-icon">📅</div><div class="int-info"><div class="int-name">Google Calendar</div><div class="int-desc">Appointments sync</div></div></div>
+    <div class="int-card"><div class="int-icon">💬</div><div class="int-info"><div class="int-name">Telegram</div><div class="int-desc">Command interface</div></div></div>
+    <div class="int-card"><div class="int-icon">📓</div><div class="int-info"><div class="int-name">Obsidian</div><div class="int-desc">Vault watcher</div></div></div>
+    <div class="int-card"><div class="int-icon">🦙</div><div class="int-info"><div class="int-name">Ollama</div><div class="int-desc">Local LLM + embeddings</div></div></div>
+    <div class="int-card"><div class="int-icon">🗄️</div><div class="int-info"><div class="int-name">ChromaDB</div><div class="int-desc">Vector store</div></div></div>
+    <div class="int-card"><div class="int-icon">☁️</div><div class="int-info"><div class="int-name">Google Drive</div><div class="int-desc">File ingestion</div></div></div>
+    <div class="int-card"><div class="int-icon">🤖</div><div class="int-info"><div class="int-name">OpenClaw</div><div class="int-desc">AI agent runtime</div></div></div>
+    <div class="int-card"><div class="int-icon">💳</div><div class="int-info"><div class="int-name">Credit Cards</div><div class="int-desc">Rewards & statements</div></div></div>
+    <div class="int-card"><div class="int-icon">🗺️</div><div class="int-info"><div class="int-name">Travel & POI</div><div class="int-desc">Places graph</div></div></div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section class="privacy-section" id="privacy">
+  <div class="privacy-card">
+    <div>
+      <div class="section-label" style="text-align:left">Privacy First</div>
+      <div class="privacy-title">Your data never<br/>leaves your machine</div>
+      <p class="privacy-body">
+        PersGraph runs entirely on your hardware. LLMs, embeddings, vector search —
+        all local. No subscriptions sending your personal data to a cloud. You own
+        everything, always.
+      </p>
+    </div>
+    <div class="privacy-features">
+      <div class="pf">
+        <div class="pf-icon">🔒</div>
+        <div><div class="pf-title">100% Local Processing</div><div class="pf-desc">Ollama runs models on your CPU/GPU. No API calls for your data.</div></div>
+      </div>
+      <div class="pf">
+        <div class="pf-icon">🏠</div>
+        <div><div class="pf-title">Self-hosted Vector DB</div><div class="pf-desc">ChromaDB runs on your machine or homelab. Your vectors stay yours.</div></div>
+      </div>
+      <div class="pf">
+        <div class="pf-icon">🔑</div>
+        <div><div class="pf-title">Open Source</div><div class="pf-desc">Inspect every line. No black boxes. Fork it, audit it, own it.</div></div>
+      </div>
+      <div class="pf">
+        <div class="pf-icon">📡</div>
+        <div><div class="pf-title">Air-gap Ready</div><div class="pf-desc">Works offline. Your knowledge graph doesn't need the internet.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <h2 class="cta-title">Own your personal<br/><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">data graph</span></h2>
+  <p class="cta-sub">Join the waitlist. Be the first to run PersGraph.</p>
+  <div class="cta-actions">
+    <a href="https://github.com" class="btn-primary">⭐ Star on GitHub</a>
+    <a href="#" class="btn-secondary">Join Waitlist</a>
+  </div>
+  <p class="cta-note">Open source · Self-hosted · No cloud required</p>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">PersGraph</div>
+  <div class="footer-text">© 2026 PersGraph. Your data, your graph.</div>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Docs</a>
+    <a href="#">Privacy</a>
+  </div>
+</footer>
+
+<script>
+  // Animated graph background
+  const canvas = document.getElementById('graphCanvas');
+  const ctx = canvas.getContext('2d');
+  let nodes = [], animId;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initNodes() {
+    nodes = Array.from({length: 55}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2.5 + 1,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const t = Date.now() / 1000;
+
+    // Draw edges
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 160) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(99,179,237,${0.12 * (1 - d/160)})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw nodes
+    nodes.forEach(n => {
+      const glow = Math.sin(t + n.pulse) * 0.3 + 0.7;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * glow, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(99,179,237,${0.5 * glow})`;
+      ctx.fill();
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+      if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+    });
+
+    animId = requestAnimationFrame(draw);
+  }
+
+  resize(); initNodes(); draw();
+  window.addEventListener('resize', () => { resize(); initNodes(); });
+
+  // Typing animation for terminal
+  const typeTarget = document.querySelector('.t-cmd:last-child');
+  const fullText = '/ask show my notes about RAG vs agents';
+  let i = 0;
+  function typeNext() {
+    if (i <= fullText.length) {
+      const cursor = typeTarget.querySelector('.cursor');
+      typeTarget.innerHTML = fullText.slice(0, i) + '<span class="cursor"></span>';
+      i++;
+      setTimeout(typeNext, i > fullText.length ? 3000 : 65);
+      if (i > fullText.length) { i = 0; setTimeout(typeNext, 3200); }
+    }
+  }
+  setTimeout(typeNext, 1500);
+</script>
+
+</body>
+</html>

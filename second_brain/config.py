@@ -27,6 +27,19 @@ class Settings(BaseSettings):
     chunk_size: int = 512
     chunk_overlap: int = 64
 
+    # Obsidian vault (for /wiki-ingest note output)
+    obsidian_vault_path: str = "~/AgenticHub/InsightsData"
+
+    # Anthropic (for email classification + calendar extraction)
+    anthropic_api_key: str = ""
+
+    # Email ingestion (openclaw Gmail inbox)
+    openclaw_email: str = "jkjs35149.openclaw@gmail.com"
+    openclaw_email_password: str = ""  # Gmail App Password
+
+    # gog account for Google Calendar
+    gog_account: str = ""  # e.g. jolly.singh@gmail.com
+
     # Collection names
     collection_pdfs: str = "pdfs"
     collection_notes: str = "notes"

@@ -513,6 +513,45 @@ streamlit run app.py --server.address 100.x.x.x --server.port 8501
 - Only stock earnings data fetches from external API
 - Email sent via local SMTP or configured email provider
 
+## 12. Slash Command Interface (added May 2026)
+
+### How it works
+All commands are handled by `scripts/command.py` and triggered from Telegram via OpenClaw.
+The agent (Claude) acts as the synthesis engine — Ollama is used only for embeddings.
+
+### Command Reference
+
+| Command | What it does | Output |
+|---------|-------------|--------|
+| `/wiki-ingest <url>` | Ingest URL to ChromaDB + Claude synthesizes structured Obsidian note | Note written to `InsightsData/wiki/articles/` |
+| `/ingest <url>` | Ingest URL to ChromaDB only (no synthesis) | Chunk count + collection |
+| `/ask <question>` | Embed question → semantic search ChromaDB → Claude answers with citations | Answer + sources |
+| `/note <text>` | Queue a quick note | Queued confirmation |
+| `/task <text>` | Queue a task | Queued confirmation |
+| `/place <name>, <city>` | Queue a place/POI | Queued confirmation |
+| `/status` | Collection chunk counts + queue stats | Stats summary |
+
+### Medium / Paywalled URLs
+Medium URLs are automatically rewritten to `freedium-mirror.cfd` proxy.
+No manual action needed — just paste the original Medium URL.
+
+### Run manually
+```bash
+cd ~/AgenticHub/second-brain
+PYTHONPATH=. .venv/bin/python scripts/command.py "/ask what is RAG?"
+```
+
+### LLM Wiki — Two-layer architecture
+```
+/ingest       → ChromaDB only  (fast, for /ask semantic search)
+/wiki-ingest  → ChromaDB + Obsidian note (synthesis by Claude, no extra API cost)
+/ask          → ChromaDB retrieval + Claude answers
+```
+
+Obsidian vault: `~/AgenticHub/InsightsData/wiki/articles/`
+
+---
+
 ## 11. What's Built (as of May 2026)
 
 ### ✅ Completed
@@ -524,6 +563,12 @@ streamlit run app.py --server.address 100.x.x.x --server.port 8501
 - **Appointment Reminders:** OpenClaw cron at 8am daily → checks ChromaDB → Telegram alert
 - **API Cost Tracking:** `track_api_cost.py` + OpenClaw cron at 8pm daily → Telegram summary
 - **GitHub:** Private repo at github.com/JollyS/second-brain, all code versioned
+- **Slash Command Interface** (May 2026): Telegram slash commands wired via OpenClaw — see Section 12
+- **LLM Wiki Layer** (May 2026): `/wiki-ingest` synthesizes Obsidian notes via Claude — zero extra API cost
+- **Batch Embeddings** (May 2026): all chunks embedded in one Ollama call (was per-chunk — much faster)
+- **Python 3.13 venv** (May 2026): rebuilt from 3.14 (too new) — all deps now install cleanly
+- **AGENT_CONTEXT.md**: agent contract file defining collections, tagging rules, query behavior
+- **OpenClaw Skill**: `second-brain` skill registered at `/skills/second-brain/SKILL.md`
 
 ### 🔲 In Progress
 - Credit Card Agent (requirements phase)
@@ -538,6 +583,7 @@ streamlit run app.py --server.address 100.x.x.x --server.port 8501
 - Notes/markdown ingester
 - YouTube ingester (yt-dlp + Whisper)
 - Human feedback loop (👍/👎 on RAG answers)
+- `/wiki-ingest` confirmation step before writing (plan-before-execute pattern)
 
 **Multi-Agent (Phase 2)**
 - Intent classifier + sequential dispatcher in OpenClaw

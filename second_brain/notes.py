@@ -43,6 +43,8 @@ def save(
     embed_text = f"{item_type}: {title}"
     if body:
         embed_text += f"\n{body}"
+    # Truncate to avoid exceeding embed model context limit (~8000 chars safe)
+    embed_text = embed_text[:8000]
 
     embedding = embedder.embed(embed_text)
 
