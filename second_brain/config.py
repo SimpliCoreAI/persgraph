@@ -8,10 +8,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", ".env.local"),  # .env.local overrides .env (gitignored)
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore",  # ignore unknown env vars like WINDOWS_IP
+        extra="ignore",
     )
 
     # Ollama

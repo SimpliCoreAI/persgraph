@@ -30,3 +30,4 @@ chroma_db/
 data/chroma/
 persgraph/data/
 persgraph/financial_report*.html
+.env.local
