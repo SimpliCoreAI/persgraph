@@ -24,3 +24,7 @@ data/portfolio/*.csv
 # IDE
 .vscode/
 .idea/
+
+# Local vector store
+chroma_db/
+data/chroma/

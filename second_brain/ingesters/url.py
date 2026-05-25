@@ -51,7 +51,7 @@ class URLIngester(BaseIngester):
         collection = vectorstore.get_or_create(settings.collection_urls)
         existing_ids = set(collection.get()["ids"])
 
-        ids, embeddings, documents, metadatas = [], [], [], []
+        ids, documents, metadatas = [], [], []
 
         for i, chunk in enumerate(chunks):
             doc_id = f"{url_hash}_{i}"
@@ -59,7 +59,6 @@ class URLIngester(BaseIngester):
                 continue
 
             ids.append(doc_id)
-            embeddings.append(embedder.embed(chunk))
             documents.append(chunk)
             metadatas.append({
                 "source": source,
@@ -69,7 +68,11 @@ class URLIngester(BaseIngester):
                 "total_chunks": len(chunks),
                 "ingested_at": datetime.now(timezone.utc).isoformat(),
                 "tags": ",".join(tags),
+                "source_type": self._detect_source_type(source, tags),
             })
+
+        # Batch embed all new chunks in one call
+        embeddings = embedder.embed_batch(documents) if documents else []
 
         if ids:
             vectorstore.upsert(
@@ -128,6 +131,20 @@ class URLIngester(BaseIngester):
         title = meta.title if meta and meta.title else ""
 
         return text, title
+
+    def _detect_source_type(self, url: str, tags: list[str]) -> str:
+        """Infer source type from URL or tags."""
+        if "medium" in tags or "medium.com" in url or "freedium" in url:
+            return "medium"
+        if "youtube.com" in url or "youtu.be" in url:
+            return "youtube"
+        if "substack.com" in url:
+            return "substack"
+        if "github.com" in url:
+            return "github"
+        if "pdf" in tags:
+            return "pdf"
+        return "web"
 
     def _is_valid_url(self, url: str) -> bool:
         try:
