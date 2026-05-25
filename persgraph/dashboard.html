@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 Financial Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:     #0f1117;
+    --card:   #1a1d27;
+    --border: #2a2d3a;
+    --accent: #6c8ef5;
+    --text:   #e0e4f0;
+    --muted:  #888;
+    --ok:     #4ecb71;
+    --err:    #e05c5c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Top Bar ───────────────────────────────────────────────── */
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .topbar-spacer { flex: 1; }
+
+  .info-strip {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .info-strip span { color: var(--accent); }
+
+  /* ── Buttons ────────────────────────────────────────────────── */
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-sm {
+    background: #2a2d3a;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .btn-sm:hover { background: #363a4f; }
+
+  /* ── Tabs ───────────────────────────────────────────────────── */
+  .tabs-wrapper {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .tab {
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-spacer { flex: 1; }
+
+  /* ── Iframe Panels ──────────────────────────────────────────── */
+  .panels { flex: 1; overflow: hidden; position: relative; }
+
+  .panel {
+    position: absolute;
+    inset: 0;
+    display: none;
+  }
+  .panel.active { display: flex; flex-direction: column; }
+
+  .panel-bar {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .panel-bar-label { font-size: 12px; color: var(--muted); flex: 1; }
+
+  iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: var(--bg);
+  }
+
+  /* ── Toast ──────────────────────────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    max-width: 340px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  #toast.ok   { border-left: 4px solid var(--ok); }
+  #toast.err  { border-left: 4px solid var(--err); }
+  #toast.info { border-left: 4px solid var(--accent); }
+
+  /* ── Spinner ────────────────────────────────────────────────── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="topbar-title">📊 Financial Dashboard</div>
+  <div class="info-strip">Data: <span>finance/data/</span> — drop new CSVs here and click Refresh</div>
+  <div class="topbar-spacer"></div>
+  <button class="btn" id="refreshAll" onclick="refreshAll()">
+    <span>🔄</span> Refresh All
+  </button>
+</div>
+
+<!-- ── TABS ───────────────────────────────────────────────────── -->
+<div class="tabs-wrapper">
+  <div class="tab active" onclick="switchTab('t2025', this)">
+    📅 2025 Full Year
+  </div>
+  <div class="tab" onclick="switchTab('t2026', this)">
+    📆 2026 YTD
+  </div>
+  <div class="tab" onclick="switchTab('tyoy', this)">
+    ⚖️ 2025 vs 2026 (YoY)
+  </div>
+</div>
+
+<!-- ── PANELS ─────────────────────────────────────────────────── -->
+<div class="panels">
+
+  <!-- 2025 Panel -->
+  <div class="panel active" id="panel-t2025">
+    <div class="panel-bar">
+      <span class="panel-bar-label">Full-Year 2025 Report — Jan 1 → Dec 31, 2025</span>
+      <button class="btn-sm" onclick="refreshOne('2025', 't2025')">↻ Refresh 2025</button>
+    </div>
+    <iframe id="iframe-t2025" src="financial_report_2025.html"></iframe>
+  </div>
+
+  <!-- 2026 Panel -->
+  <div class="panel" id="panel-t2026">
+    <div class="panel-bar">
+      <span class="panel-bar-label">2026 YTD Report — Jan 1 → Present</span>
+      <button class="btn-sm" onclick="refreshOne('2026', 't2026')">↻ Refresh 2026</button>
+    </div>
+    <iframe id="iframe-t2026" src="financial_report.html"></iframe>
+  </div>
+
+  <!-- YoY Panel -->
+  <div class="panel" id="panel-tyoy">
+    <div class="panel-bar">
+      <span class="panel-bar-label">Year-over-Year Comparison — 2025 vs 2026</span>
+      <button class="btn-sm" onclick="refreshOne('yoy', 'tyoy')">↻ Refresh YoY</button>
+    </div>
+    <iframe id="iframe-tyoy" src="financial_report_yoy.html"></iframe>
+  </div>
+
+</div>
+
+<!-- ── TOAST ──────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + tabId).classList.add('active');
+}
+
+// ── Toast ──────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
+// ── Refresh helpers ────────────────────────────────────────────
+function setRefreshBtnState(btn, loading) {
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Refreshing…';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.orig || btn.innerHTML;
+  }
+}
+
+async function doRefresh(payload, onSuccess) {
+  try {
+    const res = await fetch('/api/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const failures = Object.entries(data).filter(([, v]) => !v.ok);
+    if (failures.length === 0) {
+      showToast('✅ Refresh complete!', 'ok');
+      onSuccess(data);
+    } else {
+      const msgs = failures.map(([k, v]) => `${k}: ${v.msg}`).join(' | ');
+      showToast('⚠️ Some reports failed: ' + msgs, 'err');
+      onSuccess(data);   // still reload what succeeded
+    }
+  } catch (e) {
+    showToast('❌ Server error: ' + e.message, 'err');
+  }
+}
+
+function reloadIframe(iframeId) {
+  const iframe = document.getElementById('iframe-' + iframeId);
+  if (!iframe) return;
+  const base = iframe.src.split('?')[0];
+  iframe.src = base + '?t=' + Date.now();
+}
+
+// ── Refresh All ────────────────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById('refreshAll');
+  if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+  setRefreshBtnState(btn, true);
+  showToast('🔄 Regenerating all reports…', 'info');
+
+  await doRefresh({ report: 'all' }, (data) => {
+    ['t2025', 't2026', 'tyoy'].forEach(id => reloadIframe(id));
+  });
+
+  setRefreshBtnState(btn, false);
+}
+
+// ── Refresh single ─────────────────────────────────────────────
+async function refreshOne(reportKey, iframeId) {
+  // Find the button — it's the one inside the active panel bar
+  const btn = document.querySelector(`#panel-${iframeId} .btn-sm`);
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Running…'; }
+  showToast(`🔄 Refreshing ${reportKey}…`, 'info');
+
+  await doRefresh({ report: reportKey }, () => {
+    reloadIframe(iframeId);
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = orig; }
+}
+</script>
+</body>
+</html>

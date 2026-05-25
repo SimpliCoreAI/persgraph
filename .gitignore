@@ -28,3 +28,5 @@ data/portfolio/*.csv
 # Local vector store
 chroma_db/
 data/chroma/
+persgraph/data/
+persgraph/financial_report*.html
