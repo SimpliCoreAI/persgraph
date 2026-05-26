@@ -200,6 +200,9 @@
   <div class="tab" onclick="switchTab('tyoy', this)">
     ⚖️ 2025 vs 2026 (YoY)
   </div>
+  <div class="tab" onclick="switchTab('tportfolio', this)">
+    💼 Portfolio
+  </div>
 </div>
 
 <!-- ── PANELS ─────────────────────────────────────────────────── -->
@@ -230,6 +233,15 @@
       <button class="btn-sm" onclick="refreshOne('yoy', 'tyoy')">↻ Refresh YoY</button>
     </div>
     <iframe id="iframe-tyoy" src="financial_report_yoy.html"></iframe>
+  </div>
+
+  <!-- Portfolio Panel -->
+  <div class="panel" id="panel-tportfolio">
+    <div class="panel-bar">
+      <span class="panel-bar-label">Portfolio &amp; Investment Activity — 2025–2026</span>
+      <button class="btn-sm" onclick="refreshOne('portfolio', 'tportfolio')">↻ Refresh Portfolio</button>
+    </div>
+    <iframe id="iframe-tportfolio" src="financial_report_portfolio.html"></iframe>
   </div>
 
 </div>
@@ -305,7 +317,7 @@ async function refreshAll() {
   showToast('🔄 Regenerating all reports…', 'info');
 
   await doRefresh({ report: 'all' }, (data) => {
-    ['t2025', 't2026', 'tyoy'].forEach(id => reloadIframe(id));
+    ['t2025', 't2026', 'tyoy', 'tportfolio'].forEach(id => reloadIframe(id));
   });
 
   setRefreshBtnState(btn, false);

@@ -10,9 +10,10 @@ from pathlib import Path
 PORT = 8765
 FINANCE_DIR = Path(__file__).parent
 SCRIPTS = {
-    "2025": FINANCE_DIR / "analyze_2025.py",
-    "2026": FINANCE_DIR / "analyze_transactions.py",
-    "yoy":  FINANCE_DIR / "analyze_yoy.py",
+    "2025":      FINANCE_DIR / "analyze_2025.py",
+    "2026":      FINANCE_DIR / "analyze_transactions.py",
+    "yoy":       FINANCE_DIR / "analyze_yoy.py",
+    "portfolio": FINANCE_DIR / "analyze_portfolio.py",
 }
 
 class Handler(http.server.SimpleHTTPRequestHandler):
