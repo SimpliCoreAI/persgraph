@@ -3,6 +3,7 @@
 Portfolio & Investment Analysis
 Generates: financial_report_portfolio.html
 """
+import argparse
 import csv, re, json
 from pathlib import Path
 from collections import defaultdict
@@ -12,7 +13,29 @@ from datetime import datetime
 BASE_DIR  = Path(__file__).parent
 DATA_2025 = BASE_DIR / "data" / "transactions_2025.csv"
 DATA_2026 = BASE_DIR / "data" / "transactions_2026.csv"
-OUT_FILE  = BASE_DIR / "financial_report_portfolio.html"
+OUT_FILE  = BASE_DIR / "financial_report_portfolio.html"  # default; overridden by --year
+
+# ── CLI Args ─────────────────────────────────────────────────────
+_parser = argparse.ArgumentParser(description="Portfolio Analysis")
+_parser.add_argument("--year", type=int, choices=[2025, 2026], default=None,
+                     help="Filter to a specific year. Default: combined view.")
+_args = _parser.parse_args()
+year_filter = _args.year
+
+if year_filter == 2025:
+    OUT_FILE   = BASE_DIR / "financial_report_portfolio_2025.html"
+    PAGE_TITLE = "\U0001f4bc Portfolio \u2014 2025 Full Year"
+    SUBTITLE   = "Securities Trades \u00b7 Retirement Contributions \u00b7 Investment Income \u2014 2025 Full Year"
+    YEAR_LABEL = "2025 Full Year"
+elif year_filter == 2026:
+    OUT_FILE   = BASE_DIR / "financial_report_portfolio_2026.html"
+    PAGE_TITLE = "\U0001f4bc Portfolio \u2014 2026 YTD"
+    SUBTITLE   = "Securities Trades \u00b7 Retirement Contributions \u00b7 Investment Income \u2014 2026 YTD"
+    YEAR_LABEL = "2026 YTD"
+else:
+    PAGE_TITLE = "\U0001f4bc Portfolio & Investment Activity"
+    SUBTITLE   = "Securities Trades \u00b7 Retirement Contributions \u00b7 Investment Income \u2014 2025\u20132026 YTD"
+    YEAR_LABEL = "Both years combined"
 
 # ── Theme ────────────────────────────────────────────────────────
 BG      = "#0f1117"
@@ -133,9 +156,16 @@ def load_csv(path, year):
             })
     return rows
 
-rows_2025 = load_csv(DATA_2025, 2025)
-rows_2026 = load_csv(DATA_2026, 2026)
-all_rows  = rows_2025 + rows_2026
+if year_filter == 2025:
+    rows_2025 = load_csv(DATA_2025, 2025)
+    rows_2026 = []
+elif year_filter == 2026:
+    rows_2025 = []
+    rows_2026 = load_csv(DATA_2026, 2026)
+else:
+    rows_2025 = load_csv(DATA_2025, 2025)
+    rows_2026 = load_csv(DATA_2026, 2026)
+all_rows = rows_2025 + rows_2026
 
 # ── Filter by investment categories ──────────────────────────────
 def get_month(row):
@@ -164,7 +194,12 @@ for r in securities:
 # Build full month labels for both years
 months_2025 = [f"2025-{mm:02d}" for mm in range(1, 13)]
 months_2026 = [f"2026-{mm:02d}" for mm in range(1, 13)]
-all_months  = sorted(set(monthly_buys_sells.keys()) | set(months_2025) | set(months_2026))
+if year_filter == 2025:
+    all_months = months_2025
+elif year_filter == 2026:
+    all_months = months_2026
+else:
+    all_months = sorted(set(monthly_buys_sells.keys()) | set(months_2025) | set(months_2026))
 
 def fmt_month(m):
     dt = datetime.strptime(m, "%Y-%m")
@@ -440,6 +475,51 @@ recs.append({
             f"{'Income stream is growing — passive income is on an upward trajectory. 🎉' if total_income_2026 > total_income_2025 * 0.4 else 'Consider increasing dividend-paying holdings to build a stronger passive income stream.'}"
 })
 
+# ── Pre-compute year-conditional chart traces (inserted into HTML f-string) ───────
+if year_filter == 2025:
+    _c1_traces = (
+        f"  {{ name: 'Buys',  x: months25, y: {json.dumps(chart1_buys_2025)},  type: 'bar', marker: {{ color: RED }}, offsetgroup: 'g' }},\n"
+        f"  {{ name: 'Sells', x: months25, y: {json.dumps(chart1_sells_2025)}, type: 'bar', marker: {{ color: GREEN }}, offsetgroup: 'g' }},\n"
+        f"  {{ name: 'Net',   x: months25, y: {json.dumps(chart1_net_2025)},   type: 'scatter', mode: 'lines+markers',\n"
+        f"     marker: {{ color: ACCENT, size: 6 }}, line: {{ color: ACCENT, width: 2 }}, yaxis: 'y2' }},\n"
+    )
+    _c9_traces = (
+        f"  {{ name: '2025 Cumulative', x: months25, y: {json.dumps(cum_income_2025)},\n"
+        f"     type: 'scatter', mode: 'lines+markers', fill: 'tozeroy',\n"
+        f"     line: {{ color: ACCENT, width: 2 }}, fillcolor: ACCENT + '22', marker: {{ size: 5 }} }},\n"
+    )
+elif year_filter == 2026:
+    _c1_traces = (
+        f"  {{ name: 'Buys',  x: months26, y: {json.dumps(chart1_buys_2026)},  type: 'bar', marker: {{ color: RED }}, offsetgroup: 'g' }},\n"
+        f"  {{ name: 'Sells', x: months26, y: {json.dumps(chart1_sells_2026)}, type: 'bar', marker: {{ color: GREEN }}, offsetgroup: 'g' }},\n"
+        f"  {{ name: 'Net',   x: months26, y: {json.dumps(chart1_net_2026)},   type: 'scatter', mode: 'lines+markers',\n"
+        f"     marker: {{ color: ACCENT, size: 6 }}, line: {{ color: ACCENT, width: 2 }}, yaxis: 'y2' }},\n"
+    )
+    _c9_traces = (
+        f"  {{ name: '2026 Cumulative', x: months26, y: {json.dumps(cum_income_2026)},\n"
+        f"     type: 'scatter', mode: 'lines+markers', fill: 'tozeroy',\n"
+        f"     line: {{ color: AMBER, width: 2 }}, fillcolor: AMBER + '22', marker: {{ size: 5, color: AMBER }} }},\n"
+    )
+else:
+    _c1_traces = (
+        f"  {{ name: 'Buys 2025',  x: months25, y: {json.dumps(chart1_buys_2025)},  type: 'bar', marker: {{ color: RED }},   offsetgroup: '2025' }},\n"
+        f"  {{ name: 'Sells 2025', x: months25, y: {json.dumps(chart1_sells_2025)}, type: 'bar', marker: {{ color: GREEN }}, offsetgroup: '2025', base: 0 }},\n"
+        f"  {{ name: 'Buys 2026',  x: months26, y: {json.dumps(chart1_buys_2026)},  type: 'bar', marker: {{ color: RED, opacity: 0.5 }},   offsetgroup: '2026' }},\n"
+        f"  {{ name: 'Sells 2026', x: months26, y: {json.dumps(chart1_sells_2026)}, type: 'bar', marker: {{ color: GREEN, opacity: 0.5 }}, offsetgroup: '2026' }},\n"
+        f"  {{ name: 'Net 2025', x: months25, y: {json.dumps(chart1_net_2025)}, type: 'scatter', mode: 'lines+markers',\n"
+        f"     marker: {{ color: ACCENT, size: 6 }}, line: {{ color: ACCENT, width: 2 }}, yaxis: 'y2' }},\n"
+        f"  {{ name: 'Net 2026', x: months26, y: {json.dumps(chart1_net_2026)}, type: 'scatter', mode: 'lines+markers',\n"
+        f"     marker: {{ color: AMBER, size: 6 }}, line: {{ color: AMBER, width: 2, dash: 'dash' }}, yaxis: 'y2' }},\n"
+    )
+    _c9_traces = (
+        f"  {{ name: '2025 Cumulative', x: months25, y: {json.dumps(cum_income_2025)},\n"
+        f"     type: 'scatter', mode: 'lines+markers', fill: 'tozeroy',\n"
+        f"     line: {{ color: ACCENT, width: 2 }}, fillcolor: ACCENT + '22', marker: {{ size: 5 }} }},\n"
+        f"  {{ name: '2026 Cumulative', x: months26, y: {json.dumps(cum_income_2026)},\n"
+        f"     type: 'scatter', mode: 'lines+markers',\n"
+        f"     line: {{ color: AMBER, width: 2, dash: 'dash' }}, marker: {{ size: 5, color: AMBER }} }},\n"
+    )
+
 # ── HTML ──────────────────────────────────────────────────────────
 html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -504,8 +584,8 @@ h1 {{ font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 6p
 </style>
 </head>
 <body>
-<h1>💼 Portfolio & Investment Activity</h1>
-<div class="subtitle">Securities Trades · Retirement Contributions · Investment Income — 2025–2026 YTD</div>
+<h1>{PAGE_TITLE}</h1>
+<div class="subtitle">{SUBTITLE}</div>
 
 <!-- ── Stat Cards ── -->
 <div class="section-title">📊 Summary Statistics</div>
@@ -513,12 +593,12 @@ h1 {{ font-size: 26px; font-weight: 700; color: var(--accent); margin-bottom: 6p
   <div class="card">
     <div class="card-label">Total Buy Volume</div>
     <div class="card-value">{fmt_currency(total_buy_vol)}</div>
-    <div class="card-sub">Both years combined</div>
+    <div class="card-sub">{YEAR_LABEL}</div>
   </div>
   <div class="card">
     <div class="card-label">Total Sell Volume</div>
     <div class="card-value">{fmt_currency(total_sell_vol)}</div>
-    <div class="card-sub">Both years combined</div>
+    <div class="card-sub">{YEAR_LABEL}</div>
   </div>
   <div class="card">
     <div class="card-label">Net Cash Flow Activity</div>
@@ -655,15 +735,7 @@ const allMonths = {json.dumps(chart1_labels)};
 
 // ── Chart 1 ─────────────────────────────────────────────────────
 Plotly.newPlot('chart1', [
-  {{ name: 'Buys 2025',  x: months25, y: {json.dumps(chart1_buys_2025)},  type: 'bar', marker: {{ color: RED }},   offsetgroup: '2025' }},
-  {{ name: 'Sells 2025', x: months25, y: {json.dumps(chart1_sells_2025)}, type: 'bar', marker: {{ color: GREEN }}, offsetgroup: '2025', base: 0 }},
-  {{ name: 'Buys 2026',  x: months26, y: {json.dumps(chart1_buys_2026)},  type: 'bar', marker: {{ color: RED, opacity: 0.5 }},   offsetgroup: '2026' }},
-  {{ name: 'Sells 2026', x: months26, y: {json.dumps(chart1_sells_2026)}, type: 'bar', marker: {{ color: GREEN, opacity: 0.5 }}, offsetgroup: '2026' }},
-  {{ name: 'Net 2025', x: months25, y: {json.dumps(chart1_net_2025)}, type: 'scatter', mode: 'lines+markers',
-     marker: {{ color: ACCENT, size: 6 }}, line: {{ color: ACCENT, width: 2 }}, yaxis: 'y2' }},
-  {{ name: 'Net 2026', x: months26, y: {json.dumps(chart1_net_2026)}, type: 'scatter', mode: 'lines+markers',
-     marker: {{ color: AMBER, size: 6 }}, line: {{ color: AMBER, width: 2, dash: 'dash' }}, yaxis: 'y2' }},
-], {{
+{_c1_traces}], {{
   ...layout_base('', {{}}, {{ title: 'Volume ($)' }}, {{
     yaxis2: {{ title: 'Net ($)', overlaying: 'y', side: 'right', gridcolor: 'transparent', color: MUTED }},
     barmode: 'group',
@@ -769,13 +841,7 @@ Plotly.newPlot('chart8', [
 
 // ── Chart 9: Cumulative income ────────────────────────────────────
 Plotly.newPlot('chart9', [
-  {{ name: '2025 Cumulative', x: months25, y: {json.dumps(cum_income_2025)},
-     type: 'scatter', mode: 'lines+markers', fill: 'tozeroy',
-     line: {{ color: ACCENT, width: 2 }}, fillcolor: ACCENT + '22', marker: {{ size: 5 }} }},
-  {{ name: '2026 Cumulative', x: months26, y: {json.dumps(cum_income_2026)},
-     type: 'scatter', mode: 'lines+markers',
-     line: {{ color: AMBER, width: 2, dash: 'dash' }}, marker: {{ size: 5, color: AMBER }} }},
-], {{
+{_c9_traces}], {{
   ...layout_base('', {{}}, {{ title: 'Cumulative Income ($)' }}, {{ height: 300 }})
 }}, {{responsive: true}});
 

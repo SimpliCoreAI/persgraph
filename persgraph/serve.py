@@ -10,10 +10,17 @@ from pathlib import Path
 PORT = 8765
 FINANCE_DIR = Path(__file__).parent
 SCRIPTS = {
-    "2025":      FINANCE_DIR / "analyze_2025.py",
-    "2026":      FINANCE_DIR / "analyze_transactions.py",
-    "yoy":       FINANCE_DIR / "analyze_yoy.py",
-    "portfolio": FINANCE_DIR / "analyze_portfolio.py",
+    "2025":          FINANCE_DIR / "analyze_2025.py",
+    "2026":          FINANCE_DIR / "analyze_transactions.py",
+    "yoy":           FINANCE_DIR / "analyze_yoy.py",
+    "portfolio":     FINANCE_DIR / "analyze_portfolio.py",
+    "portfolio2025": FINANCE_DIR / "analyze_portfolio.py",
+    "portfolio2026": FINANCE_DIR / "analyze_portfolio.py",
+}
+
+SCRIPT_ARGS = {
+    "portfolio2025": ["--year", "2025"],
+    "portfolio2026": ["--year", "2026"],
 }
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -37,8 +44,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             for name, script in scripts_to_run:
                 if script and script.exists():
+                    extra_args = SCRIPT_ARGS.get(name, [])
                     result = subprocess.run(
-                        ["python3", str(script)],
+                        ["python3", str(script)] + extra_args,
                         capture_output=True, text=True, cwd=str(FINANCE_DIR)
                     )
                     results[name] = {

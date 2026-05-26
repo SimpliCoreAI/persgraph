@@ -200,8 +200,11 @@
   <div class="tab" onclick="switchTab('tyoy', this)">
     ⚖️ 2025 vs 2026 (YoY)
   </div>
-  <div class="tab" onclick="switchTab('tportfolio', this)">
-    💼 Portfolio
+  <div class="tab" onclick="switchTab('tportfolio2025', this)">
+    💼 Portfolio 2025
+  </div>
+  <div class="tab" onclick="switchTab('tportfolio2026', this)">
+    💼 Portfolio 2026
   </div>
 </div>
 
@@ -235,13 +238,22 @@
     <iframe id="iframe-tyoy" src="financial_report_yoy.html"></iframe>
   </div>
 
-  <!-- Portfolio Panel -->
-  <div class="panel" id="panel-tportfolio">
+  <!-- Portfolio 2025 Panel -->
+  <div class="panel" id="panel-tportfolio2025">
     <div class="panel-bar">
-      <span class="panel-bar-label">Portfolio &amp; Investment Activity — 2025–2026</span>
-      <button class="btn-sm" onclick="refreshOne('portfolio', 'tportfolio')">↻ Refresh Portfolio</button>
+      <span class="panel-bar-label">Portfolio &amp; Investment Activity — 2025 Full Year</span>
+      <button class="btn-sm" onclick="refreshOne('portfolio2025', 'tportfolio2025')">↻ Refresh Portfolio 2025</button>
     </div>
-    <iframe id="iframe-tportfolio" src="financial_report_portfolio.html"></iframe>
+    <iframe id="iframe-tportfolio2025" src="financial_report_portfolio_2025.html"></iframe>
+  </div>
+
+  <!-- Portfolio 2026 Panel -->
+  <div class="panel" id="panel-tportfolio2026">
+    <div class="panel-bar">
+      <span class="panel-bar-label">Portfolio &amp; Investment Activity — 2026 YTD</span>
+      <button class="btn-sm" onclick="refreshOne('portfolio2026', 'tportfolio2026')">↻ Refresh Portfolio 2026</button>
+    </div>
+    <iframe id="iframe-tportfolio2026" src="financial_report_portfolio_2026.html"></iframe>
   </div>
 
 </div>
@@ -317,7 +329,7 @@ async function refreshAll() {
   showToast('🔄 Regenerating all reports…', 'info');
 
   await doRefresh({ report: 'all' }, (data) => {
-    ['t2025', 't2026', 'tyoy', 'tportfolio'].forEach(id => reloadIframe(id));
+    ['t2025', 't2026', 'tyoy', 'tportfolio2025', 'tportfolio2026'].forEach(id => reloadIframe(id));
   });
 
   setRefreshBtnState(btn, false);
