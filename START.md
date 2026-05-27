@@ -13,7 +13,7 @@ source ~/.zshrc
 
 ## Launch Streamlit Dashboard
 ```bash
-cd ~/AgenticHub/second-brain && source ~/.zshrc && PYTHONPATH=. streamlit run streamlit/app.py
+cd ~/AgenticHub/Persgraph && source ~/.zshrc && PYTHONPATH=. streamlit run streamlit/app.py
 ```
 Then open: http://localhost:8501
 
@@ -21,7 +21,7 @@ Then open: http://localhost:8501
 
 ## Add sample places (test data)
 ```bash
-cd ~/AgenticHub/second-brain && source ~/.zshrc && PYTHONPATH=. sbpy -c "
+cd ~/AgenticHub/Persgraph && source ~/.zshrc && PYTHONPATH=. sbpy -c "
 from second_brain.places import save
 save('Nagarjuna Restaurant', 'Bangalore', 'India', 'Restaurant', 'Best Andhra biryani, try the thali', 5, tags=['indian','biryani','must-visit'])
 save('Blue Tokai Coffee', 'Delhi', 'India', 'Cafe', 'Great specialty coffee, good wifi', 4, tags=['coffee','wifi','cafe'])
@@ -34,22 +34,22 @@ print('Done! Refresh Streamlit.')
 
 ## Ingest a URL
 ```bash
-cd ~/AgenticHub/second-brain && source ~/.zshrc && PYTHONPATH=. sbpy scripts/ingest.py url https://example.com --tag research
+cd ~/AgenticHub/Persgraph && source ~/.zshrc && PYTHONPATH=. sbpy scripts/ingest.py url https://example.com --tag research
 ```
 
 ## Ingest a PDF
 ```bash
-cd ~/AgenticHub/second-brain && source ~/.zshrc && PYTHONPATH=. sbpy scripts/ingest.py pdf ~/Downloads/file.pdf --tag financial
+cd ~/AgenticHub/Persgraph && source ~/.zshrc && PYTHONPATH=. sbpy scripts/ingest.py pdf ~/Downloads/file.pdf --tag financial
 ```
 
 ## Query your brain
 ```bash
-cd ~/AgenticHub/second-brain && source ~/.zshrc && PYTHONPATH=. sbpy scripts/query.py "your question here"
+cd ~/AgenticHub/Persgraph && source ~/.zshrc && PYTHONPATH=. sbpy scripts/query.py "your question here"
 ```
 
 ---
 
 ## Git — pull latest code
 ```bash
-cd ~/AgenticHub/second-brain && git pull
+cd ~/AgenticHub/Persgraph && git pull
 ```

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Mac Keep-Awake Setup
-# Run once: sh ~/AgenticHub/second-brain/scripts/mac-keep-awake.sh
+# Run once: sh ~/AgenticHub/Persgraph/scripts/mac-keep-awake.sh
 # -----------------------------------------------------------------
 # Never sleep on AC power (charger)
 sudo pmset -c sleep 0

@@ -15,9 +15,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
-CSV_2025 = "/Users/jasleenkaur/AgenticHub/second-brain/persgraph/data/transactions_2025.csv"
-CSV_2026 = "/Users/jasleenkaur/AgenticHub/second-brain/persgraph/data/transactions_2026.csv"
-OUTPUT   = "/Users/jasleenkaur/AgenticHub/second-brain/persgraph/financial_report_yoy.html"
+CSV_2025 = "/Users/jasleenkaur/AgenticHub/Persgraph/persgraph/data/transactions_2025.csv"
+CSV_2026 = "/Users/jasleenkaur/AgenticHub/Persgraph/persgraph/data/transactions_2026.csv"
+OUTPUT   = "/Users/jasleenkaur/AgenticHub/Persgraph/persgraph/financial_report_yoy.html"
 
 BG      = "#0f1117"
 CARD    = "#1a1d27"

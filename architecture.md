@@ -537,7 +537,7 @@ No manual action needed — just paste the original Medium URL.
 
 ### Run manually
 ```bash
-cd ~/AgenticHub/second-brain
+cd ~/AgenticHub/Persgraph
 PYTHONPATH=. .venv/bin/python scripts/command.py "/ask what is RAG?"
 ```
 

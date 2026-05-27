@@ -13,8 +13,8 @@ from datetime import datetime
 from collections import defaultdict
 import re
 
-CSV_PATH = "/Users/jasleenkaur/AgenticHub/second-brain/persgraph/data/transactions_2026.csv"
-OUTPUT_PATH = "/Users/jasleenkaur/AgenticHub/second-brain/persgraph/financial_report.html"
+CSV_PATH = "/Users/jasleenkaur/AgenticHub/Persgraph/persgraph/data/transactions_2026.csv"
+OUTPUT_PATH = "/Users/jasleenkaur/AgenticHub/Persgraph/persgraph/financial_report.html"
 
 # ─── Load & Clean ───────────────────────────────────────────────────────────
 

@@ -1,21 +1,21 @@
 """
-Second Brain — Streamlit Dashboard
+PersGraph — Personal Finance Dashboard
 Run: streamlit run streamlit/app.py
 """
 
 import streamlit as st
 
 st.set_page_config(
-    page_title="Second Brain",
-    page_icon="🧠",
+    page_title="PersGraph",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("🧠 Second Brain")
-    st.caption("Private · Local · Yours")
+    st.title("📊 PersGraph")
+    st.caption("Personal Finance · Local · Yours")
     st.divider()
     st.page_link("app.py",                          label="🏠 Home")
     st.page_link("pages/1_learning_agent.py",       label="🎓 Learning Agent")
@@ -26,14 +26,15 @@ with st.sidebar:
     st.page_link("pages/6_travel.py",               label="🗺️ Travel & POI")
     st.page_link("pages/7_weekly_briefing.py",      label="📋 Weekly Briefing")
     st.page_link("pages/8_recurring_events.py",    label="🔁 Recurring Events")
+    st.page_link("pages/9_fees.py",                  label="💸 Fees & Charges")
     st.divider()
     st.caption("🔒 Connected via Tailscale")
 
 # ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="text-align:center; padding: 2rem 0 1rem 0;">
-    <h1 style="font-size: 3rem;">🧠 Second Brain</h1>
-    <p style="font-size: 1.1rem; color: #666;">Private · Local · Yours · Powered by Qwen2.5 + ChromaDB</p>
+    <h1 style="font-size: 3rem;">📊 PersGraph</h1>
+    <p style="font-size: 1.1rem; color: #666;">Personal Finance · Local · Private · SQLite-powered</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -53,6 +54,7 @@ with col2:
 with col3:
     st.warning("**💳 Credit Card Agent**\n\nParse statements, track spend, optimize rewards across all your cards.")
     st.warning("**🗺️ Travel & POI**\n\nPersonal place notes — restaurants, hidden gems, and locations by city.")
+    st.error("**💸 Fees & Charges**\n\nTrack interest, late fees, annual fees, and maintenance charges across all accounts.")
 
 st.divider()
 

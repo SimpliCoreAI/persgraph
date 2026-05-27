@@ -111,7 +111,7 @@ if [ "$CSV_COUNT" -eq 0 ]; then
   echo "⚠️  No CSV files found in persgraph/data/"
   echo ""
   echo "   Drop your transaction CSVs here:"
-  echo "   ~/AgenticHub/second-brain/persgraph/data/"
+  echo "   ~/AgenticHub/Persgraph/persgraph/data/"
   echo ""
   echo "   Expected filenames:"
   echo "     transactions_2025.csv   — full year 2025"

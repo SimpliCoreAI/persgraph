@@ -2,7 +2,7 @@
 # Daily API Cost Summary — runs at 8pm via cron
 # Generates summary and sends to Telegram via OpenClaw
 
-cd /Users/jasleenkaur/AgenticHub/second-brain
+cd /Users/jasleenkaur/AgenticHub/Persgraph
 
 # Generate summary JSON
 SUMMARY=$(PYTHONPATH=. python3 scripts/track_api_cost.py summary 2>/dev/null)
@@ -60,7 +60,7 @@ TODAY=$(date +%Y-%m-%d)
 python3 -c "
 import json
 from pathlib import Path
-state_file = Path('/Users/jasleenkaur/AgenticHub/second-brain/data/heartbeat-state.json')
+state_file = Path('/Users/jasleenkaur/AgenticHub/Persgraph/data/heartbeat-state.json')
 state = json.loads(state_file.read_text()) if state_file.exists() else {}
 state['last_cost_summary_date'] = '$TODAY'
 state_file.write_text(json.dumps(state, indent=2))

@@ -89,7 +89,7 @@ After ingestion: report chunks_total, chunks_new, collection, tags.
 
 - All data is local — no external storage
 - PDFs with financial data: stored in `pdfs` collection, never logged to console
-- Vault is git-tracked for rollback: `cd ~/AgenticHub/second-brain && git log --oneline`
+- Vault is git-tracked for rollback: `cd ~/AgenticHub/Persgraph && git log --oneline`
 - If an agent action seems destructive, STOP and confirm with user first
 
 ---

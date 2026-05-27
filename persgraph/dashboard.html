@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📊 Financial Dashboard</title>
+<title>📊 PersGraph — Financial Dashboard</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -181,7 +181,7 @@
 
 <!-- ── TOP BAR ────────────────────────────────────────────────── -->
 <div class="topbar">
-  <div class="topbar-title">📊 Financial Dashboard</div>
+  <div class="topbar-title">📊 PersGraph</div>
   <div class="info-strip">Data: <span>finance/data/</span> — drop new CSVs here and click Refresh</div>
   <div class="topbar-spacer"></div>
   <button class="btn" id="refreshAll" onclick="refreshAll()">
@@ -205,6 +205,9 @@
   </div>
   <div class="tab" onclick="switchTab('tportfolio2026', this)">
     💼 Portfolio 2026
+  </div>
+  <div class="tab" onclick="switchTab('tfees', this)">
+    💸 Fees & Charges
   </div>
 </div>
 
@@ -254,6 +257,15 @@
       <button class="btn-sm" onclick="refreshOne('portfolio2026', 'tportfolio2026')">↻ Refresh Portfolio 2026</button>
     </div>
     <iframe id="iframe-tportfolio2026" src="financial_report_portfolio_2026.html"></iframe>
+  </div>
+
+  <!-- Fees Panel -->
+  <div class="panel" id="panel-tfees">
+    <div class="panel-bar">
+      <span class="panel-bar-label">Hidden &amp; Late Fees — Interest, Annual Fees, Maintenance (2025–2026)</span>
+      <button class="btn-sm" onclick="refreshOne('fees', 'tfees')">&#8635; Refresh Fees</button>
+    </div>
+    <iframe id="iframe-tfees" src="fees_chart.html"></iframe>
   </div>
 
 </div>
