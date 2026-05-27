@@ -15,10 +15,29 @@ No subscriptions. No cloud. Your data stays yours.
 │  · Claude for reasoning         │                     │  · ChromaDB vector store   │
 │  · Telegram interface           │                     │  · All embeddings & LLM    │
 │  · Cron jobs & automation       │                     │                            │
+│  · Image scanning (vision AI)   │                     │                            │
 └─────────────────────────────────┘                     └────────────────────────────┘
 ```
 
 Nothing leaves your local network (except Claude API calls for agent orchestration).
+Incoming Telegram images are scanned with a vision model and auto-saved to the Obsidian vault.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| AI Orchestration | OpenClaw (agent runtime) |
+| LLM Reasoning | Anthropic Claude (Sonnet) |
+| Local LLM + Embeddings | Ollama (Qwen2.5, nomic-embed-text) |
+| Vector Store | ChromaDB |
+| Knowledge Base | Obsidian vault |
+| RAG Pipeline | Custom Python + ChromaDB |
+| Networking | Tailscale VPN |
+| Interface | Telegram Bot |
+| Tool Protocol | MCP (Model Context Protocol) |
+| Ingest Formats | PDF, URL, Markdown, Email, Images |
 
 ---
 
@@ -38,6 +57,7 @@ Nothing leaves your local network (except Claude API calls for agent orchestrati
 | Learning Agent (RAG Q&A from UI) | ✅ Working |
 | Fees & Charges (SQLite-powered) | ✅ Working |
 | Streamlit dashboard (9 tabs) | ✅ Live |
+| Telegram Image Scanning → Obsidian | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
 | Credit Card Agent | 🔲 Phase 2 |
 | Weekly Briefing Agent | 🔲 Phase 2 |

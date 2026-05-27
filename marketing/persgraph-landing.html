@@ -283,6 +283,70 @@
     .footer-links a { color: var(--text3); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
     .footer-links a:hover { color: var(--text); }
 
+    /* ── Tech Stack Marquee ── */
+    .tech-stack-section {
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+      overflow: hidden;
+    }
+    .marquee-wrapper {
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+      margin-top: 3rem;
+    }
+    .tech-track {
+      display: flex;
+      gap: 2rem;
+      animation: marquee 30s linear infinite;
+      width: max-content;
+    }
+    .tech-track:hover { animation-play-state: paused; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .tech-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      min-width: 110px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      flex-shrink: 0;
+    }
+    .tech-card:hover {
+      border-color: rgba(99,179,237,0.3);
+      box-shadow: 0 0 20px rgba(99,179,237,0.08);
+    }
+    .tech-card img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+    .tech-icon-placeholder {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(148,163,184,0.08);
+      border-radius: 8px;
+      font-size: 1.25rem;
+    }
+    .tech-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text2);
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+
     @media (max-width: 768px) {
       nav { padding: 1rem 1.25rem; }
       .nav-links { display: none; }
@@ -302,6 +366,7 @@
   <div class="nav-links">
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
+    <a href="#tech-stack">Tech Stack</a>
     <a href="#integrations">Integrations</a>
     <a href="#privacy">Privacy</a>
   </div>
@@ -475,6 +540,141 @@
       <div class="step-num">3</div>
       <h3>Query</h3>
       <p>Ask anything in natural language via Telegram, terminal, or the web UI. Your personal AI answers from your own graph.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack Marquee -->
+<section class="tech-stack-section" id="tech-stack">
+  <div class="section-label">Stack</div>
+  <h2 class="section-title">Built With</h2>
+  <p class="section-sub">Open source stack, all self-hosted</p>
+  <div class="marquee-wrapper">
+    <div class="tech-track">
+      <!-- Set 1 -->
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/anthropic/94a3b8" width="40" height="40" alt="Anthropic" />
+        <span class="tech-name">Anthropic</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/obsidian/94a3b8" width="40" height="40" alt="Obsidian" />
+        <span class="tech-name">Obsidian</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/ollama/94a3b8" width="40" height="40" alt="Ollama" />
+        <span class="tech-name">Ollama</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="6" width="20" height="12" rx="3" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M7 10h2m0 0v4m0-4h2m4 0v4m0-4h2" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">MCP</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/tailscale/94a3b8" width="40" height="40" alt="Tailscale" />
+        <span class="tech-name">Tailscale</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M8 12h8M12 8v8" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.5" fill="#94a3b8" opacity="0.5"/>
+          </svg>
+        </div>
+        <span class="tech-name">ChromaDB</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/telegram/94a3b8" width="40" height="40" alt="Telegram" />
+        <span class="tech-name">Telegram</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/googledrive/94a3b8" width="40" height="40" alt="Google Drive" />
+        <span class="tech-name">Google Drive</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="19" cy="16" r="3" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M21.5 18.5l1.5 1.5" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">RAG</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3C7 3 3 5.686 3 9c0 2.21 1.672 4.157 4.2 5.28L6 21l4.8-3.6c.388.04.783.06 1.2.06 5 0 9-2.686 9-6s-4-6-9-6z" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">OpenClaw</span>
+      </div>
+      <!-- Set 2 (duplicate for seamless loop) -->
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/anthropic/94a3b8" width="40" height="40" alt="Anthropic" />
+        <span class="tech-name">Anthropic</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/obsidian/94a3b8" width="40" height="40" alt="Obsidian" />
+        <span class="tech-name">Obsidian</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/ollama/94a3b8" width="40" height="40" alt="Ollama" />
+        <span class="tech-name">Ollama</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="6" width="20" height="12" rx="3" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M7 10h2m0 0v4m0-4h2m4 0v4m0-4h2" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">MCP</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/tailscale/94a3b8" width="40" height="40" alt="Tailscale" />
+        <span class="tech-name">Tailscale</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M8 12h8M12 8v8" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.5" fill="#94a3b8" opacity="0.5"/>
+          </svg>
+        </div>
+        <span class="tech-name">ChromaDB</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/telegram/94a3b8" width="40" height="40" alt="Telegram" />
+        <span class="tech-name">Telegram</span>
+      </div>
+      <div class="tech-card">
+        <img src="https://cdn.simpleicons.org/googledrive/94a3b8" width="40" height="40" alt="Google Drive" />
+        <span class="tech-name">Google Drive</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 6h16M4 10h10M4 14h12M4 18h8" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="19" cy="16" r="3" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M21.5 18.5l1.5 1.5" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">RAG</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3C7 3 3 5.686 3 9c0 2.21 1.672 4.157 4.2 5.28L6 21l4.8-3.6c.388.04.783.06 1.2.06 5 0 9-2.686 9-6s-4-6-9-6z" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="tech-name">OpenClaw</span>
+      </div>
     </div>
   </div>
 </section>
