@@ -1,0 +1,87 @@
+version: "3.9"
+
+# =============================================================================
+# PersGraph — Local Services Stack
+# Runs Ollama (LLM + embeddings) and ChromaDB (vector store) locally.
+# No Windows machine or Tailscale VPN required.
+#
+# Usage:
+#   docker compose up -d          # start all services
+#   docker compose down           # stop all
+#   docker compose logs -f        # live logs
+#   docker compose pull           # pull latest images
+#
+# After starting, set in .env:
+#   OLLAMA_BASE_URL=http://localhost:11434
+#   CHROMA_HOST=localhost
+#   CHROMA_PORT=8000
+# =============================================================================
+
+services:
+
+  # ── Ollama — local LLM + embedding server ─────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: persgraph-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # GPU support (uncomment if you have NVIDIA GPU + nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ── Ollama model bootstrap — pulls required models on first run ────────────
+  ollama-bootstrap:
+    image: curlimages/curl:latest
+    container_name: persgraph-ollama-bootstrap
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      sh -c "
+        echo '⬇️  Pulling nomic-embed-text...' &&
+        curl -sf -X POST http://ollama:11434/api/pull -d '{\"name\":\"nomic-embed-text\"}' &&
+        echo '⬇️  Pulling qwen2.5:7b...' &&
+        curl -sf -X POST http://ollama:11434/api/pull -d '{\"name\":\"qwen2.5:7b\"}' &&
+        echo '✅ Models ready.'
+      "
+
+  # ── ChromaDB — vector store ────────────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: persgraph-chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  ollama_data:
+    driver: local
+  chroma_data:
+    driver: local
