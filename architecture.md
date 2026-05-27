@@ -376,7 +376,7 @@ Register ChromaDB as a service:
 nssm install ChromaDB "C:\Program Files\Python311\Scripts\chroma.exe" `
   "run --host 100.x.x.x --port 8000 --path C:\chromadb\data"
 
-nssm set ChromaDB ObjectName ".\jolly" "<windows-password>"
+nssm set ChromaDB ObjectName ".\<windows-username>" "<windows-password>"
 nssm set ChromaDB Start SERVICE_AUTO_START
 nssm set ChromaDB AppStdout C:\chromadb\logs\chroma.log
 nssm set ChromaDB AppStderr C:\chromadb\logs\chroma-error.log
@@ -562,13 +562,13 @@ Obsidian vault: `~/AgenticHub/InsightsData/wiki/articles/`
 - **Streamlit Dashboard:** 8 tabs scaffolded, Learning Agent + Snippets + Tasks & Notes fully wired
 - **Appointment Reminders:** OpenClaw cron at 8am daily → checks ChromaDB → Telegram alert
 - **API Cost Tracking:** `track_api_cost.py` + OpenClaw cron at 8pm daily → Telegram summary
-- **GitHub:** Private repo at github.com/JollyS/second-brain, all code versioned
+- **GitHub:** Private repo at github.com/JollyS/persgraph, all code versioned
 - **Slash Command Interface** (May 2026): Telegram slash commands wired via OpenClaw — see Section 12
 - **LLM Wiki Layer** (May 2026): `/wiki-ingest` synthesizes Obsidian notes via Claude — zero extra API cost
 - **Batch Embeddings** (May 2026): all chunks embedded in one Ollama call (was per-chunk — much faster)
 - **Python 3.13 venv** (May 2026): rebuilt from 3.14 (too new) — all deps now install cleanly
 - **AGENT_CONTEXT.md**: agent contract file defining collections, tagging rules, query behavior
-- **OpenClaw Skill**: `second-brain` skill registered at `/skills/second-brain/SKILL.md`
+- **OpenClaw Skill**: `persgraph` skill registered at `/skills/persgraph/SKILL.md`
 
 ### 🔲 In Progress
 - Credit Card Agent (requirements phase)

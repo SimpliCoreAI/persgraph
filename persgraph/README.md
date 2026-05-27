@@ -33,5 +33,5 @@ Expected CSV columns: `Date, Account, Description, Category, Tags, Amount`
 - `dashboard.html` — 5-tab UI with live refresh
 - `data/` — gitignored (your private CSVs stay local)
 
-## Part of second-brain
-PersGraph is a module inside [second-brain](https://github.com/JollyS/second-brain) — a local-first personal AI assistant.
+## Part of PersGraph
+PersGraph is a local-first personal data graph — knowledge, finance, places, tasks. All on your machine. See the [main repo](https://github.com/JollyS/persgraph).

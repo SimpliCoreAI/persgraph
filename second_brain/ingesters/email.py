@@ -25,12 +25,13 @@ from ..config import settings
 
 
 # ── Trusted senders ───────────────────────────────────────────────────────────
+# Set TRUSTED_SENDERS in .env as a comma-separated list:
+#   TRUSTED_SENDERS=you@gmail.com,other@yahoo.com
 
-TRUSTED_SENDERS = {
-    "jolly.singh@gmail.com",
-    "jjsingh220@gmail.com",
-    "jjasleen@gmail.com",
-    "jollysingh76@yahoo.com",
+import os as _os
+_raw = _os.getenv("TRUSTED_SENDERS", "")
+TRUSTED_SENDERS: set[str] = {
+    e.strip().lower() for e in _raw.split(",") if e.strip()
 }
 
 # ── Intent types ──────────────────────────────────────────────────────────────

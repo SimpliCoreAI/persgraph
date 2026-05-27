@@ -122,10 +122,10 @@ OpenClaw (orchestrator)
 
 ## Repo
 
-**GitHub:** `github.com/JollyS/second-brain` (private)
+**GitHub:** `github.com/JollyS/persgraph` (private)
 
 ```
-second-brain/
+persgraph/
 ├── second_brain/          # Core Python package
 │   ├── config.py          # Settings (pydantic-settings)
 │   ├── embeddings.py      # Ollama client

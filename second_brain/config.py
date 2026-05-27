@@ -34,11 +34,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
 
     # Email ingestion (openclaw Gmail inbox)
-    openclaw_email: str = "jkjs35149.openclaw@gmail.com"
+    openclaw_email: str = ""  # Set via OPENCLAW_EMAIL in .env
     openclaw_email_password: str = ""  # Gmail App Password
 
     # gog account for Google Calendar
-    gog_account: str = ""  # e.g. jolly.singh@gmail.com
+    gog_account: str = ""  # Set via GOG_ACCOUNT in .env
 
     # Collection names
     collection_pdfs: str = "pdfs"
