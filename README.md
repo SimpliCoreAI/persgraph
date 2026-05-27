@@ -57,7 +57,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 | Learning Agent (RAG Q&A from UI) | ✅ Working |
 | Fees & Charges (SQLite-powered) | ✅ Working |
 | Streamlit dashboard (9 tabs) | ✅ Live |
-| Telegram Image Scanning → Obsidian | ✅ Working |
+| Telegram Image Scanning → Obsidian → ChromaDB | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
 | Credit Card Agent | 🔲 Phase 2 |
 | Weekly Briefing Agent | 🔲 Phase 2 |
@@ -67,47 +67,36 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 
 ## Setup
 
-### 1. Clone
 ```bash
-git clone https://github.com/JollyS/persgraph.git
-cd persgraph
+git clone https://github.com/JollyS/persgraph.git ~/AgenticHub/Persgraph
+cd ~/AgenticHub/Persgraph
+bash setup.sh
 ```
 
-### 2. Install dependencies
+`setup.sh` handles everything: venv, dependencies, `.env` creation, Ollama model pull, ChromaDB check, and OpenClaw/gog verification.
+
+**Full step-by-step guide:** → [`INSTALL.md`](INSTALL.md)
+**OpenClaw agent setup:** → [`OPENCLAW_SETUP.md`](OPENCLAW_SETUP.md)
+
+### Services (Ollama + ChromaDB)
+
+**Option A — Docker (no extra installs):**
 ```bash
-pip install -r requirements.txt
+docker compose up -d
 ```
 
-### 3. Configure environment
+**Option B — Native Ollama:**
 ```bash
-cp .env.example .env
-# Edit .env — set your Tailscale IP for Ollama + ChromaDB
+ollama serve
+ollama pull nomic-embed-text
+ollama pull qwen2.5:7b
 ```
 
-Key variables:
+**Option C — Remote machine via Tailscale:**
 ```env
+# In .env:
 OLLAMA_BASE_URL=http://<tailscale-ip>:11434
 CHROMA_HOST=<tailscale-ip>
-CHROMA_PORT=8000
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_CHAT_ID=...
-```
-
-### 4. Verify connectivity
-```bash
-# Ollama
-curl http://<tailscale-ip>:11434/api/tags
-
-# ChromaDB
-curl http://<tailscale-ip>:8000/api/v1/heartbeat
-```
-
-Both should return JSON. If not, check Tailscale is connected and services are running on Windows.
-
-### 5. Launch Streamlit dashboard
-```bash
-PYTHONPATH=. streamlit run streamlit/app.py
-# Open http://localhost:8501
 ```
 
 ---
@@ -135,11 +124,14 @@ PYTHONPATH=. python scripts/command.py "<command>"
 
 | Command | Description |
 |---|---|
-| `/ingest <url>` | Ingest a URL into the knowledge base |
-| `/ask <question>` | RAG query over all ingested content |
+| `/ingest <url or file>` | Ingest a URL, PDF, or web article |
+| `/ask <question>` | RAG query + AI synthesis from saved content |
 | `/note <text>` | Save a quick note |
 | `/task <text>` | Save a task or appointment |
 | `/place <name> in <city>` | Save a place to your POI graph |
+| `/wiki-ingest <url>` | Ingest a Wikipedia article as a structured note |
+| `/summarize <url>` | Summarize a page without ingesting |
+| `/quiz <topic>` | Generate Q&A flashcards from saved content *(coming soon)* |
 | `/status` | System status (Ollama, ChromaDB, note count) |
 
 ### Check appointments
