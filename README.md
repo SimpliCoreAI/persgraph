@@ -1,34 +1,47 @@
-# 🧠 Second Brain
+# 📊 PersGraph
 
-A private, local-first AI system for your personal knowledge — PDFs, notes, emails, URLs, YouTube transcripts, and financial documents.
+**Private, local-first personal data graph — knowledge, finance, places, tasks. All on your machine.**
 
-**Architecture:**
-- 🖥️ **Mac (OpenClaw):** Orchestration, ingestion scripts, Claude for reasoning, Telegram interface
-- 🖥️ **Windows (96GB RAM):** Ollama (embeddings + LLM) + ChromaDB — all via Tailscale
-
-Nothing leaves your local network (except Claude API calls for orchestration).
+No subscriptions. No cloud. Your data stays yours.
 
 ---
 
-## What's Built
+## Architecture
+
+```
+┌─────────────────────────────────┐     Tailscale VPN
+│  Mac (OpenClaw)                 │◄──────────────────►│  Windows (96GB RAM)        │
+│  · Orchestration & agents       │                     │  · Ollama (Qwen2.5:7b)     │
+│  · Claude for reasoning         │                     │  · ChromaDB vector store   │
+│  · Telegram interface           │                     │  · All embeddings & LLM    │
+│  · Cron jobs & automation       │                     │                            │
+└─────────────────────────────────┘                     └────────────────────────────┘
+```
+
+Nothing leaves your local network (except Claude API calls for agent orchestration).
+
+---
+
+## What's Working
 
 | Feature | Status |
 |---|---|
-| PDF ingester | ✅ Working |
-| URL ingester | ✅ Working |
-| RAG query (Qwen2.5:7b) | ✅ Working |
-| Tasks & Notes (ChromaDB) | ✅ Working |
-| Streamlit dashboard (8 tabs) | ✅ Scaffolded |
-| Learning Agent tab | ✅ Fully wired |
-| Snippets tab | ✅ Fully wired |
-| Appointment reminders (cron) | ✅ Live — 8am daily |
-| API cost tracking (cron) | ✅ Live — 8pm daily |
-| Recurring Events tab | ✅ Working |
-| Credit Card Agent | 🔲 In progress |
-| Travel & POI | 🔲 Planned |
-| Portfolio tab | 🔲 Planned |
-| Weekly Briefing Agent | 🔲 Planned |
-| YouTube ingester | 🔲 Planned |
+| PDF ingestion → ChromaDB | ✅ Working |
+| URL / web ingestion | ✅ Working |
+| RAG Q&A (Qwen2.5:7b via Ollama) | ✅ Working |
+| Tasks, Notes, Appointments (ChromaDB) | ✅ Working |
+| Appointment reminders (cron, 8am daily) | ✅ Live |
+| API cost tracking (cron, 8pm daily) | ✅ Live |
+| Recurring Events manager | ✅ Working |
+| Travel & POI (places graph) | ✅ Working |
+| Snippets — semantic search | ✅ Working |
+| Learning Agent (RAG Q&A from UI) | ✅ Working |
+| Fees & Charges (SQLite-powered) | ✅ Working |
+| Streamlit dashboard (9 tabs) | ✅ Live |
+| Portfolio / financial analysis | 🔲 Phase 2 |
+| Credit Card Agent | 🔲 Phase 2 |
+| Weekly Briefing Agent | 🔲 Phase 2 |
+| YouTube ingester | 🔲 Phase 2 |
 
 ---
 
@@ -36,8 +49,8 @@ Nothing leaves your local network (except Claude API calls for orchestration).
 
 ### 1. Clone
 ```bash
-git clone https://github.com/JollyS/second-brain.git
-cd second-brain
+git clone https://github.com/JollyS/persgraph.git
+cd persgraph
 ```
 
 ### 2. Install dependencies
@@ -48,13 +61,33 @@ pip install -r requirements.txt
 ### 3. Configure environment
 ```bash
 cp .env.example .env
-# Edit .env — set WINDOWS_IP to your Tailscale IP
+# Edit .env — set your Tailscale IP for Ollama + ChromaDB
 ```
 
-### 4. Verify Windows connectivity
+Key variables:
+```env
+OLLAMA_BASE_URL=http://<tailscale-ip>:11434
+CHROMA_HOST=<tailscale-ip>
+CHROMA_PORT=8000
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+```
+
+### 4. Verify connectivity
 ```bash
-curl http://<tailscale-ip>:11434/api/tags        # Ollama
-curl http://<tailscale-ip>:8000/api/v1/heartbeat # ChromaDB
+# Ollama
+curl http://<tailscale-ip>:11434/api/tags
+
+# ChromaDB
+curl http://<tailscale-ip>:8000/api/v1/heartbeat
+```
+
+Both should return JSON. If not, check Tailscale is connected and services are running on Windows.
+
+### 5. Launch Streamlit dashboard
+```bash
+PYTHONPATH=. streamlit run streamlit/app.py
+# Open http://localhost:8501
 ```
 
 ---
@@ -63,68 +96,119 @@ curl http://<tailscale-ip>:8000/api/v1/heartbeat # ChromaDB
 
 ### Ingest documents
 ```bash
-PYTHONPATH=. python3 scripts/ingest.py pdf ~/Documents/portfolio.pdf --tag financial
-PYTHONPATH=. python3 scripts/ingest.py url https://example.com/article --tag research
+# PDF
+PYTHONPATH=. python scripts/ingest.py pdf ~/Documents/notes.pdf --tag research
+
+# URL / web article
+PYTHONPATH=. python scripts/ingest.py url https://example.com/article --tag ai
 ```
 
-### Query your brain
+### Ask your knowledge base
 ```bash
-PYTHONPATH=. python3 scripts/query.py "What are my portfolio returns for 2025?"
+PYTHONPATH=. python scripts/query.py "What are my notes on RAG vs fine-tuning?"
 ```
 
-### Launch Streamlit dashboard
+### Slash commands (via Telegram or terminal)
 ```bash
-PYTHONPATH=. streamlit run streamlit/app.py
-# Access at http://localhost:8501
+PYTHONPATH=. python scripts/command.py "<command>"
 ```
+
+| Command | Description |
+|---|---|
+| `/ingest <url>` | Ingest a URL into the knowledge base |
+| `/ask <question>` | RAG query over all ingested content |
+| `/note <text>` | Save a quick note |
+| `/task <text>` | Save a task or appointment |
+| `/place <name> in <city>` | Save a place to your POI graph |
+| `/status` | System status (Ollama, ChromaDB, note count) |
+
+### Check appointments
+```bash
+PYTHONPATH=. python scripts/check_appointments.py
+# Returns any appointments within the next 48 hours
+```
+
+---
+
+## Streamlit Dashboard Tabs
+
+| Tab | Feature | Status |
+|---|---|---|
+| 🎓 Learning Agent | RAG Q&A + ingest from UI | ✅ |
+| 📎 Snippets | Semantic search across knowledge base | ✅ |
+| ✅ Tasks & Notes | CRUD for tasks, notes, appointments | ✅ |
+| 💼 Portfolio | Financial analysis & charts | 🔲 Phase 2 |
+| 💳 Credit Card Agent | Statement parsing, rewards tracking | 🔲 Phase 2 |
+| 🗺️ Travel & POI | Places graph — search, ratings, map view | ✅ |
+| 📋 Weekly Briefing | Automated Sunday digest | 🔲 Phase 2 |
+| 🔁 Recurring Events | Cron job manager + cost tracker | ✅ |
+| 💸 Fees & Charges | Interest, late fees, annual fees (SQLite) | ✅ |
+
+---
+
+## Cron Jobs
+
+| Job | Schedule | What it does |
+|---|---|---|
+| `appointment-reminder` | 8:00 AM daily | Scans ChromaDB → Telegram alert if appointment within 48h |
+| `api-cost-tracking` | 8:00 PM daily | Logs token usage → Telegram daily cost summary |
 
 ---
 
 ## Project Structure
 
 ```
-second-brain/
+persgraph/
+├── README.md
 ├── .env                          # Local config (gitignored)
 ├── .env.example                  # Config template
-├── requirements.txt              # Python deps
-├── pyproject.toml                # Package config
-├── architecture.md               # Full system design doc
-├── data/
-│   └── api_costs.json            # Daily API cost log
-├── second_brain/                 # Core package
+├── requirements.txt
+├── pyproject.toml
+├── architecture.md               # Full system design
+├── second_brain/                 # Core Python package
 │   ├── config.py                 # Settings (pydantic-settings + .env)
 │   ├── embeddings.py             # Ollama embedding client
 │   ├── vectorstore.py            # ChromaDB wrapper
 │   ├── query.py                  # RAG query engine
 │   ├── notes.py                  # Tasks/Notes CRUD
+│   ├── places.py                 # Travel & POI CRUD
 │   └── ingesters/
-│       ├── base.py               # Abstract base ingester
-│       ├── pdf.py                # PDF ingester
-│       └── url.py                # URL ingester
+│       ├── pdf.py
+│       └── url.py
+├── db/                           # SQLite layer (fees, transactions)
+│   ├── schema.sql
+│   ├── queries.py
+│   └── ingest.py
+├── persgraph/                    # Standalone HTML dashboards
+│   ├── analyze_transactions.py
+│   ├── analyze_yoy.py
+│   ├── fees_chart.py
+│   ├── dashboard.html
+│   └── run_dashboard.sh
 ├── scripts/
-│   ├── ingest.py                 # Ingest CLI (typer)
-│   ├── query.py                  # Query CLI (typer)
-│   ├── check_appointments.py     # Appointment checker (cron)
-│   └── track_api_cost.py         # API cost logger (cron)
-└── streamlit/
-    ├── app.py                    # Home + sidebar nav
-    └── pages/
-        ├── 1_learning_agent.py   # RAG Q&A + ingest
-        ├── 2_snippets.py         # Semantic search
-        ├── 3_tasks_notes.py      # Tasks/Notes CRUD
-        ├── 4_portfolio.py        # Financial docs (scaffold)
-        ├── 5_credit_card.py      # CC Agent (scaffold)
-        ├── 6_travel.py           # Travel & POI (scaffold)
-        ├── 7_weekly_briefing.py  # Weekly digest (scaffold)
-        └── 8_recurring_events.py # Cron jobs + cost tracker
+│   ├── ingest.py                 # Ingest CLI
+│   ├── query.py                  # Query CLI
+│   ├── command.py                # Slash command handler
+│   ├── check_appointments.py    # Appointment checker (cron)
+│   └── track_api_cost.py        # API cost logger (cron)
+├── streamlit/
+│   ├── app.py                    # Home + sidebar nav
+│   └── pages/
+│       ├── 1_learning_agent.py
+│       ├── 2_snippets.py
+│       ├── 3_tasks_notes.py
+│       ├── 4_portfolio.py
+│       ├── 5_credit_card.py
+│       ├── 6_travel.py
+│       ├── 7_weekly_briefing.py
+│       ├── 8_recurring_events.py
+│       └── 9_fees.py
+└── marketing/
+    └── persgraph-landing.html
 ```
 
 ---
 
-## Cron Jobs (OpenClaw)
+## License
 
-| Job | Schedule | Action |
-|---|---|---|
-| `appointment-reminder` | 8:00 AM daily | Check ChromaDB → Telegram alert if appointment within 48h |
-| `daily-api-cost` | 8:00 PM daily | Log token usage → Telegram cost summary |
-| `weekly-briefing` | Sunday 8:00 AM | Full digest → Telegram + Email *(planned)* |
+MIT — use it, fork it, make it yours.
