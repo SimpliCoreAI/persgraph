@@ -34,4 +34,4 @@ Expected CSV columns: `Date, Account, Description, Category, Tags, Amount`
 - `data/` — gitignored (your private CSVs stay local)
 
 ## Part of PersGraph
-PersGraph is a local-first personal data graph — knowledge, finance, places, tasks. All on your machine. See the [main repo](https://github.com/JollyS/persgraph).
+PersGraph is a local-first personal data graph — knowledge, finance, places, tasks. All on your machine. See the [main repo](https://github.com/SimpliCoreAI/persgraph).

@@ -191,7 +191,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 ## Setup
 
 ```bash
-git clone https://github.com/JollyS/persgraph.git ~/AgenticHub/Persgraph
+git clone https://github.com/SimpliCoreAI/persgraph.git ~/AgenticHub/Persgraph
 cd ~/AgenticHub/Persgraph
 bash setup.sh
 ```
@@ -254,6 +254,65 @@ PYTHONPATH=. python scripts/query.py "What are my notes on RAG vs fine-tuning?"
 | `/quiz <topic>` | Generate Q&A flashcards from saved content |
 | `/create notes <topic>` | Create structured study notes |
 | `/status` | System status (Ollama, ChromaDB, note count) |
+
+---
+
+## ⚡ AI Cost & Performance Optimization
+
+This system is built with deliberate cost-efficiency baked in — not as an afterthought.
+
+### Tiered Model Routing
+
+Not every task needs a frontier model. We route by complexity:
+
+| Task Type | Model | Why |
+|---|---|---|
+| Heartbeats, status checks, cron | `claude-3-5-haiku` | ~20x cheaper, more than capable |
+| RAG queries, slash commands | `qwen2.5:7b` (local, free) | Zero API cost — runs on your own hardware |
+| Reasoning, synthesis, planning | `claude-sonnet` | Only when it actually matters |
+| Embeddings | `nomic-embed-text` (local) | No API cost, no rate limits, no vendor lock-in |
+
+**Result:** Claude API is only invoked for tasks that genuinely need it — everything else runs free on local hardware or cheaper models.
+
+### Local-First Embeddings
+
+All vector embeddings run on your own machine via Ollama. No OpenAI Embeddings API, no per-token billing, no data leaving your network.
+
+```
+User query → nomic-embed-text (local) → ChromaDB (local) → top-k chunks → Claude synthesis
+```
+
+This means the most-used operation in the entire system (search/retrieval) costs **$0**.
+
+### Why Not OpenRouter?
+
+We evaluated OpenRouter's auto-routing and decided against it for this setup:
+
+- **Direct Anthropic is cheaper** — OpenRouter adds a ~5-10% markup; we're Anthropic-first, so it's a net negative
+- **Manual routing beats auto** — We know our workload. Heartbeat = Haiku, reasoning = Sonnet. An auto-router can't be more intentional than that
+- **Pinned versions = stability** — No surprise behavior changes from silent model upgrades
+- **Cost tracking works cleanly** — Direct API means accurate per-model billing, no aggregation overhead
+
+### Built-in Cost Visibility
+
+A daily cost summary fires every evening via cron — token usage, model breakdown, cumulative spend — delivered straight to Telegram. No dashboard login required.
+
+```bash
+# Manual cost check
+PYTHONPATH=. python scripts/track_api_cost.py log --tokens-in N --tokens-out N --model claude-sonnet-4-6
+```
+
+### Hybrid Architecture = Best of Both Worlds
+
+```
+Local (free, private)          Cloud (pay-per-use, powerful)
+─────────────────────          ──────────────────────────────
+Ollama (Qwen2.5:7b)       ←→   Claude Sonnet (complex tasks only)
+ChromaDB (vector search)  ←→   Claude Haiku (cron + simple ops)
+nomic-embed-text          ←→   Vision model (image scanning)
+```
+
+The goal: **maximum intelligence, minimum API spend, zero cloud lock-in on your data.**
 
 ---
 

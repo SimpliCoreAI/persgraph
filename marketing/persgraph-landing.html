@@ -283,6 +283,84 @@
     .footer-links a { color: var(--text3); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
     .footer-links a:hover { color: var(--text); }
 
+    /* ── Cost Optimization ── */
+    .cost-section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .cost-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+    .cost-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.75rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .cost-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at top left, var(--card-glow, rgba(99,179,237,0.04)), transparent 70%);
+      pointer-events: none;
+    }
+    .cost-card:hover {
+      border-color: rgba(99,179,237,0.3);
+      box-shadow: 0 0 32px rgba(99,179,237,0.07);
+    }
+    .cost-card-wide { grid-column: span 2; }
+    .cost-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .cost-card p { color: var(--text2); font-size: 0.875rem; line-height: 1.65; }
+    .routing-table {
+      width: 100%; border-collapse: collapse; margin-top: 1.25rem; font-size: 0.82rem;
+    }
+    .routing-table th {
+      text-align: left; color: var(--text3); font-weight: 500;
+      padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border);
+      text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;
+    }
+    .routing-table td { padding: 0.5rem 0.75rem; color: var(--text2); border-bottom: 1px solid rgba(99,179,237,0.05); }
+    .routing-table tr:last-child td { border-bottom: none; }
+    .routing-table .model-pill {
+      display: inline-block; background: rgba(99,179,237,0.08);
+      border: 1px solid rgba(99,179,237,0.15); color: var(--accent);
+      padding: 0.15rem 0.55rem; border-radius: 100px; font-size: 0.72rem; font-weight: 500;
+    }
+    .routing-table .model-pill.local {
+      background: rgba(104,211,145,0.08); border-color: rgba(104,211,145,0.2); color: var(--accent3);
+    }
+    .routing-table .model-pill.haiku {
+      background: rgba(159,122,234,0.08); border-color: rgba(159,122,234,0.2); color: var(--accent2);
+    }
+    .cost-zero {
+      display: flex; align-items: center; gap: 1.25rem; margin-top: 1.25rem;
+    }
+    .cost-zero-num {
+      font-size: 3rem; font-weight: 800; color: var(--accent3); line-height: 1;
+      flex-shrink: 0;
+    }
+    .cost-zero-label { color: var(--text2); font-size: 0.875rem; line-height: 1.6; }
+    .pipeline-row {
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .pipe-node {
+      background: rgba(99,179,237,0.07); border: 1px solid rgba(99,179,237,0.15);
+      border-radius: 8px; padding: 0.35rem 0.75rem;
+      font-size: 0.78rem; color: var(--accent); font-family: 'SF Mono', monospace;
+    }
+    .pipe-node.local { background: rgba(104,211,145,0.07); border-color: rgba(104,211,145,0.15); color: var(--accent3); }
+    .pipe-arrow { color: var(--text3); font-size: 0.9rem; }
+    .verdict-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem;
+    }
+    .verdict-item {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.875rem;
+    }
+    .verdict-item .vi-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
+    .verdict-item .vi-val { font-size: 0.875rem; color: var(--text); font-weight: 500; }
+    .verdict-item .vi-val .check { color: var(--accent3); margin-right: 0.25rem; }
+    .verdict-item .vi-val .cross { color: #fc6060; margin-right: 0.25rem; }
+
     /* ── Tech Stack Marquee ── */
     .tech-stack-section {
       padding: 5rem 2rem 3rem;
@@ -366,6 +444,7 @@
   <div class="nav-links">
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
+    <a href="#optimization">Performance</a>
     <a href="#tech-stack">Tech Stack</a>
     <a href="#integrations">Integrations</a>
     <a href="#privacy">Privacy</a>
@@ -562,6 +641,113 @@
   </div>
 </section>
 
+<!-- Cost Optimization -->
+<section class="cost-section" id="optimization">
+  <div style="text-align:center">
+    <div class="section-label">Performance</div>
+    <h2 class="section-title">Built to be cheap to run</h2>
+    <p class="section-sub">Most AI tools burn API credits on every little thing. PersGraph is engineered to spend only when it has to.</p>
+  </div>
+
+  <div class="cost-grid">
+
+    <!-- Model routing -->
+    <div class="cost-card" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1); font-size:1.5rem; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:rgba(99,179,237,0.1); border-radius:12px; margin-bottom:1rem">🧭</div>
+      <h3>Tiered Model Routing</h3>
+      <p>Every task is matched to the cheapest model capable of handling it. Heartbeats and cron jobs never touch Sonnet.</p>
+      <table class="routing-table">
+        <thead>
+          <tr><th>Task</th><th>Model</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cron / heartbeats</td>
+            <td><span class="model-pill haiku">claude-haiku</span></td>
+            <td>~20× cheaper</td>
+          </tr>
+          <tr>
+            <td>RAG search</td>
+            <td><span class="model-pill local">qwen2.5 local</span></td>
+            <td>$0.00</td>
+          </tr>
+          <tr>
+            <td>Vector embeddings</td>
+            <td><span class="model-pill local">nomic-embed local</span></td>
+            <td>$0.00</td>
+          </tr>
+          <tr>
+            <td>Reasoning / planning</td>
+            <td><span class="model-pill">claude-sonnet</span></td>
+            <td>Only when needed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- $0 embeddings -->
+    <div class="cost-card" style="--card-glow:rgba(104,211,145,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1); font-size:1.5rem; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:rgba(104,211,145,0.1); border-radius:12px; margin-bottom:1rem">💡</div>
+      <h3>Zero-Cost Retrieval Pipeline</h3>
+      <p>The most-used operation in the system — search and retrieval — runs entirely free on your own hardware.</p>
+      <div class="cost-zero">
+        <div class="cost-zero-num">$0</div>
+        <div class="cost-zero-label">per vector search.<br/>All embeddings run on Ollama locally — no OpenAI API, no rate limits, no billing surprises.</div>
+      </div>
+      <div class="pipeline-row">
+        <span class="pipe-node">your query</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-node local">nomic-embed (local)</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-node local">ChromaDB (local)</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-node">top-k chunks</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-node">Claude synthesis</span>
+      </div>
+    </div>
+
+    <!-- OpenRouter comparison -->
+    <div class="cost-card" style="--card-glow:rgba(159,122,234,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1); font-size:1.5rem; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:rgba(159,122,234,0.1); border-radius:12px; margin-bottom:1rem">⚖️</div>
+      <h3>Direct API — No Middleware Tax</h3>
+      <p>We evaluated OpenRouter's auto-routing. For a focused Anthropic-first stack, direct API wins on every metric.</p>
+      <div class="verdict-row">
+        <div class="verdict-item">
+          <div class="vi-label">Pricing</div>
+          <div class="vi-val"><span class="check">✓</span>No 5–10% markup</div>
+        </div>
+        <div class="verdict-item">
+          <div class="vi-label">Stability</div>
+          <div class="vi-val"><span class="check">✓</span>Pinned model versions</div>
+        </div>
+        <div class="verdict-item">
+          <div class="vi-label">Routing</div>
+          <div class="vi-val"><span class="check">✓</span>Manual = more precise</div>
+        </div>
+        <div class="verdict-item">
+          <div class="vi-label">Cost tracking</div>
+          <div class="vi-val"><span class="check">✓</span>Clean per-model logs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost visibility -->
+    <div class="cost-card" style="--card-glow:rgba(252,211,77,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(252,211,77,0.08); font-size:1.5rem; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:rgba(252,211,77,0.08); border-radius:12px; margin-bottom:1rem">📊</div>
+      <h3>Built-in Cost Visibility</h3>
+      <p>A daily cost summary fires every evening — token usage, model breakdown, cumulative spend — delivered to Telegram. No dashboard login, no surprises.</p>
+      <div style="margin-top:1.25rem; background:#0a0e1a; border:1px solid var(--border); border-radius:10px; padding:1rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.78rem">
+        <div style="color:var(--accent3); margin-bottom:0.35rem">📈 Daily API Cost Summary — May 27</div>
+        <div style="color:var(--text2)">claude-sonnet-4-6 &nbsp;·&nbsp; <span style="color:var(--text)">4,210 in / 1,840 out</span></div>
+        <div style="color:var(--text2)">claude-haiku &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;·&nbsp; <span style="color:var(--text)">12,880 in / 3,200 out</span></div>
+        <div style="color:var(--text2); margin-top:0.5rem">Today: <span style="color:var(--accent3); font-weight:700">$0.38</span> &nbsp;·&nbsp; Month: <span style="color:var(--accent3); font-weight:700">$6.12</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- Tech Stack Marquee -->
 <section class="tech-stack-section" id="tech-stack">
   <div class="section-label">Stack</div>
@@ -754,8 +940,8 @@
   <h2 class="cta-title">Own your personal<br/><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">data graph</span></h2>
   <p class="cta-sub">Open source and self-hosted. Clone it and run it today.</p>
   <div class="cta-actions">
-    <a href="https://github.com/JollyS/persgraph" class="btn-primary">⭐ Star on GitHub</a>
-    <a href="https://github.com/JollyS/persgraph" class="btn-secondary">View on GitHub</a>
+    <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-primary">⭐ Star on GitHub</a>
+    <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-secondary">View on GitHub</a>
   </div>
   <p class="cta-note">Open source · Self-hosted · No cloud required</p>
 </section>
@@ -765,7 +951,7 @@
   <div class="footer-logo">PersGraph</div>
   <div class="footer-text">© 2026 PersGraph. Your data, your graph.</div>
   <div class="footer-links">
-    <a href="https://github.com/JollyS/persgraph">GitHub</a>
+    <a href="https://github.com/SimpliCoreAI/persgraph">GitHub</a>
     <a href="#">Docs</a>
     <a href="#">Privacy</a>
   </div>

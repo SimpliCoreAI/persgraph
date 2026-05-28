@@ -19,7 +19,7 @@ Get up and running in ~10 minutes.
 ## Step 1 — Clone the repo
 
 ```bash
-git clone https://github.com/JollyS/persgraph.git ~/AgenticHub/Persgraph
+git clone https://github.com/SimpliCoreAI/persgraph.git ~/AgenticHub/Persgraph
 cd ~/AgenticHub/Persgraph
 ```
 

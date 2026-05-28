@@ -122,7 +122,7 @@ OpenClaw (orchestrator)
 
 ## Repo
 
-**GitHub:** `github.com/JollyS/persgraph` (private)
+**GitHub:** `github.com/SimpliCoreAI/persgraph` (private)
 
 ```
 persgraph/
