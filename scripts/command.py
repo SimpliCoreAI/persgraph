@@ -19,14 +19,52 @@ Usage:
 
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
-def cmd_ingest(args: str) -> str:
+# ---------------------------------------------------------------------------
+# User registry
+# ---------------------------------------------------------------------------
+
+def _load_users() -> dict:
+    config_path = os.path.join(os.path.dirname(__file__), "..", "config", "users.json")
+    try:
+        with open(config_path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+USERS = _load_users()
+
+
+def resolve_user(sender_id: str | None) -> dict:
+    """Resolve a Telegram sender_id to a user record. Falls back to guest."""
+    if sender_id and str(sender_id) in USERS:
+        return USERS[str(sender_id)]
+    return {"name": "guest", "tier": "guest", "model": "haiku", "display": "Guest"}
+
+
+def _parse_user_flag(args: str) -> tuple[str, str | None]:
+    """Extract --user <name> from args. Returns (cleaned_args, user_name_or_None)."""
+    import re
+    match = re.search(r'--user\s+(\S+)', args)
+    if match:
+        user_name = match.group(1)
+        cleaned = args[:match.start()].strip() + ' ' + args[match.end():].strip()
+        return cleaned.strip(), user_name
+    return args, None
+
+
+def cmd_ingest(args: str, user: dict | None = None) -> str:
+    # Parse --user flag
+    args, flag_user = _parse_user_flag(args)
+
     url = args.strip()
     if not url:
-        return "❌ Usage: /ingest <url>"
+        return "❌ Usage: /ingest <url> [--user <name>]"
 
     # Auto-apply Freedium for Medium URLs
     if "medium.com" in url and "freedium" not in url:
@@ -43,6 +81,11 @@ def cmd_ingest(args: str) -> str:
     if "github.com" in args:
         tags.append("github")
 
+    # User tag — from --user flag or resolved sender
+    user_name = flag_user or (user["name"] if user and user["name"] != "guest" else None)
+    if user_name:
+        tags.append(f"user:{user_name}")
+
     result = URLIngester().ingest(url, tags=tags)
     if result.success:
         return (
@@ -55,10 +98,13 @@ def cmd_ingest(args: str) -> str:
         return f"❌ Ingestion failed: {'; '.join(result.errors)}"
 
 
-def cmd_ask(question: str) -> str:
+def cmd_ask(question: str, user: dict | None = None) -> str:
     """Retrieve relevant chunks from the brain. Claude synthesizes the answer."""
+    # Parse --user flag
+    question, flag_user = _parse_user_flag(question)
+
     if not question.strip():
-        return "❌ Usage: /ask <question>"
+        return "❌ Usage: /ask <question> [--user <name>]"
 
     from second_brain.embeddings import embedder
     from second_brain.vectorstore import vectorstore
@@ -66,13 +112,23 @@ def cmd_ask(question: str) -> str:
     # Embed the question
     q_vec = embedder.embed(question)
 
+    # Build optional where filter for user-scoped queries
+    where = None
+    scoped_user = flag_user or (user["name"] if user and user["name"] != "guest" else None)
+    # Only filter if explicitly requested via --user flag
+    # Auto-sender routing does NOT restrict search (owner/kids share the knowledge base by default)
+    if flag_user:
+        where = {"$contains": f"user:{flag_user}"}
+
     # Query all collections
-    results = vectorstore.query_all(q_vec, top_k=5)
+    results = vectorstore.query_all(q_vec, top_k=5, where=where)
     if not results:
-        return "🤷 Nothing relevant found in the brain yet. Try /ingest some articles first!"
+        scope_msg = f" tagged --user {flag_user}" if flag_user else ""
+        return f"🤷 Nothing relevant found{scope_msg}. Try /ingest some articles first!"
 
     # Return structured context for Claude to synthesize
-    output_lines = [f"📖 Retrieved {len(results)} chunks for: \"{question}\"\n"]
+    scope_label = f" [scoped to: {flag_user}]" if flag_user else ""
+    output_lines = [f"📖 Retrieved {len(results)} chunks for: \"{question}\"{scope_label}\n"]
     for i, r in enumerate(results, 1):
         meta = r.get("metadata", {})
         title = meta.get("title", "Unknown source")
@@ -231,14 +287,25 @@ COMMANDS = {
     "/place":       cmd_place,
 }
 
+# Commands that accept a user context
+USER_AWARE_COMMANDS = {"/ingest", "/ask"}
 
-def run(raw_input: str) -> str:
+
+def run(raw_input: str, sender_id: str | None = None) -> str:
     raw_input = raw_input.strip()
+    user = resolve_user(sender_id)
+    model_hint = user.get("model", "haiku")
+
+    result = _dispatch(raw_input, user)
+    return f"MODEL_HINT: {model_hint}\n{result}"
+
+
+def _dispatch(raw_input: str, user: dict) -> str:
     for cmd, handler in COMMANDS.items():
         if raw_input.lower().startswith(cmd):
             args = raw_input[len(cmd):].strip()
-            if cmd == "/status":
-                return cmd_status()
+            if cmd in USER_AWARE_COMMANDS:
+                return handler(args, user=user)
             return handler(args)
 
     if raw_input.lower() == "/status":
@@ -246,18 +313,26 @@ def run(raw_input: str) -> str:
 
     return (
         "🤖 Unknown command. Available:\n"
-        "  /wiki-ingest <url>    — ingest + synthesize wiki note\n"
-        "  /ingest <url>         — ingest URL to ChromaDB only\n"
-        "  /ask <question>       — query the brain\n"
-        "  /note <text>          — save a note\n"
-        "  /task <text>          — save a task\n"
-        "  /place <name>, <city> — save a place\n"
-        "  /status               — collection + queue stats"
+        "  /wiki-ingest <url>              — ingest + synthesize wiki note\n"
+        "  /ingest <url> [--user <name>]   — ingest URL to ChromaDB\n"
+        "  /ask <question> [--user <name>] — query the brain\n"
+        "  /note <text>                    — save a note\n"
+        "  /task <text>                    — save a task\n"
+        "  /place <name>, <city>           — save a place\n"
+        "  /status                         — collection + queue stats"
     )
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python scripts/command.py '<command>'")
+    args = sys.argv[1:]
+    if not args:
+        print("Usage: python scripts/command.py [--sender <id>] '<command>'")
         sys.exit(1)
-    print(run(" ".join(sys.argv[1:])))
+
+    # Parse optional --sender flag
+    sender_id = None
+    if len(args) >= 2 and args[0] == "--sender":
+        sender_id = args[1]
+        args = args[2:]
+
+    print(run(" ".join(args), sender_id=sender_id))

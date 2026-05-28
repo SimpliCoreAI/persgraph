@@ -47,17 +47,26 @@ class VectorStore:
         collection_name: str,
         embedding: list[float],
         top_k: int = 5,
+        where: dict | None = None,
     ) -> list[dict[str, Any]]:
         """Query a collection and return ranked results."""
         col = self.get(collection_name)
         if col is None or col.count() == 0:
             return []
 
-        res = col.query(
+        query_kwargs: dict[str, Any] = dict(
             query_embeddings=[embedding],
             n_results=min(top_k, col.count()),
             include=["documents", "metadatas", "distances"],
         )
+        if where:
+            query_kwargs["where"] = where
+
+        try:
+            res = col.query(**query_kwargs)
+        except Exception:
+            # where filter may return 0 results in some ChromaDB versions — fall back gracefully
+            return []
 
         results = []
         for doc, meta, dist in zip(
@@ -78,11 +87,12 @@ class VectorStore:
         self,
         embedding: list[float],
         top_k: int = 5,
+        where: dict | None = None,
     ) -> list[dict[str, Any]]:
         """Query all collections and return merged, ranked results."""
         all_results: list[dict[str, Any]] = []
         for name in settings.all_collections:
-            all_results.extend(self.query(name, embedding, top_k))
+            all_results.extend(self.query(name, embedding, top_k, where=where))
 
         all_results.sort(key=lambda x: x["score"], reverse=True)
         return all_results[:top_k]
