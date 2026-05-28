@@ -58,6 +58,8 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 | Fees & Charges (SQLite-powered) | ✅ Working |
 | Streamlit dashboard (9 tabs) | ✅ Live |
 | Telegram Image Scanning → Obsidian → ChromaDB | ✅ Working |
+| Multi-user (family) — per-sender tagging + model routing | ✅ Working |
+| `/quiz` `/summarize` `/create notes` — LLM-native study tools | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
 | Credit Card Agent | 🔲 Phase 2 |
 | Weekly Briefing Agent | 🔲 Phase 2 |
@@ -130,8 +132,9 @@ PYTHONPATH=. python scripts/command.py "<command>"
 | `/task <text>` | Save a task or appointment |
 | `/place <name> in <city>` | Save a place to your POI graph |
 | `/wiki-ingest <url>` | Ingest a Wikipedia article as a structured note |
-| `/summarize <url>` | Summarize a page without ingesting |
-| `/quiz <topic>` | Generate Q&A flashcards from saved content *(coming soon)* |
+| `/summarize <url or topic>` | Summarize a page or saved notes on a topic |
+| `/quiz <topic>` | Generate Q&A flashcards from saved content |
+| `/create notes <topic>` | Create structured study notes from saved content |
 | `/status` | System status (Ollama, ChromaDB, note count) |
 
 ### Check appointments
