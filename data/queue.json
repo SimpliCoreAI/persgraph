@@ -93,5 +93,21 @@
     "queued_at": "2026-05-22T07:01:14.433041+00:00",
     "processed_at": "2026-05-22T07:26:44.502435+00:00",
     "error": "No module named 'pydantic_settings'"
+  },
+  {
+    "id": "535f00aa-d2c5-409a-a1fa-3aa279e9bfef",
+    "type": "task",
+    "payload": {
+      "title": "Create SimpliCoreAI email account",
+      "body": "Create SimpliCoreAI email account",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-05-28T21:21:43.329457+00:00",
+    "processed_at": null,
+    "error": null
   }
 ]
