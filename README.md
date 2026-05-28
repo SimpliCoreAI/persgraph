@@ -1,8 +1,95 @@
 # 📊 PersGraph
 
-**Private, local-first personal data graph — knowledge, finance, places, tasks. All on your machine.**
+**Your personal data, graphed & queryable — local-first, private, AI-powered.**
 
-No subscriptions. No cloud. Your data stays yours.
+> PersGraph ingests everything about you — emails, notes, tasks, finance, travel — and makes it all semantically searchable with AI. Your data, your graph, your machine.
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue?style=flat-square)](https://python.org)
+[![Ollama](https://img.shields.io/badge/LLM-Ollama%20local-green?style=flat-square)](https://ollama.ai)
+[![ChromaDB](https://img.shields.io/badge/Vector-ChromaDB-orange?style=flat-square)](https://trychroma.com)
+[![Claude](https://img.shields.io/badge/Reasoning-Claude%20Sonnet-violet?style=flat-square)](https://anthropic.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
+---
+
+## Why PersGraph?
+
+Most "personal AI" tools ship your data to a cloud. Your emails, your notes, your finances — all processed on someone else's servers, feeding someone else's models.
+
+PersGraph takes the opposite position:
+
+- **LLMs run locally** via Ollama — your data never touches an external embedding API
+- **Vector search is self-hosted** — ChromaDB runs on your machine or homelab
+- **You own the code** — MIT licensed, inspect every line, no black boxes
+- **Air-gap ready** — works fully offline once models are pulled
+
+Claude Sonnet is used only for agent reasoning (orchestration decisions, synthesis) — not for embedding or storing your personal data.
+
+---
+
+## What It Does
+
+Ask anything about your own life in natural language:
+
+```
+→ /ask what are my upcoming appointments this week?
+📅 Found 3 appointments in the next 7 days:
+   · Dentist — Mon Jun 2, 10:00 AM           [calendar]
+   · Team sync — Wed Jun 4, 2:00 PM          [calendar] [email]
+   · Flight YVR → SFO — Fri Jun 6, 7:45 AM  [travel]
+
+→ /ask how much did I spend on dining last month?
+💳 Dining spend — May 2026:
+   · Total: $312.40 across 14 transactions   [chase] [amex]
+   · Top spot: Nobu SF · $84.20
+
+→ /ask show my notes about RAG vs agents
+📚 Found 4 notes matching your query:
+   · "RAG vs Fine-tuning" — ingested Mar 2026        [obsidian]
+   · "Beyond RAG: Agent Memory Patterns" — from Medium [web]
+
+→ /quiz biology chapter 5
+🧠 Generated 5 flashcards from your saved notes:
+   Q1: What is the powerhouse of the cell?
+   Q2: Describe the process of mitosis in 3 steps…
+```
+
+---
+
+## Features
+
+### 🔍 Semantic Search Across Everything
+Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you half-remember, an email you can't find, or a decision you made months ago — PersGraph finds it.
+
+### 📊 Personal Finance Graph
+Track hidden fees, interest charges, and late fees across all accounts — powered by SQLite. Statement parsing and CC rewards tracking in Phase 2.
+
+### 📧 Email Ingestion
+Trusted sender filtering, intent classification, auto-routing to tasks, appointments, or notes. Zero noise.
+
+### ✅ Tasks & Appointments
+Captured from email, Telegram messages, or directly. Reminded before it's too late via daily cron + Telegram alert.
+
+### 🌐 URL & Web Ingestion
+Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.
+
+### ✈️ Travel & Places Graph
+Log places you've been, want to go, or want to remember. Searchable by city, category, country — with ratings and auto-tagging via local AI.
+
+### 📓 Obsidian Sync
+Watches your vault, incrementally ingests notes with frontmatter tags. Your thinking, always searchable.
+
+### 🧠 Wiki Ingestion
+Synthesize Wikipedia articles into structured notes with key insights, concepts, and tags — saved to your vault automatically.
+
+### 👨‍👩‍👧‍👦 Family Knowledge Base
+Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegram. Each user's content is auto-tagged — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
+
+```
+/quiz      → Generate Q&A flashcards from saved content
+/summarize → Summarize a page or topic from your notes
+/ask       → RAG query + AI synthesis from saved content
+```
 
 ---
 
@@ -10,17 +97,17 @@ No subscriptions. No cloud. Your data stays yours.
 
 ```
 ┌─────────────────────────────────┐     Tailscale VPN
-│  Mac (OpenClaw)                 │◄──────────────────►│  Windows (96GB RAM)        │
-│  · Orchestration & agents       │                     │  · Ollama (Qwen2.5:7b)     │
-│  · Claude for reasoning         │                     │  · ChromaDB vector store   │
-│  · Telegram interface           │                     │  · All embeddings & LLM    │
-│  · Cron jobs & automation       │                     │                            │
-│  · Image scanning (vision AI)   │                     │                            │
-└─────────────────────────────────┘                     └────────────────────────────┘
+│  Mac (OpenClaw)                 │◄──────────────────►  Windows (96GB RAM)
+│  · Orchestration & agents       │                       · Ollama (Qwen2.5:7b)
+│  · Claude for reasoning         │                       · ChromaDB vector store
+│  · Telegram interface           │                       · All embeddings & LLM
+│  · Cron jobs & automation       │
+│  · Image scanning (vision AI)   │
+└─────────────────────────────────┘
 ```
 
-Nothing leaves your local network (except Claude API calls for agent orchestration).
-Incoming Telegram images are scanned with a vision model and auto-saved to the Obsidian vault.
+Nothing leaves your local network (except Claude API calls for agent reasoning).  
+Incoming Telegram images are scanned with a vision model and auto-saved to your Obsidian vault.
 
 ---
 
@@ -29,15 +116,16 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 | Layer | Technology |
 |---|---|
 | AI Orchestration | OpenClaw (agent runtime) |
-| LLM Reasoning | Anthropic Claude (Sonnet) |
-| Local LLM + Embeddings | Ollama (Qwen2.5, nomic-embed-text) |
-| Vector Store | ChromaDB |
+| LLM Reasoning | Anthropic Claude Sonnet |
+| Local LLM + Embeddings | Ollama (Qwen2.5:7b, nomic-embed-text) |
+| Vector Store | ChromaDB (self-hosted) |
 | Knowledge Base | Obsidian vault |
 | RAG Pipeline | Custom Python + ChromaDB |
+| Finance Layer | SQLite + custom schema |
 | Networking | Tailscale VPN |
-| Interface | Telegram Bot |
+| Interface | Telegram Bot + Streamlit UI |
 | Tool Protocol | MCP (Model Context Protocol) |
-| Ingest Formats | PDF, URL, Markdown, Email, Images |
+| Ingest Formats | PDF, URL, Markdown, Email, Images, Wiki |
 
 ---
 
@@ -48,7 +136,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 | PDF ingestion → ChromaDB | ✅ Working |
 | URL / web ingestion | ✅ Working |
 | RAG Q&A (Qwen2.5:7b via Ollama) | ✅ Working |
-| Tasks, Notes, Appointments (ChromaDB) | ✅ Working |
+| Tasks, Notes, Appointments | ✅ Working |
 | Appointment reminders (cron, 8am daily) | ✅ Live |
 | API cost tracking (cron, 8pm daily) | ✅ Live |
 | Recurring Events manager | ✅ Working |
@@ -57,13 +145,46 @@ Incoming Telegram images are scanned with a vision model and auto-saved to the O
 | Learning Agent (RAG Q&A from UI) | ✅ Working |
 | Fees & Charges (SQLite-powered) | ✅ Working |
 | Streamlit dashboard (9 tabs) | ✅ Live |
-| Telegram Image Scanning → Obsidian → ChromaDB | ✅ Working |
+| Telegram image scanning → Obsidian → ChromaDB | ✅ Working |
 | Multi-user (family) — per-sender tagging + model routing | ✅ Working |
-| `/quiz` `/summarize` `/create notes` — LLM-native study tools | ✅ Working |
+| `/quiz` `/summarize` `/create notes` — LLM study tools | ✅ Working |
+| Wiki ingestion + AI synthesis | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
-| Credit Card Agent | 🔲 Phase 2 |
+| Credit Card Agent (rewards + statement parsing) | 🔲 Phase 2 |
 | Weekly Briefing Agent | 🔲 Phase 2 |
 | YouTube ingester | 🔲 Phase 2 |
+
+---
+
+## Integrations
+
+| Integration | Purpose |
+|---|---|
+| Gmail | Email ingestion + intent classification |
+| Google Calendar | Appointment sync |
+| Telegram | Command interface + image scanning |
+| Obsidian | Vault watcher + note sync |
+| Ollama | Local LLM + embeddings |
+| ChromaDB | Vector store |
+| Google Drive | File ingestion |
+| OpenClaw | AI agent runtime |
+| MCP Protocol | Tool integration layer |
+
+---
+
+## Streamlit Dashboard (9 Tabs)
+
+| Tab | Feature | Status |
+|---|---|---|
+| 🎓 Learning Agent | RAG Q&A + ingest from UI | ✅ |
+| 📎 Snippets | Semantic search across knowledge base | ✅ |
+| ✅ Tasks & Notes | CRUD for tasks, notes, appointments | ✅ |
+| 💼 Portfolio | Financial analysis & charts | 🔲 Phase 2 |
+| 💳 Credit Card Agent | Statement parsing, rewards tracking | 🔲 Phase 2 |
+| 🗺️ Travel & POI | Places graph — search, ratings, map | ✅ |
+| 📋 Weekly Briefing | Automated Sunday digest | 🔲 Phase 2 |
+| 🔁 Recurring Events | Cron job manager + cost tracker | ✅ |
+| 💸 Fees & Charges | Interest, late fees, annual fees | ✅ |
 
 ---
 
@@ -75,14 +196,14 @@ cd ~/AgenticHub/Persgraph
 bash setup.sh
 ```
 
-`setup.sh` handles everything: venv, dependencies, `.env` creation, Ollama model pull, ChromaDB check, and OpenClaw/gog verification.
+`setup.sh` handles everything: venv, dependencies, `.env` creation, Ollama model pull, ChromaDB check, and OpenClaw verification.
 
-**Full step-by-step guide:** → [`INSTALL.md`](INSTALL.md)
+**Full step-by-step:** → [`INSTALL.md`](INSTALL.md)  
 **OpenClaw agent setup:** → [`OPENCLAW_SETUP.md`](OPENCLAW_SETUP.md)
 
-### Services (Ollama + ChromaDB)
+### Services
 
-**Option A — Docker (no extra installs):**
+**Option A — Docker (recommended):**
 ```bash
 docker compose up -d
 ```
@@ -95,7 +216,7 @@ ollama pull qwen2.5:7b
 ```
 
 **Option C — Remote machine via Tailscale:**
-```env
+```bash
 # In .env:
 OLLAMA_BASE_URL=http://<tailscale-ip>:11434
 CHROMA_HOST=<tailscale-ip>
@@ -114,15 +235,12 @@ PYTHONPATH=. python scripts/ingest.py pdf ~/Documents/notes.pdf --tag research
 PYTHONPATH=. python scripts/ingest.py url https://example.com/article --tag ai
 ```
 
-### Ask your knowledge base
+### Query your knowledge base
 ```bash
 PYTHONPATH=. python scripts/query.py "What are my notes on RAG vs fine-tuning?"
 ```
 
-### Slash commands (via Telegram or terminal)
-```bash
-PYTHONPATH=. python scripts/command.py "<command>"
-```
+### Slash commands (Telegram or terminal)
 
 | Command | Description |
 |---|---|
@@ -134,30 +252,8 @@ PYTHONPATH=. python scripts/command.py "<command>"
 | `/wiki-ingest <url>` | Ingest a Wikipedia article as a structured note |
 | `/summarize <url or topic>` | Summarize a page or saved notes on a topic |
 | `/quiz <topic>` | Generate Q&A flashcards from saved content |
-| `/create notes <topic>` | Create structured study notes from saved content |
+| `/create notes <topic>` | Create structured study notes |
 | `/status` | System status (Ollama, ChromaDB, note count) |
-
-### Check appointments
-```bash
-PYTHONPATH=. python scripts/check_appointments.py
-# Returns any appointments within the next 48 hours
-```
-
----
-
-## Streamlit Dashboard Tabs
-
-| Tab | Feature | Status |
-|---|---|---|
-| 🎓 Learning Agent | RAG Q&A + ingest from UI | ✅ |
-| 📎 Snippets | Semantic search across knowledge base | ✅ |
-| ✅ Tasks & Notes | CRUD for tasks, notes, appointments | ✅ |
-| 💼 Portfolio | Financial analysis & charts | 🔲 Phase 2 |
-| 💳 Credit Card Agent | Statement parsing, rewards tracking | 🔲 Phase 2 |
-| 🗺️ Travel & POI | Places graph — search, ratings, map view | ✅ |
-| 📋 Weekly Briefing | Automated Sunday digest | 🔲 Phase 2 |
-| 🔁 Recurring Events | Cron job manager + cost tracker | ✅ |
-| 💸 Fees & Charges | Interest, late fees, annual fees (SQLite) | ✅ |
 
 ---
 
@@ -175,11 +271,13 @@ PYTHONPATH=. python scripts/check_appointments.py
 ```
 persgraph/
 ├── README.md
-├── .env                          # Local config (gitignored)
 ├── .env.example                  # Config template
 ├── requirements.txt
-├── pyproject.toml
+├── docker-compose.yml
+├── setup.sh                      # One-command setup
 ├── architecture.md               # Full system design
+├── INSTALL.md                    # Step-by-step install guide
+├── OPENCLAW_SETUP.md             # Agent runtime setup
 ├── second_brain/                 # Core Python package
 │   ├── config.py                 # Settings (pydantic-settings + .env)
 │   ├── embeddings.py             # Ollama embedding client
@@ -194,36 +292,52 @@ persgraph/
 │   ├── schema.sql
 │   ├── queries.py
 │   └── ingest.py
-├── persgraph/                    # Standalone HTML dashboards
-│   ├── analyze_transactions.py
-│   ├── analyze_yoy.py
-│   ├── fees_chart.py
-│   ├── dashboard.html
-│   └── run_dashboard.sh
 ├── scripts/
 │   ├── ingest.py                 # Ingest CLI
 │   ├── query.py                  # Query CLI
 │   ├── command.py                # Slash command handler
-│   ├── check_appointments.py    # Appointment checker (cron)
-│   └── track_api_cost.py        # API cost logger (cron)
+│   ├── check_appointments.py     # Appointment checker (cron)
+│   └── track_api_cost.py         # API cost logger (cron)
 ├── streamlit/
 │   ├── app.py                    # Home + sidebar nav
-│   └── pages/
-│       ├── 1_learning_agent.py
-│       ├── 2_snippets.py
-│       ├── 3_tasks_notes.py
-│       ├── 4_portfolio.py
-│       ├── 5_credit_card.py
-│       ├── 6_travel.py
-│       ├── 7_weekly_briefing.py
-│       ├── 8_recurring_events.py
-│       └── 9_fees.py
+│   └── pages/                    # 9 feature tabs
+├── persgraph/                    # Standalone HTML dashboards
 └── marketing/
-    └── persgraph-landing.html
+    └── persgraph-landing.html    # Product landing page
 ```
+
+---
+
+## Privacy
+
+PersGraph is built on a simple principle: **your personal data should never leave your machine.**
+
+- 🔒 **100% local processing** — Ollama runs models on your CPU/GPU. No embedding API calls.
+- 🏠 **Self-hosted vector DB** — ChromaDB runs on your machine or homelab.
+- 🔑 **Open source** — inspect every line. No black boxes, no telemetry.
+- 📡 **Air-gap ready** — works fully offline once models are pulled.
+- 👤 **You own everything** — MIT licensed. Fork it, audit it, run it forever.
+
+The only external API call is to Anthropic Claude for agent reasoning — and even then, only the query context is sent, never your raw stored data.
+
+---
+
+## Roadmap
+
+**Phase 2 (in progress):**
+- [ ] Portfolio & investment analysis
+- [ ] Credit Card Agent — statement parsing + rewards tracking
+- [ ] Weekly Briefing Agent — automated Sunday digest
+- [ ] YouTube ingester
+- [ ] Google Drive deep sync
+- [ ] Voice ingestion via Whisper
 
 ---
 
 ## License
 
 MIT — use it, fork it, make it yours.
+
+---
+
+Part of the [SimpliCore.ai](https://simplicore.ai) family of privacy-first AI tools.*
