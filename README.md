@@ -82,6 +82,9 @@ Watches your vault, incrementally ingests notes with frontmatter tags. Your thin
 ### 🧠 Wiki Ingestion
 Synthesize Wikipedia articles into structured notes with key insights, concepts, and tags — saved to your vault automatically.
 
+### 🔭 Observability (Langfuse)
+Every slash command is automatically traced with [Langfuse](https://langfuse.com) — input, output, latency, and tags captured per run. Self-hosted dashboard at `http://localhost:3000`. Tracing is best-effort: commands work even if Langfuse is unreachable.
+
 ### 👨‍👩‍👧‍👦 Family Knowledge Base
 Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegram. Each user's content is auto-tagged — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
 
@@ -126,6 +129,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | Interface | Telegram Bot + Streamlit UI |
 | Tool Protocol | MCP (Model Context Protocol) |
 | Ingest Formats | PDF, URL, Markdown, Email, Images, Wiki |
+| Observability | Langfuse v4 (self-hosted, traces all commands) |
 
 ---
 
@@ -149,6 +153,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | Multi-user (family) — per-sender tagging + model routing | ✅ Working |
 | `/quiz` `/summarize` `/create notes` — LLM study tools | ✅ Working |
 | Wiki ingestion + AI synthesis | ✅ Working |
+| Langfuse observability tracing | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
 | Credit Card Agent (rewards + statement parsing) | 🔲 Phase 2 |
 | Weekly Briefing Agent | 🔲 Phase 2 |
@@ -200,6 +205,23 @@ bash setup.sh
 
 **Full step-by-step:** → [`INSTALL.md`](INSTALL.md)  
 **OpenClaw agent setup:** → [`OPENCLAW_SETUP.md`](OPENCLAW_SETUP.md)
+
+### Langfuse Observability
+
+Every slash command is automatically traced — input, output, latency, and tags captured per run. To enable:
+
+1. Start Langfuse (included in `docker-compose.yml`) or point to your own self-hosted instance.
+2. Add to `.env.local`:
+
+```env
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_HOST=http://localhost:3000
+```
+
+3. Open `http://localhost:3000` → select the **persgraph** project to browse traces.
+
+Tracing is best-effort — all commands work even if Langfuse is unreachable. Spans are named after the slash command (e.g. `ingest`, `ask`, `note`) with the full input/output recorded.
 
 ### Services
 

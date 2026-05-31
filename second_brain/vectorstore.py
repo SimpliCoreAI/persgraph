@@ -12,17 +12,22 @@ class VectorStore:
     """Manages ChromaDB collections."""
 
     def __init__(self) -> None:
-        self._client = chromadb.HttpClient(
-            host=settings.chroma_host,
-            port=settings.chroma_port,
-        )
+        self._client = None  # lazy — don't connect until first use
+
+    def _get_client(self):
+        if self._client is None:
+            self._client = chromadb.HttpClient(
+                host=settings.chroma_host,
+                port=settings.chroma_port,
+            )
+        return self._client
 
     def get_or_create(self, name: str) -> Collection:
-        return self._client.get_or_create_collection(name)
+        return self._get_client().get_or_create_collection(name)
 
     def get(self, name: str) -> Optional[Collection]:
         try:
-            return self._client.get_collection(name)
+            return self._get_client().get_collection(name)
         except Exception:
             return None
 

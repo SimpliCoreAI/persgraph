@@ -17,6 +17,7 @@ Exit codes: 0 = success (even if 0 emails), 1 = fatal error
 import sys
 import os
 import json
+import time
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -253,6 +254,22 @@ def run() -> list[dict]:
     Fetch and process unread emails. Returns list of result dicts.
     Prints CONFIRM: and CLARIFY_JSON: lines for OpenClaw to act on.
     """
+    # ── Langfuse trace setup ──────────────────────────────────────────────────
+    _lf_trace = None
+    _lf_start = time.perf_counter()
+    try:
+        from second_brain.config import settings as _s
+        import os as _os
+        _os.environ.setdefault("LANGFUSE_SECRET_KEY", _s.langfuse_secret_key)
+        _os.environ.setdefault("LANGFUSE_PUBLIC_KEY", _s.langfuse_public_key)
+        _os.environ.setdefault("LANGFUSE_HOST", _s.langfuse_host)
+        if _s.langfuse_secret_key:
+            from langfuse import Langfuse
+            _lf = Langfuse(secret_key=_s.langfuse_secret_key, public_key=_s.langfuse_public_key, host=_s.langfuse_host)
+            _lf_trace = _lf.trace(name="email-worker", tags=["second-brain", "email-worker"])
+    except Exception:
+        pass
+    # ─────────────────────────────────────────────────────────────────────────
     ingester = EmailIngester()
 
     try:
@@ -305,6 +322,20 @@ def run() -> list[dict]:
                 "status": "failed",
                 "error": str(e),
             })
+
+    # ── Langfuse: close trace ───────────────────────────────────────────────
+    if _lf_trace:
+        try:
+            processed_n = sum(1 for r in results if r.get("status") == "processed")
+            failed_n = sum(1 for r in results if r.get("status") == "failed")
+            _lf_trace.update(
+                output=f"{processed_n} processed, {failed_n} failed, {len(results)} total",
+                metadata={"latency_ms": int((time.perf_counter() - _lf_start) * 1000)},
+            )
+            _lf.flush()
+        except Exception:
+            pass
+    # ───────────────────────────────────────────────────────────────────
 
     return results
 

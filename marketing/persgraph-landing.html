@@ -527,7 +527,55 @@
   </div>
   <div class="bento">
 
-    <!-- Wide card -->
+    <!-- Semantic Search - wide -->
+    <div class="card card-wide" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">🔍</div>
+      <h3>Semantic Search Across Everything</h3>
+      <p>Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you half-remember, an email you can&rsquo;t find, or a decision you made months ago.</p>
+      <div class="card-tags">
+        <span class="tag">ChromaDB</span><span class="tag">Ollama</span><span class="tag">nomic-embed</span>
+      </div>
+    </div>
+
+    <!-- Tasks & Notes -->
+    <div class="card" style="--card-glow:rgba(104,211,145,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1)">✅</div>
+      <h3>Tasks &amp; Notes</h3>
+      <p>Captured from Telegram, email, or directly. Reminded before it&rsquo;s too late via daily cron + Telegram alert.</p>
+      <div class="card-tags"><span class="tag">SQLite</span><span class="tag">Telegram</span></div>
+    </div>
+
+    <!-- Observability - full width -->
+    <div class="card card-wide" style="--card-glow:rgba(159,122,234,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">🔭</div>
+      <h3>Built-in Observability</h3>
+      <p>Every slash command &mdash; <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/ask</code>, <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/ingest</code>, <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/note</code>, and more &mdash; is automatically traced with Langfuse. See latency, inputs, outputs, and usage patterns in a self-hosted dashboard. No data leaves your machine, ever.</p>
+      <div class="card-tags"><span class="tag">Langfuse v4</span><span class="tag">Self-hosted</span><span class="tag">Best-effort tracing</span></div>
+    </div>
+
+    <!-- Web Ingestion -->
+    <div class="card" style="--card-glow:rgba(99,179,237,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.08)">🌐</div>
+      <h3>URL &amp; Web Ingestion</h3>
+      <p>Send a link, get it chunked and embedded. No more &ldquo;I saved that article somewhere&rdquo; moments.</p>
+      <div class="card-tags"><span class="tag">URL</span><span class="tag">PDF</span><span class="tag">Markdown</span></div>
+    </div>
+
+    <!-- Travel -->
+    <div class="card" style="--card-glow:rgba(252,211,77,0.04)">
+      <div class="card-icon" style="--icon-bg:rgba(252,211,77,0.08)">✈️</div>
+      <h3>Travel &amp; Places Graph</h3>
+      <p>Log places you&rsquo;ve been, want to go, or want to remember. Searchable by city, category, and country.</p>
+      <div class="card-tags"><span class="tag">POI</span><span class="tag">SQLite</span></div>
+    </div>
+
+    <!-- Family KB -->
+    <div class="card" style="--card-glow:rgba(104,211,145,0.04)">
+      <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.08)">👨‍👩‍👧‍👦</div>
+      <h3>Family Knowledge Base</h3>
+      <p>Multi-user from day one. Kids ingest textbooks and PDFs via Telegram. Each user&rsquo;s content is auto-tagged and cost-routed.</p>
+      <div class="card-tags"><span class="tag">Multi-user</span><span class="tag">Telegram</span></div>
+    </div>
 
   </div>
 </section>
@@ -733,6 +781,15 @@
           </svg>
         </div>
         <span class="tech-name">OpenClaw</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon-placeholder">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3h18v4H3zM3 10h18v4H3zM3 17h12v4H3z" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="19" cy="19" r="2.5" stroke="#94a3b8" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <span class="tech-name">Langfuse</span>
       </div>
       <!-- Set 2 (duplicate for seamless loop) -->
       <div class="tech-card">

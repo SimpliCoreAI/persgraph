@@ -20,6 +20,7 @@ Usage:
 import sys
 import os
 import json
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -67,10 +68,9 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
         return "❌ Usage: /ingest <url> [--user <name>]"
 
     # Auto-apply Freedium for Medium URLs
+    original_url = url
     if "medium.com" in url and "freedium" not in url:
         url = f"https://freedium-mirror.cfd/{url}"
-
-    from second_brain.ingesters.url import URLIngester
 
     # Auto-detect tags
     tags = []
@@ -86,6 +86,18 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
     if user_name:
         tags.append(f"user:{user_name}")
 
+    # ⭐ Connectivity check — fail fast instead of hanging
+    from second_brain.connectivity import chromadb_reachable
+    if not chromadb_reachable():
+        from second_brain.queue import enqueue_retry, DEP_CHROMADB
+        enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_CHROMADB])
+        return (
+            f"⏳ Queued for retry\n"
+            f"📶 Windows machine is offline — will ingest when it\'s back\n"
+            f"🔗 {original_url}"
+        )
+
+    from second_brain.ingesters.url import URLIngester
     result = URLIngester().ingest(url, tags=tags)
     if result.success:
         return (
@@ -105,6 +117,14 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
 
     if not question.strip():
         return "❌ Usage: /ask <question> [--user <name>]"
+
+    # ⭐ Connectivity check — fail fast instead of hanging
+    from second_brain.connectivity import chromadb_reachable
+    if not chromadb_reachable():
+        return (
+            "📶 Can\'t reach the knowledge base right now — Windows machine is offline.\n"
+            "Try again when it\'s back, or save this as a note: /note \"<your question>\""
+        )
 
     from second_brain.embeddings import embedder
     from second_brain.vectorstore import vectorstore
@@ -245,14 +265,53 @@ def cmd_task(text: str) -> str:
 
 def cmd_place(text: str) -> str:
     if not text.strip():
-        return "❌ Usage: /place <name>, <city>"
+        return "❌ Usage: /place <name>, <city> [, notes]"
     parts = [p.strip() for p in text.split(",", 2)]
     name = parts[0] if parts else text
     city = parts[1] if len(parts) > 1 else ""
     notes = parts[2] if len(parts) > 2 else ""
-    from second_brain.queue import enqueue
-    item = enqueue("place", {"name": name, "city": city, "notes": notes, "category": "Restaurant"})
-    return f"✅ Place queued!\n📍 {name}, {city}"
+    from second_brain.places_db import save  # SQLite — instant, no VPN needed
+    result = save(name=name, city=city, notes=notes, category="Restaurant")
+    tags = result.get("tags_list", [])
+    tag_str = f" · #{' #'.join(tags)}" if tags else ""
+    maps = result.get("maps_url", "")
+    maps_str = f"\n🗺 {maps}" if maps else ""
+    return f"✅ Saved!\n📍 {name}, {city}{tag_str}{maps_str}"
+
+
+def cmd_places(text: str) -> str:
+    """List saved places, optionally filtered by city."""
+    from second_brain.places_db import list_all, search, count as places_count, _expand_city
+    raw_filter = text.strip() or None
+    city_filter = _expand_city(raw_filter) if raw_filter else None
+
+    if city_filter:
+        results = search(city_filter, city=city_filter, top_k=20)
+        if not results:
+            results = list_all(city=city_filter, limit=20)
+        header = f"📍 Places in {city_filter} ({len(results)} found)"
+    else:
+        results = list_all(limit=30)
+        total = places_count()
+        header = f"📍 All places ({total} total, showing {len(results)})"
+
+    if not results:
+        return f"No places found{' in ' + city_filter if city_filter else ''}. Save one with /place <name>, <city>"
+
+    lines = [header, ""]
+    for p in results:
+        name = p.get("name", "?")
+        city = p.get("city", "")
+        cat = p.get("category", "")
+        notes = p.get("notes", "")
+        rating = p.get("rating")
+        stars = f" {'⭐' * int(rating)}" if rating else ""
+        notes_str = f" — {notes[:60]}" if notes else ""
+        maps = p.get("maps_url", "")
+        maps_str = f"\n  🗺 {maps}" if maps else ""
+        lines.append(f"• {name}, {city} [{cat}]{stars}{notes_str}{maps_str}")
+
+    return "\n".join(lines)
 
 
 def cmd_status() -> str:
@@ -285,6 +344,7 @@ COMMANDS = {
     "/note":        cmd_note,
     "/task":        cmd_task,
     "/place":       cmd_place,
+    "/places":      cmd_places,
 }
 
 # Commands that accept a user context
@@ -296,12 +356,37 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
     user = resolve_user(sender_id)
     model_hint = user.get("model", "haiku")
 
-    result = _dispatch(raw_input, user)
+    # ── Langfuse trace (v4 API) ───────────────────────────────────────────────
+    try:
+        from second_brain.tracing import flush
+        from second_brain.tracing import _ensure_env
+        import os as _os
+        _ensure_env()
+
+        from langfuse import observe as lf_observe, Langfuse
+
+        cmd_name = raw_input.split()[0] if raw_input else "unknown"
+        start_ms = time.perf_counter()
+
+        @lf_observe(name=cmd_name)
+        def _traced_dispatch():
+            res = _dispatch(raw_input, user)
+            lf = Langfuse()
+            lf.set_current_trace_io(input=raw_input, output=res[:800])
+            return res
+
+        result = _traced_dispatch()
+        flush()
+    except Exception:
+        result = _dispatch(raw_input, user)
+    # ─────────────────────────────────────────────────────────────────────────
+
     return f"MODEL_HINT: {model_hint}\n{result}"
 
 
 def _dispatch(raw_input: str, user: dict) -> str:
-    for cmd, handler in COMMANDS.items():
+    # Sort longest-first so /places doesn't match before /place
+    for cmd, handler in sorted(COMMANDS.items(), key=lambda x: -len(x[0])):
         if raw_input.lower().startswith(cmd):
             args = raw_input[len(cmd):].strip()
             if cmd in USER_AWARE_COMMANDS:
@@ -318,7 +403,8 @@ def _dispatch(raw_input: str, user: dict) -> str:
         "  /ask <question> [--user <name>] — query the brain\n"
         "  /note <text>                    — save a note\n"
         "  /task <text>                    — save a task\n"
-        "  /place <name>, <city>           — save a place\n"
+        "  /place <name>, <city> [, notes] — save a place (instant)\n"
+        "  /places [city]                  — list saved places\n"
         "  /status                         — collection + queue stats"
     )
 

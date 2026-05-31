@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # gog account for Google Calendar
     gog_account: str = ""  # Set via GOG_ACCOUNT in .env
 
+    # Langfuse tracing
+    langfuse_secret_key: str = ""
+    langfuse_public_key: str = ""
+    langfuse_host: str = "http://localhost:3000"
+
     # Collection names
     collection_pdfs: str = "pdfs"
     collection_notes: str = "notes"
