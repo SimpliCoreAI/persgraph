@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Debrief · PersGraph</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080b14;
+            --card: #0d1120;
+            --card2: #111827;
+            --border: rgba(99, 179, 237, 0.12);
+            --border2: rgba(99, 179, 237, 0.25);
+            --a1: #63b3ed;
+            --a2: #9f7aea;
+            --a3: #68d391;
+            --a4: #f6ad55;
+            --a5: #fc8181;
+            --txt: #e2e8f0;
+            --mut: #94a3b8;
+            --r: 12px;
+            --rs: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+        }
+
+        .back-link {
+            color: var(--a1);
+            text-decoration: none;
+            font-size: 1.25rem;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            opacity: 0.8;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .period-pill {
+            padding: 0.75rem 1.25rem;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--mut);
+            border-radius: var(--r);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .period-pill:hover {
+            border-color: var(--border2);
+            color: var(--txt);
+        }
+
+        .period-pill.active {
+            background: var(--a1);
+            color: var(--bg);
+            border-color: var(--a1);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--a1);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            margin: 2rem 0;
+        }
+
+        .empty-state.show {
+            display: block;
+        }
+
+        .empty-state-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-text {
+            color: var(--mut);
+            margin-bottom: 1rem;
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.show {
+            display: block;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.5rem;
+        }
+
+        .stat-label {
+            color: var(--mut);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--a1);
+        }
+
+        section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .topic-card {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.5rem;
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .topic-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .source-badge {
+            background: rgba(99, 179, 237, 0.2);
+            color: var(--a1);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--rs);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .topic-highlights {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .topic-highlights li {
+            padding: 0.5rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+            color: var(--mut);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .topic-highlights li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--a1);
+        }
+
+        .ingested-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ingested-item {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .ingested-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .ingested-content {
+            flex: 1;
+        }
+
+        .ingested-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .ingested-meta {
+            color: var(--mut);
+            font-size: 0.85rem;
+        }
+
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .note-item {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .note-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--rs);
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .note-badge.note {
+            background: rgba(99, 179, 237, 0.2);
+            color: var(--a1);
+        }
+
+        .note-badge.task {
+            background: rgba(104, 211, 145, 0.2);
+            color: var(--a3);
+        }
+
+        .note-content {
+            flex: 1;
+        }
+
+        .note-text {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .note-date {
+            color: var(--mut);
+            font-size: 0.8rem;
+        }
+
+        .langfuse-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .langfuse-stat {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .langfuse-label {
+            color: var(--mut);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .langfuse-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--a1);
+        }
+
+        .footer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--mut);
+            font-size: 0.9rem;
+        }
+
+        .regenerate-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--a1);
+            color: var(--bg);
+            border: none;
+            border-radius: var(--rs);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .regenerate-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .regenerate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .topic-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .langfuse-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a class="back-link" onclick="window.location.href = '/';">← Hub</a>
+            <div class="header-title">📊 Team Debrief</div>
+        </header>
+
+        <div class="period-selector">
+            <button class="period-pill active" data-period="today">Today</button>
+            <button class="period-pill" data-period="week">This Week</button>
+            <button class="period-pill" data-period="month">This Month</button>
+        </div>
+
+        <div class="loading-spinner show" id="loadingSpinner">
+            <div class="spinner"></div>
+            <div>Loading debrief...</div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-state-emoji">📭</div>
+            <div class="empty-state-text">No debrief data yet.</div>
+            <div class="empty-state-text" style="font-size: 0.9rem; color: #666;">Run <code style="background: var(--card); padding: 0.25rem 0.5rem; border-radius: 4px;">/debrief</code> from Telegram to generate one.</div>
+        </div>
+
+        <div class="content" id="content">
+            <!-- Stats Row -->
+            <div class="stats-row" id="statsRow"></div>
+
+            <!-- By Topic Section -->
+            <section id="topicsSection" style="display: none;">
+                <div class="section-title">📌 By Topic</div>
+                <div class="topic-grid" id="topicGrid"></div>
+            </section>
+
+            <!-- Recent Ingested Section -->
+            <section id="ingestedSection" style="display: none;">
+                <div class="section-title">🔗 Recent Ingested</div>
+                <div class="ingested-list" id="ingestedList"></div>
+            </section>
+
+            <!-- Recent Notes/Tasks Section -->
+            <section id="notesSection" style="display: none;">
+                <div class="section-title">📝 Recent Notes & Tasks</div>
+                <div class="notes-list" id="notesList"></div>
+            </section>
+
+            <!-- Langfuse Activity Section -->
+            <section id="langfuseSection" style="display: none;">
+                <div class="section-title">⚡ Langfuse Activity</div>
+                <div class="langfuse-grid" id="langfuseGrid"></div>
+            </section>
+
+            <!-- Footer Meta -->
+            <div class="footer-meta">
+                <div>Last generated: <span id="generatedTime">—</span></div>
+                <button class="regenerate-btn" id="regenerateBtn" onclick="regenerateDebrief()">🔄 Regenerate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPeriod = 'today';
+
+        async function loadDebrief(period) {
+            const loading = document.getElementById('loadingSpinner');
+            const content = document.getElementById('content');
+            const empty = document.getElementById('emptyState');
+
+            loading.classList.add('show');
+            content.classList.remove('show');
+            empty.classList.remove('show');
+
+            try {
+                const response = await fetch(`/api/debrief?period=${period}`);
+                const data = await response.json();
+
+                if (data.empty) {
+                    loading.classList.remove('show');
+                    empty.classList.add('show');
+                    return;
+                }
+
+                renderDebrief(data);
+                loading.classList.remove('show');
+                content.classList.add('show');
+            } catch (error) {
+                console.error('Error loading debrief:', error);
+                loading.classList.remove('show');
+                empty.classList.add('show');
+            }
+        }
+
+        function renderDebrief(data) {
+            // Render Stats
+            const stats = [
+                { label: 'Notes Saved', value: data.stats?.notes_saved || 0 },
+                { label: 'URLs Ingested', value: data.stats?.urls_ingested || 0 },
+                { label: 'Tasks Completed', value: data.stats?.tasks_completed || 0 },
+                { label: 'Commands Run', value: data.stats?.commands_run || 0 }
+            ];
+
+            const statsRow = document.getElementById('statsRow');
+            statsRow.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-label">${stat.label}</div>
+                    <div class="stat-value">${stat.value}</div>
+                </div>
+            `).join('');
+
+            // Render Topics
+            if (data.topics && data.topics.length > 0) {
+                const topicsSection = document.getElementById('topicsSection');
+                const topicGrid = document.getElementById('topicGrid');
+
+                topicGrid.innerHTML = data.topics.map(topic => `
+                    <div class="topic-card">
+                        <div class="topic-header">
+                            <div class="topic-name">${escapeHtml(topic.name)}</div>
+                            <div class="source-badge">${topic.source_count || 0} sources</div>
+                        </div>
+                        <ul class="topic-highlights">
+                            ${(topic.highlights || []).slice(0, 5).map(h => `<li>${escapeHtml(h)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('');
+
+                topicsSection.style.display = 'block';
+            }
+
+            // Render Ingested
+            if (data.ingested && data.ingested.length > 0) {
+                const ingestedSection = document.getElementById('ingestedSection');
+                const ingestedList = document.getElementById('ingestedList');
+
+                ingestedList.innerHTML = data.ingested.map(item => `
+                    <div class="ingested-item">
+                        <div class="ingested-icon">📄</div>
+                        <div class="ingested-content">
+                            <div class="ingested-title">${escapeHtml(item.title || 'Untitled')}</div>
+                            <div class="ingested-meta">${escapeHtml(item.domain || 'unknown')} · ${item.date || '—'}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                ingestedSection.style.display = 'block';
+            }
+
+            // Render Notes
+            if (data.notes && data.notes.length > 0) {
+                const notesSection = document.getElementById('notesSection');
+                const notesList = document.getElementById('notesList');
+
+                notesList.innerHTML = data.notes.map(note => `
+                    <div class="note-item">
+                        <div class="note-badge ${note.type || 'note'}">${(note.type || 'note').toUpperCase()}</div>
+                        <div class="note-content">
+                            <div class="note-text">${escapeHtml(note.text || '')}</div>
+                            <div class="note-date">${note.date || '—'}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                notesSection.style.display = 'block';
+            }
+
+            // Render Langfuse
+            if (data.langfuse) {
+                const langfuseSection = document.getElementById('langfuseSection');
+                const langfuseGrid = document.getElementById('langfuseGrid');
+
+                langfuseGrid.innerHTML = `
+                    <div class="langfuse-stat">
+                        <div class="langfuse-label">Commands Run</div>
+                        <div class="langfuse-value">${data.langfuse.commands_run || 0}</div>
+                    </div>
+                    <div class="langfuse-stat">
+                        <div class="langfuse-label">Avg Latency</div>
+                        <div class="langfuse-value">${(data.langfuse.avg_latency_ms || 0).toFixed(0)}ms</div>
+                    </div>
+                    <div class="langfuse-stat">
+                        <div class="langfuse-label">Total Cost</div>
+                        <div class="langfuse-value">$${(data.langfuse.total_cost_usd || 0).toFixed(2)}</div>
+                    </div>
+                `;
+
+                langfuseSection.style.display = 'block';
+            }
+
+            // Update generated time
+            const generatedTime = document.getElementById('generatedTime');
+            if (data.generated_at) {
+                const date = new Date(data.generated_at);
+                generatedTime.textContent = date.toLocaleString();
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function regenerateDebrief() {
+            const btn = document.getElementById('regenerateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            try {
+                const response = await fetch('/api/debrief/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ period: currentPeriod })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    setTimeout(() => {
+                        loadDebrief(currentPeriod);
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Regenerate';
+                }
+            } catch (error) {
+                console.error('Error regenerating:', error);
+                alert('Error regenerating debrief');
+                btn.disabled = false;
+                btn.textContent = '🔄 Regenerate';
+            }
+        }
+
+        // Period selector
+        document.querySelectorAll('.period-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                document.querySelectorAll('.period-pill').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
+                currentPeriod = e.target.dataset.period;
+                loadDebrief(currentPeriod);
+            });
+        });
+
+        // Initial load
+        loadDebrief(currentPeriod);
+    </script>
+</body>
+</html>

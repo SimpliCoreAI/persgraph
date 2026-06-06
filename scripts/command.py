@@ -337,6 +337,31 @@ def cmd_status() -> str:
     )
 
 
+def cmd_debrief(args: str) -> str:
+    import subprocess, sys, os
+    period = args.strip() or "week"
+    if period not in ("today", "week", "month"):
+        return "❌ Usage: /debrief [today|week|month]"
+    
+    base_dir = os.path.join(os.path.dirname(__file__), "..")
+    script = os.path.join(base_dir, "scripts", "debrief.py")
+    
+    try:
+        result = subprocess.run(
+            [sys.executable, script, period],
+            capture_output=True, text=True, timeout=120,
+            cwd=base_dir
+        )
+        if result.returncode == 0:
+            return f"📊 Debrief generated for period: **{period}**\nView at: http://5.78.196.42:8766/debrief\n\n{result.stdout.strip()}"
+        else:
+            return f"❌ Debrief failed:\n{result.stderr.strip()}"
+    except subprocess.TimeoutExpired:
+        return "⏱ Debrief is taking longer than expected. Check http://5.78.196.42:8766/debrief in a minute."
+    except Exception as e:
+        return f"❌ Error: {e}"
+
+
 COMMANDS = {
     "/wiki-ingest": cmd_wiki_ingest,
     "/ingest":      cmd_ingest,
@@ -345,6 +370,7 @@ COMMANDS = {
     "/task":        cmd_task,
     "/place":       cmd_place,
     "/places":      cmd_places,
+    "/debrief":     cmd_debrief,
 }
 
 # Commands that accept a user context
@@ -354,7 +380,15 @@ USER_AWARE_COMMANDS = {"/ingest", "/ask"}
 def run(raw_input: str, sender_id: str | None = None) -> str:
     raw_input = raw_input.strip()
     user = resolve_user(sender_id)
-    model_hint = user.get("model", "haiku")
+    # Map legacy model hints → LiteLLM virtual model tiers
+    _model_raw = user.get("model", "haiku")
+    _hint_map = {
+        "haiku": "fast",
+        "sonnet": "smart",
+        "fast": "fast",
+        "smart": "smart",
+    }
+    model_hint = _hint_map.get(_model_raw, "fast")
 
     # ── Langfuse trace (v4 API) ───────────────────────────────────────────────
     try:
@@ -381,7 +415,7 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
         result = _dispatch(raw_input, user)
     # ─────────────────────────────────────────────────────────────────────────
 
-    return f"MODEL_HINT: {model_hint}\n{result}"
+    return f"MODEL_HINT: {model_hint}\n{result}"  # fast | smart → LiteLLM tiers
 
 
 def _dispatch(raw_input: str, user: dict) -> str:
@@ -405,6 +439,7 @@ def _dispatch(raw_input: str, user: dict) -> str:
         "  /task <text>                    — save a task\n"
         "  /place <name>, <city> [, notes] — save a place (instant)\n"
         "  /places [city]                  — list saved places\n"
+        "  /debrief [today|week|month]     — generate activity debrief\n"
         "  /status                         — collection + queue stats"
     )
 

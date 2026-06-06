@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PersGraph Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080b14;
+            --card: #0d1120;
+            --card2: #111827;
+            --border: rgba(99, 179, 237, 0.12);
+            --border2: rgba(99, 179, 237, 0.25);
+            --a1: #63b3ed;
+            --a2: #9f7aea;
+            --a3: #68d391;
+            --a4: #f6ad55;
+            --a5: #fc8181;
+            --txt: #e2e8f0;
+            --mut: #94a3b8;
+            --r: 12px;
+            --rs: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #63b3ed, #9f7aea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: var(--mut);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .widget-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .widget-card {
+            background: linear-gradient(135deg, var(--card), var(--card2));
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .widget-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(600px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(99, 179, 237, 0.1), transparent 80%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .widget-card:hover {
+            border-color: var(--border2);
+            transform: translateY(-4px);
+        }
+
+        .widget-card[data-accent="a1"]:hover {
+            box-shadow: 0 0 30px rgba(99, 179, 237, 0.2);
+        }
+
+        .widget-card[data-accent="a2"]:hover {
+            box-shadow: 0 0 30px rgba(159, 122, 234, 0.2);
+        }
+
+        .widget-card[data-accent="a3"]:hover {
+            box-shadow: 0 0 30px rgba(104, 211, 145, 0.2);
+        }
+
+        .widget-card[data-accent="a4"]:hover {
+            box-shadow: 0 0 30px rgba(246, 173, 85, 0.2);
+        }
+
+        .widget-card[data-accent="a5"]:hover {
+            box-shadow: 0 0 30px rgba(252, 129, 129, 0.2);
+        }
+
+        .widget-emoji {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+
+        .widget-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .widget-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .widget-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--rs);
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-live {
+            background: rgba(104, 211, 145, 0.15);
+            color: var(--a3);
+        }
+
+        .status-coming {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--mut);
+        }
+
+        .widget-desc {
+            color: var(--mut);
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        .widget-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+            color: var(--mut);
+            font-size: 0.8rem;
+        }
+
+        .widget-footer-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .dot-live {
+            background: var(--a3);
+        }
+
+        .dot-coming {
+            background: var(--mut);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--mut);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🧠 PersGraph</div>
+            <div class="tagline">Your personal intelligence hub</div>
+        </header>
+
+        <div class="widget-grid">
+            <!-- Travel Planner -->
+            <a href="/travel" class="widget-card" data-accent="a1">
+                <div class="widget-emoji">✈️</div>
+                <div class="widget-header">
+                    <div class="widget-title">Travel Planner</div>
+                    <div class="widget-status status-live">Live</div>
+                </div>
+                <div class="widget-desc">Trip plans, daily briefings & destinations</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-live"></div>
+                    <span>Active</span>
+                </div>
+            </a>
+
+            <!-- Team Debrief -->
+            <a href="/debrief" class="widget-card" data-accent="a2">
+                <div class="widget-emoji">📊</div>
+                <div class="widget-header">
+                    <div class="widget-title">Team Debrief</div>
+                    <div class="widget-status status-live">Live</div>
+                </div>
+                <div class="widget-desc">Activity digest by topic · today / week / month</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-live"></div>
+                    <span>Active</span>
+                </div>
+            </a>
+
+            <!-- Market Scout -->
+            <div class="widget-card" data-accent="a4">
+                <div class="widget-emoji">🔭</div>
+                <div class="widget-header">
+                    <div class="widget-title">Market Scout</div>
+                    <div class="widget-status status-coming">Coming Soon</div>
+                </div>
+                <div class="widget-desc">Market signals & competitor intelligence</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-coming"></div>
+                    <span>Upcoming</span>
+                </div>
+            </div>
+
+            <!-- Morning Briefing -->
+            <div class="widget-card" data-accent="a3">
+                <div class="widget-emoji">🌅</div>
+                <div class="widget-header">
+                    <div class="widget-title">Morning Briefing</div>
+                    <div class="widget-status status-coming">Coming Soon</div>
+                </div>
+                <div class="widget-desc">Daily headlines, tasks & appointments</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-coming"></div>
+                    <span>Upcoming</span>
+                </div>
+            </div>
+
+            <!-- Fees & Charges -->
+            <div class="widget-card" data-accent="a5">
+                <div class="widget-emoji">💸</div>
+                <div class="widget-header">
+                    <div class="widget-title">Fees & Charges</div>
+                    <div class="widget-status status-coming">Coming Soon</div>
+                </div>
+                <div class="widget-desc">Interest, late fees & account charges</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-coming"></div>
+                    <span>Upcoming</span>
+                </div>
+            </div>
+
+            <!-- CC Rewards -->
+            <div class="widget-card" data-accent="a4">
+                <div class="widget-emoji">💳</div>
+                <div class="widget-header">
+                    <div class="widget-title">CC Rewards</div>
+                    <div class="widget-status status-coming">Coming Soon</div>
+                </div>
+                <div class="widget-desc">Card rewards optimization & spending insights</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-coming"></div>
+                    <span>Upcoming</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>PersGraph · Built by Jolly</div>
+    </footer>
+
+    <script>
+        // Subtle glow effect on hover
+        document.querySelectorAll('.widget-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', x + 'px');
+                card.style.setProperty('--mouse-y', y + 'px');
+            });
+        });
+    </script>
+</body>
+</html>
