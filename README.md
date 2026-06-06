@@ -362,6 +362,36 @@ The goal: **maximum intelligence, minimum API spend, zero cloud lock-in on your 
 
 ---
 
+## Agentic Engineering Practices
+
+PersGraph follows patterns from Claude Code best practices to keep AI agent context lean, scoped, and reliable.
+
+### Scoped AGENTS.md Files
+
+Instead of one monolithic instruction file, rules are scoped to the directory where they apply:
+
+| File | What it governs |
+|---|---|
+| `AGENT_CONTEXT.md` | Root-level universal rules — collections, query behavior, security |
+| `scripts/AGENTS.md` | Scripting conventions, venv path, cron IDs, error handling |
+| `second_brain/AGENTS.md` | ChromaDB rules, embedding conventions, RAG behavior, tracing |
+| `travel/AGENTS.md` | Trip schema, wttr.in pattern, briefing setup, UI conventions |
+
+This mirrors the **60-line rule** from Claude Code best practices: keep the root context tight (~60 lines optimal, 200 max), and push scoped rules into subdirectory files. Beyond 200 lines, rules get quietly deprioritized by the model.
+
+### Conditional Rule Loading
+
+Rules that only apply in specific contexts (scripting, travel planning, ChromaDB ops) don't pollute the root context. When an agent works in `scripts/`, it loads `scripts/AGENTS.md` for precise conventions without noise from unrelated rules.
+
+### Model Routing by Task Type
+
+Every task routes to the cheapest capable model:
+- `claude-haiku-4-5` → cron jobs, heartbeats, status checks
+- Local Qwen via Ollama → RAG retrieval (free, zero API cost)
+- `claude-sonnet` → reasoning, synthesis, planning only when needed
+
+---
+
 ## Project Structure
 
 ```

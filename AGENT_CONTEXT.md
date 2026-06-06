@@ -3,6 +3,11 @@
 This file teaches the agent how to operate this second brain correctly.
 Read this before any ingestion, query, or write operation.
 
+> 📁 Scoped rules live in subdirectory AGENTS.md files:
+> - `scripts/AGENTS.md` — scripting, cron, Telegram commands
+> - `second_brain/AGENTS.md` — package, ChromaDB, embeddings, RAG
+> - `travel/AGENTS.md` — trip planner, briefings, UI
+
 ---
 
 ## What This System Is
@@ -76,12 +81,13 @@ When answering `/ask` queries:
 ## Ingestion Rules
 
 Before ingesting any URL:
-- Check if it's already in the collection (duplicate detection is automatic via chunk IDs)
-- For Medium/paywalled articles: use `https://freedium-mirror.cfd/<url>`
+- Duplicate detection is automatic via chunk IDs
+- For Medium/paywalled articles: use `https://freedium-mirror.cfd/<url>` (try original first)
 - For YouTube: extract transcript, not just metadata
-- Chunk size: 512 tokens, overlap: 64 tokens
 
 After ingestion: report chunks_total, chunks_new, collection, tags.
+
+> Full scripting conventions → `scripts/AGENTS.md`
 
 ---
 
