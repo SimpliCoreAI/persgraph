@@ -70,6 +70,9 @@ Trusted sender filtering, intent classification, auto-routing to tasks, appointm
 ### ✅ Tasks & Appointments
 Captured from email, Telegram messages, or directly. Reminded before it's too late via daily cron + Telegram alert.
 
+### 🌅 Morning Briefing
+Every morning at 8am PST, Gru delivers a personalized briefing to Telegram: top headlines (tech, world, finance), open tasks due today, and upcoming appointments within 24 hours.
+
 ### 🌐 URL & Web Ingestion
 Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.
 
@@ -99,14 +102,23 @@ Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegr
 ## Architecture
 
 ```
-┌─────────────────────────────────┐     Tailscale VPN
-│  Mac (OpenClaw)                 │◄──────────────────►  Windows (96GB RAM)
-│  · Orchestration & agents       │                       · Ollama (Qwen2.5:7b)
-│  · Claude for reasoning         │                       · ChromaDB vector store
-│  · Telegram interface           │                       · All embeddings & LLM
-│  · Cron jobs & automation       │
-│  · Image scanning (vision AI)   │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────┐     Tailscale VPN
+│  VPS: ubuntu-2gb-hil-1 (DigitalOcean)   │◄──────────────────►  Windows: andromeda
+│  5.78.196.42  — PRIMARY HOST             │                       100.122.130.89
+│  · Gru (AI agent / OpenClaw)             │                       · Ollama (Qwen2.5:7b)
+│  · Claude for reasoning                  │                       · ChromaDB vector store
+│  · Telegram interface                    │                       · All embeddings & LLM
+│  · Cron jobs & automation                │
+│  · Image scanning (vision AI)            │
+└──────────────────────────────────────────┘
+             ▲
+             │  Sensitive local files only
+             │  (CC statements, portfolio PDFs)
+             ▼
+┌──────────────────────────┐
+│  Mac (local)             │
+│  · Private documents     │
+└──────────────────────────┘
 ```
 
 Nothing leaves your local network (except Claude API calls for agent reasoning).  
@@ -141,7 +153,8 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | URL / web ingestion | ✅ Working |
 | RAG Q&A (Qwen2.5:7b via Ollama) | ✅ Working |
 | Tasks, Notes, Appointments | ✅ Working |
-| Appointment reminders (cron, 8am daily) | ✅ Live |
+| Appointment reminders (cron, hourly check) | ✅ Live |
+| Morning Briefing (8am PST daily) | ✅ Live |
 | API cost tracking (cron, 8pm daily) | ✅ Live |
 | Recurring Events manager | ✅ Working |
 | Travel & POI (places graph) | ✅ Working |
@@ -196,7 +209,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 ## Setup
 
 ```bash
-git clone https://github.com/SimpliCoreAI/persgraph.git ~/AgenticHub/Persgraph
+git clone git@github.com:simplicoreai/Persgraph.git ~/AgenticHub/Persgraph
 cd ~/AgenticHub/Persgraph
 bash setup.sh
 ```
@@ -289,7 +302,7 @@ Not every task needs a frontier model. We route by complexity:
 
 | Task Type | Model | Why |
 |---|---|---|
-| Heartbeats, status checks, cron | `claude-3-5-haiku` | ~20x cheaper, more than capable |
+| Heartbeats, status checks, cron | `claude-haiku-4-5` | ~20x cheaper, more than capable |
 | RAG queries, slash commands | `qwen2.5:7b` (local, free) | Zero API cost — runs on your own hardware |
 | Reasoning, synthesis, planning | `claude-sonnet` | Only when it actually matters |
 | Embeddings | `nomic-embed-text` (local) | No API cost, no rate limits, no vendor lock-in |
@@ -322,6 +335,7 @@ A daily cost summary fires every evening via cron — token usage, model breakdo
 ```bash
 # Manual cost check
 PYTHONPATH=. python scripts/track_api_cost.py log --tokens-in N --tokens-out N --model claude-sonnet-4-6
+
 ```
 
 ### Hybrid Architecture = Best of Both Worlds
@@ -343,6 +357,7 @@ The goal: **maximum intelligence, minimum API spend, zero cloud lock-in on your 
 | Job | Schedule | What it does |
 |---|---|---|
 | `appointment-reminder` | 8:00 AM daily | Scans ChromaDB → Telegram alert if appointment within 48h |
+| `morning-briefing` | 8:00 AM PST daily | Top headlines + tasks due today + appointments within 24h → Telegram |
 | `api-cost-tracking` | 8:00 PM daily | Logs token usage → Telegram daily cost summary |
 
 ---

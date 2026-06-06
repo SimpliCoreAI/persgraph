@@ -577,6 +577,14 @@
       <div class="card-tags"><span class="tag">Multi-user</span><span class="tag">Telegram</span></div>
     </div>
 
+    <!-- Morning Briefing -->
+    <div class="card" style="--card-glow:rgba(252,193,77,0.06)">
+      <div class="card-icon" style="--icon-bg:rgba(252,193,77,0.1)">🌅</div>
+      <h3>Morning Briefing</h3>
+      <p>Every day at 8am, get a personalized digest — top headlines, tasks due today, and upcoming appointments — delivered straight to Telegram.</p>
+      <div class="card-tags"><span class="tag">Cron</span><span class="tag">Telegram</span><span class="tag">Always-on</span></div>
+    </div>
+
   </div>
 </section>
 
@@ -591,17 +599,17 @@
     <div class="step">
       <div class="step-num">1</div>
       <h3>Ingest</h3>
-      <p>Drop emails, links, PDFs, notes, finance data — PersGraph pulls it in from every source automatically or on-demand.</p>
+      <p>Drop emails, links, PDFs, notes, finance data — Gru, your AI agent running 24/7 on a DigitalOcean VPS, ingests everything automatically. No need to keep your Mac open.</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <h3>Embed</h3>
-      <p>Every piece of data is chunked and embedded locally using Ollama. No cloud, no third party ever sees your data.</p>
+      <p>Every piece of data is chunked and embedded by Ollama running on your Windows machine, connected securely over Tailscale VPN. Sensitive local files stay on your Mac — the VPS only sees what you share.</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <h3>Query</h3>
-      <p>Ask anything in natural language via Telegram, terminal, or the web UI. Your personal AI answers from your own graph.</p>
+      <p>Ask anything in natural language via Telegram, terminal, or the web UI. Your always-on AI agent answers instantly from your own graph — 24/7, even when your laptop is closed.</p>
     </div>
   </div>
 </section>
@@ -627,8 +635,8 @@
         </thead>
         <tbody>
           <tr>
-            <td>Cron / heartbeats</td>
-            <td><span class="model-pill haiku">claude-haiku</span></td>
+            <td>Cron / heartbeats / morning briefing</td>
+            <td><span class="model-pill haiku">claude-haiku-4-5</span></td>
             <td>~20× cheaper</td>
           </tr>
           <tr>
@@ -705,7 +713,7 @@
       <div style="margin-top:1.25rem; background:#0a0e1a; border:1px solid var(--border); border-radius:10px; padding:1rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.78rem">
         <div style="color:var(--accent3); margin-bottom:0.35rem">📈 Daily API Cost Summary — May 27</div>
         <div style="color:var(--text2)">claude-sonnet-4-6 &nbsp;·&nbsp; <span style="color:var(--text)">4,210 in / 1,840 out</span></div>
-        <div style="color:var(--text2)">claude-haiku &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;·&nbsp; <span style="color:var(--text)">12,880 in / 3,200 out</span></div>
+        <div style="color:var(--text2)">claude-haiku-4-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;·&nbsp; <span style="color:var(--text)">12,880 in / 3,200 out</span></div>
         <div style="color:var(--text2); margin-top:0.5rem">Today: <span style="color:var(--accent3); font-weight:700">$0.38</span> &nbsp;·&nbsp; Month: <span style="color:var(--accent3); font-weight:700">$6.12</span></div>
       </div>
     </div>
@@ -883,19 +891,17 @@
       <div class="section-label" style="text-align:left">Privacy First</div>
       <div class="privacy-title">Your data never<br/>leaves your machine</div>
       <p class="privacy-body">
-        PersGraph runs entirely on your hardware. LLMs, embeddings, vector search —
-        all local. No subscriptions sending your personal data to a cloud. You own
-        everything, always.
+        PersGraph runs on infrastructure you own and control. Gru, the AI agent, runs 24/7 on your private VPS — no Mac required. LLMs and vector search run on your Windows machine via Tailscale, and sensitive local files stay on your Mac. No shared cloud, no subscription SaaS sending your data anywhere. You own everything, always.
       </p>
     </div>
     <div class="privacy-features">
       <div class="pf">
         <div class="pf-icon">🔒</div>
-        <div><div class="pf-title">100% Local Processing</div><div class="pf-desc">Ollama runs models on your CPU/GPU. No API calls for your data.</div></div>
+        <div><div class="pf-title">Always-on, Always Private</div><div class="pf-desc">AI agent runs 24/7 on your VPS. Ollama runs on your own Windows machine via Tailscale. No third-party cloud ever touches your data.</div></div>
       </div>
       <div class="pf">
         <div class="pf-icon">🏠</div>
-        <div><div class="pf-title">Self-hosted Vector DB</div><div class="pf-desc">ChromaDB runs on your machine or homelab. Your vectors stay yours.</div></div>
+        <div><div class="pf-title">Self-hosted Vector DB</div><div class="pf-desc">ChromaDB runs on your own Windows machine, connected via Tailscale VPN. Your vectors never leave hardware you control.</div></div>
       </div>
       <div class="pf">
         <div class="pf-icon">🔑</div>
