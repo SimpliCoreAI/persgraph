@@ -288,6 +288,20 @@
                 </div>
             </div>
 
+            <!-- Langfuse Traces -->
+            <a href="#" class="widget-card" data-accent="a1" id="langfuse-card">
+                <div class="widget-emoji">🔬</div>
+                <div class="widget-header">
+                    <div class="widget-title">Langfuse Traces</div>
+                    <div class="widget-status status-live" id="langfuse-status">Live</div>
+                </div>
+                <div class="widget-desc">AI observability & trace analytics</div>
+                <div class="widget-footer">
+                    <div class="widget-footer-dot dot-live"></div>
+                    <span id="langfuse-state">Connected</span>
+                </div>
+            </a>
+
             <!-- CC Rewards -->
             <div class="widget-card" data-accent="a4">
                 <div class="widget-emoji">💳</div>
@@ -319,6 +333,31 @@
                 card.style.setProperty('--mouse-y', y + 'px');
             });
         });
+
+        // Langfuse widget — check connection
+        async function initLangfuse() {
+            try {
+                const response = await fetch('/api/langfuse', { method: 'GET' });
+                if (response.ok) {
+                    const data = await response.json();
+                    // Set up click to open Langfuse cloud dashboard
+                    const card = document.getElementById('langfuse-card');
+                    card.href = 'https://us.cloud.langfuse.com';
+                    card.target = '_blank';
+                    document.getElementById('langfuse-state').textContent = 'Ready';
+                } else {
+                    document.getElementById('langfuse-state').textContent = 'Unreachable';
+                    document.getElementById('langfuse-status').classList.remove('status-live');
+                    document.getElementById('langfuse-status').classList.add('status-coming');
+                }
+            } catch (err) {
+                console.log('Langfuse unavailable:', err);
+                document.getElementById('langfuse-state').textContent = 'Offline';
+                document.getElementById('langfuse-status').classList.remove('status-live');
+                document.getElementById('langfuse-status').classList.add('status-coming');
+            }
+        }
+        initLangfuse();
     </script>
 </body>
 </html>

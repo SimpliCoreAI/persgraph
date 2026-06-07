@@ -34,6 +34,11 @@ _langfuse_enabled = False
 _langfuse_client = None
 
 
+def init_tracing() -> bool:
+    """Public helper to initialize Langfuse tracing."""
+    return _init()
+
+
 def _ensure_env() -> None:
     """Set env vars so the langfuse SDK picks up keys automatically."""
     os.environ.setdefault("LANGFUSE_SECRET_KEY", settings.langfuse_secret_key)
@@ -55,7 +60,7 @@ def _init() -> bool:
     try:
         _ensure_env()
         from langfuse import Langfuse
-        _langfuse_client = Langfuse()
+        _langfuse_client = Langfuse(host=settings.langfuse_host)
         _langfuse_enabled = True
         logger.info("Langfuse tracing enabled → %s", settings.langfuse_host)
     except Exception as exc:

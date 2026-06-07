@@ -2,7 +2,7 @@
 
 ## What Lives Here
 - `index.html` — standalone travel planner UI (served on port 8766)
-- Login: jolly / persgraph2026
+- Login is controlled by server-side auth config; do not store passwords in repo
 - Public URL: http://5.78.196.42:8766
 
 ## Data Schema
@@ -31,3 +31,9 @@
 - Self-contained HTML — no build step, no npm
 - Vanilla JS only — no frameworks
 - Served directly by Python http.server or embedded webserver
+
+## Security
+- Public-facing auth must be env-based or external-secret based
+- Never hardcode credentials in tracked files
+- Prefer key-based / token-based access over shared passwords
+- If password auth is unavoidable, use a strong secret from environment variables and rotate it regularly

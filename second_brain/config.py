@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     # Langfuse tracing
     langfuse_secret_key: str = ""
     langfuse_public_key: str = ""
-    langfuse_host: str = "http://localhost:3000"
+    langfuse_host: str = "https://us.cloud.langfuse.com"
 
     # Collection names
     collection_pdfs: str = "pdfs"
