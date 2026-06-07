@@ -135,18 +135,15 @@ JSON format:
 {{"topics": [{{"name": "Topic Name", "highlights": ["point 1", "point 2", "point 3"]}}]}}"""
 
     try:
-        from second_brain.config import settings
-        from ollama import Client
-        import httpx
+        from second_brain.tracing import trace_event
+        from second_brain.llm import complete
 
-        client = Client(
-            host=settings.ollama_base_url,
-            timeout=httpx.Timeout(timeout=300.0, connect=10.0)
+        trace_event(
+            name="debrief_synthesize_topics",
+            input=f"items_count: {len(all_items)}",
+            tags=["debrief", "llm", "litellm"]
         )
-        # Stream to avoid timeout on large models over Tailscale
-        text = ""
-        for chunk in client.generate(model=settings.llm_model, prompt=prompt, stream=True):
-            text += chunk.get("response", "") if isinstance(chunk, dict) else str(chunk)
+        text = complete(prompt, tier="smart")
 
         # Strip markdown fences if present
         if "```json" in text:
@@ -159,6 +156,11 @@ JSON format:
         for t in data.get("topics", []):
             t["source_count"] = len(t.get("highlights", []))
             topics.append(t)
+        trace_event(
+            name="debrief_synthesize_topics_result",
+            output=f"topics_count: {len(topics)}",
+            tags=["debrief", "llm", "synthesis"]
+        )
         return topics
 
     except Exception as e:

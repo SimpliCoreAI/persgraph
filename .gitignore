@@ -34,3 +34,5 @@ persgraph/data/
 persgraph/financial_report*.html
 .env.local
 db/persgraph.db
+
+streamlit_archive/

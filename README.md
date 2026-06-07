@@ -88,6 +88,20 @@ Synthesize Wikipedia articles into structured notes with key insights, concepts,
 ### 🔭 Observability (Langfuse)
 Every slash command is automatically traced with [Langfuse](https://langfuse.com) — input, output, latency, and tags captured per run. Tracing is best-effort: commands work even if Langfuse is unreachable. Uses Langfuse Cloud (`us.cloud.langfuse.com`); add keys to `.env.local` (gitignored — never commit secrets to this public repo).
 
+### 🧠 Scratchpad Workflow
+Use `scratchpad/` for transient shared thinking between models. It is the working-memory layer for active topics, handoffs, and drafts. It is intentionally separate from `MEMORY.md`. Start with `scratchpad/prompts.md` and `scratchpad/template.md`.
+
+**Stable invocation phrase:**
+- `Start a scratchpad for <topic>`
+- `Update the scratchpad for <topic>`
+- `Handoff the scratchpad for <topic> to <model>`
+- `Close the scratchpad for <topic>`
+
+**Default routing:**
+- Claude/Sonnet = advisory / critique / planning
+- GPT = drafting / summarizing / options
+- Haiku = execution / edits / checks
+
 ### 👨‍👩‍👧‍👦 Family Knowledge Base
 Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegram. Each user's content is auto-tagged — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
 

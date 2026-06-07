@@ -9,11 +9,9 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 from uuid import uuid4
 
-import httpx
-from ollama import Client
-
 from .config import settings
 from .embeddings import embedder
+from .llm import complete
 from .vectorstore import vectorstore
 
 COLLECTION = "places"
@@ -42,19 +40,26 @@ Example output: ["indian", "biryani", "must-visit", "lunch"]
 Tags:"""
 
     try:
-        client = Client(
-            host=settings.ollama_base_url,
-            timeout=httpx.Timeout(timeout=30.0, connect=5.0),
+        from .tracing import trace_event
+        trace_event(
+            name="places_auto_tag",
+            input=f"place: {name}, city: {city}",
+            tags=["places", "llm", "tagging"]
         )
-        response = client.generate(model=settings.llm_model, prompt=prompt)
-        raw = response["response"].strip()
+        raw = complete(prompt, tier="fast").strip()
 
         # Extract JSON array from response
         start = raw.find("[")
         end = raw.rfind("]") + 1
         if start != -1 and end > start:
             tags = json.loads(raw[start:end])
-            return [str(t).lower().strip() for t in tags if t][:6]
+            result = [str(t).lower().strip() for t in tags if t][:6]
+            trace_event(
+                name="places_auto_tag_result",
+                output=f"tags: {', '.join(result)}",
+                tags=["places", "llm", "tagging"]
+            )
+            return result
     except Exception:
         pass
 

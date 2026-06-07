@@ -2,11 +2,8 @@
 
 from typing import Any
 
-import httpx
-from ollama import Client
-
-from .config import settings
 from .embeddings import embedder
+from .llm import complete_stream
 from .vectorstore import vectorstore
 
 
@@ -18,9 +15,6 @@ STRICT RULES:
 - Do NOT say "how can I help you" or similar phrases.
 - If the answer is not in the context, say: "I don't have information about this in my knowledge base."
 - Be concise, factual, and cite sources by number [1], [2], etc."""
-
-# Qwen2.5:72b is large — give it plenty of time
-OLLAMA_TIMEOUT = httpx.Timeout(timeout=600.0, connect=10.0)
 
 
 def retrieve(query: str, top_k: int = 5) -> list[dict[str, Any]]:
@@ -36,6 +30,8 @@ def answer(query: str, top_k: int = 5) -> tuple[str, list[dict[str, Any]]]:
     Returns:
         Tuple of (answer_text, source_chunks)
     """
+    from .tracing import trace_event
+    
     chunks = retrieve(query, top_k)
 
     if not chunks:
@@ -59,11 +55,20 @@ def answer(query: str, top_k: int = 5) -> tuple[str, list[dict[str, Any]]]:
 
 ### ANSWER (based only on the context above):"""
 
-    client = Client(host=settings.ollama_base_url, timeout=OLLAMA_TIMEOUT)
+    trace_event(
+        name="query_answer",
+        input=f"query: {query[:100]}",
+        tags=["query", "llm", "litellm"]
+    )
 
-    # Stream response — avoids timeout waiting for full 72B output
+    # Stream via LiteLLM smart tier (Ollama fallback automatic)
     full_response = ""
-    for chunk_resp in client.generate(model=settings.llm_model, prompt=prompt, stream=True):
-        full_response += chunk_resp["response"]
+    for token in complete_stream(prompt, tier="smart"):
+        full_response += token
 
+    trace_event(
+        name="query_answer_result",
+        output=f"response_len: {len(full_response)}",
+        tags=["query", "llm", "litellm"]
+    )
     return full_response.strip(), chunks

@@ -362,6 +362,75 @@ def cmd_debrief(args: str) -> str:
         return f"❌ Error: {e}"
 
 
+def cmd_email(text: str) -> str:
+    """Send an email on demand using the standalone SMTP script."""
+    import shlex
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    # Support a compact structured form:
+    # /email to=person@example.com subject=Hello body=Hi there
+    # and a simple fallback:
+    # /email person@example.com | Subject | Body
+    raw = text.strip()
+    if not raw:
+        return (
+            "❌ Usage: /email to=<recipient> subject=<subject> body=<body>\n"
+            "   or: /email <recipient> | <subject> | <body>"
+        )
+
+    to = subject = body = ""
+    html = False
+
+    # Parse key=value pairs first
+    parts = shlex.split(raw)
+    kv = {}
+    leftovers = []
+    for p in parts:
+        if "=" in p and not p.startswith("http"):
+            k, v = p.split("=", 1)
+            kv[k.strip().lower()] = v.strip()
+        else:
+            leftovers.append(p)
+
+    to = kv.get("to", "")
+    subject = kv.get("subject", "")
+    body = kv.get("body", "")
+    html = kv.get("html", "false").lower() in {"1", "true", "yes", "y"}
+
+    if not to and leftovers:
+        joined = " ".join(leftovers)
+        if "|" in joined:
+            segs = [s.strip() for s in joined.split("|")]
+            if len(segs) >= 3:
+                to, subject, body = segs[0], segs[1], " | ".join(segs[2:])
+        elif len(leftovers) >= 3:
+            to, subject, body = leftovers[0], leftovers[1], " ".join(leftovers[2:])
+
+    if not to or "@" not in to or not subject or not body:
+        return (
+            "❌ Usage: /email to=<recipient> subject=<subject> body=<body>\n"
+            "   or: /email <recipient> | <subject> | <body>"
+        )
+
+    base_dir = Path(__file__).resolve().parent.parent
+    script = base_dir / "scripts" / "send_email.py"
+    cmd = [sys.executable, str(script), "--to", to, "--subject", subject, "--body", body]
+    if html:
+        cmd.append("--html")
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=str(base_dir))
+        if result.returncode == 0:
+            return f"📨 Email sent to {to}\n{result.stdout.strip()}"
+        return f"❌ Email failed:\n{result.stderr.strip() or result.stdout.strip()}"
+    except subprocess.TimeoutExpired:
+        return "⏱ Email send timed out"
+    except Exception as e:
+        return f"❌ Email error: {e}"
+
+
 COMMANDS = {
     "/wiki-ingest": cmd_wiki_ingest,
     "/ingest":      cmd_ingest,
@@ -370,6 +439,7 @@ COMMANDS = {
     "/task":        cmd_task,
     "/place":       cmd_place,
     "/places":      cmd_places,
+    "/email":       cmd_email,
     "/debrief":     cmd_debrief,
 }
 

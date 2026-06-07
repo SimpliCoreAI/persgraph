@@ -29,9 +29,7 @@ if ask and query.strip():
             sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
             from second_brain.query import retrieve, SYSTEM_PROMPT
-            from second_brain.config import settings
-            import httpx
-            from ollama import Client
+            from second_brain.llm import complete_stream
 
             chunks = retrieve(query, top_k=top_k)
 
@@ -54,17 +52,31 @@ if ask and query.strip():
                 # Stream answer
                 st.markdown("### 🧠 Answer")
                 answer_box = st.empty()
-                client = Client(
-                    host=settings.ollama_base_url,
-                    timeout=httpx.Timeout(timeout=600.0, connect=10.0),
-                )
+                try:
+                    import os as _os
+                    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+                    from second_brain.tracing import trace_event
+                    from second_brain.config import settings as _settings
+                    trace_event(
+                        name="streamlit_learning_query",
+                        input=f"query: {query[:100]}",
+                        tags=["streamlit", "llm", "learning"]
+                    )
+                except Exception:
+                    pass
                 full = ""
-                for chunk_resp in client.generate(
-                    model=settings.llm_model, prompt=prompt, stream=True
-                ):
-                    full += chunk_resp["response"]
+                for token in complete_stream(prompt, tier="smart"):
+                    full += token
                     answer_box.markdown(full + "▌")
                 answer_box.markdown(full)
+                try:
+                    trace_event(
+                        name="streamlit_learning_query_result",
+                        output=f"response_len: {len(full)}",
+                        tags=["streamlit", "llm", "learning"]
+                    )
+                except Exception:
+                    pass
 
                 # Sources
                 st.divider()

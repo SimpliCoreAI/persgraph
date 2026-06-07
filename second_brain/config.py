@@ -14,10 +14,13 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Ollama
+    # Ollama / LiteLLM routing
     ollama_base_url: str = "http://localhost:11434"
     embed_model: str = "mxbai-embed-large"
     llm_model: str = "qwen2.5:72b"
+    llm_fast_model: str = "qwen2.5:7b"
+    llm_heavy_model: str = "qwen2.5:72b"
+    llm_router_default: str = "smart"  # smart | fast
 
     # ChromaDB
     chroma_host: str = "localhost"

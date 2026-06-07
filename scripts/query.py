@@ -30,11 +30,8 @@ def query(
     top_k: int = typer.Option(5, "--top-k", "-k", help="Number of chunks to retrieve"),
 ) -> None:
     """Ask your Second Brain a question."""
-    import httpx
-    from ollama import Client
     from second_brain.query import retrieve
-    from second_brain.config import settings
-
+    from second_brain.llm import complete_stream
     # Retrieve context
     with Progress(
         SpinnerColumn(),
@@ -60,15 +57,21 @@ def query(
 
     # Stream answer live to terminal
     console.print(f"\n[bold blue]🧠 Answer[/bold blue]\n")
-    client = Client(
-        host=settings.ollama_base_url,
-        timeout=httpx.Timeout(timeout=600.0, connect=10.0)
+    from second_brain.tracing import trace_event
+    trace_event(
+        name="query_script_answer",
+        input=f"question: {question[:100]}",
+        tags=["query", "script", "litellm"]
     )
     response = ""
-    for chunk_resp in client.generate(model=settings.llm_model, prompt=prompt, stream=True):
-        token = chunk_resp["response"]
+    for token in complete_stream(prompt, tier="smart"):
         response += token
         print(token, end="", flush=True)
+    trace_event(
+        name="query_script_answer_result",
+        output=f"response_len: {len(response)}",
+        tags=["query", "script", "litellm"]
+    )
     print("\n")
 
     # Print sources
