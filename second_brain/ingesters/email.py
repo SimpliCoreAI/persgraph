@@ -265,6 +265,7 @@ class EmailIngester:
     def _classify_with_llm(self, subject: str, body: str) -> tuple[str, bool]:
         """Use Anthropic to classify intent. Returns (intent, needs_clarification)."""
         import anthropic
+        from ..tracing import trace_event
 
         client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
@@ -281,6 +282,11 @@ Rules:
 
 Reply with ONLY one word: task, appointment, note, or url"""
 
+        trace_event(
+            name="email_classify_intent",
+            input=f"subject: {subject[:100]}",
+            tags=["email", "llm", "classification"]
+        )
         message = client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=10,
@@ -296,4 +302,9 @@ Reply with ONLY one word: task, appointment, note, or url"""
         }
         intent = intent_map.get(intent_raw, INTENT_UNKNOWN)
         needs_clarification = intent == INTENT_UNKNOWN
+        trace_event(
+            name="email_classify_intent_result",
+            output=f"intent: {intent}",
+            tags=["email", "llm", "classification"]
+        )
         return intent, needs_clarification

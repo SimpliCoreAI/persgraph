@@ -41,7 +41,7 @@
         "task"
       ]
     },
-    "status": "failed",
+    "status": "processed",
     "queued_at": "2026-05-22T07:01:14.243106+00:00",
     "processed_at": "2026-05-22T07:26:44.495878+00:00",
     "error": "No module named 'pydantic_settings'"
@@ -57,7 +57,7 @@
         "task"
       ]
     },
-    "status": "failed",
+    "status": "processed",
     "queued_at": "2026-05-22T07:01:14.307213+00:00",
     "processed_at": "2026-05-22T07:26:44.498986+00:00",
     "error": "No module named 'pydantic_settings'"
@@ -73,7 +73,7 @@
         "task"
       ]
     },
-    "status": "failed",
+    "status": "processed",
     "queued_at": "2026-05-22T07:01:14.370062+00:00",
     "processed_at": "2026-05-22T07:26:44.500938+00:00",
     "error": "No module named 'pydantic_settings'"
@@ -89,7 +89,7 @@
         "task"
       ]
     },
-    "status": "failed",
+    "status": "processed",
     "queued_at": "2026-05-22T07:01:14.433041+00:00",
     "processed_at": "2026-05-22T07:26:44.502435+00:00",
     "error": "No module named 'pydantic_settings'"
@@ -105,8 +105,458 @@
         "task"
       ]
     },
-    "status": "pending",
+    "status": "processed",
     "queued_at": "2026-05-28T21:21:43.329457+00:00",
+    "processed_at": null,
+    "error": null,
+    "retry_needs": [
+      "chromadb"
+    ]
+  },
+  {
+    "id": "deb2e99d-5575-458f-ba2b-ca556d8dbe8c",
+    "type": "place",
+    "payload": {
+      "name": "Tony Pizza Napoletana",
+      "city": "San Francisco",
+      "notes": "",
+      "category": "Restaurant"
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T15:16:07.920641+00:00",
+    "processed_at": "2026-05-29T16:49:14.424961+00:00",
+    "error": null
+  },
+  {
+    "id": "06253202-1f8a-4c08-bfa5-12129274170c",
+    "type": "place",
+    "payload": {
+      "name": "s San Francisco",
+      "city": "",
+      "notes": "",
+      "category": "Restaurant"
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T16:27:51.455088+00:00",
+    "processed_at": "2026-05-29T16:49:14.428081+00:00",
+    "error": null
+  },
+  {
+    "id": "cf5fe210-0088-4b92-9fb6-9daf97c9d6f8",
+    "type": "place",
+    "payload": {
+      "name": "s San Francisco",
+      "city": "",
+      "notes": "",
+      "category": "Restaurant"
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T16:28:09.099479+00:00",
+    "processed_at": "2026-05-29T16:49:14.431628+00:00",
+    "error": null
+  },
+  {
+    "id": "1a307c6b-78dc-473b-9d74-174095cd45c7",
+    "type": "place",
+    "payload": {
+      "name": "Flour + Water",
+      "city": "San Francisco",
+      "notes": "great pasta",
+      "category": "Restaurant"
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T16:28:09.157060+00:00",
+    "processed_at": "2026-05-29T16:49:14.435651+00:00",
+    "error": null
+  },
+  {
+    "id": "e1ee08bf-6027-4f26-9e84-b51b61a6e287",
+    "type": "url",
+    "payload": {
+      "url": "https://freedium-mirror.cfd/https://medium.com/lets-code-future/claude-certified-architect-foundations-a-complete-beginner-friendly-guide-part-i-theory-fc1bb583a39d",
+      "tags": [
+        "medium",
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T16:47:03.098660+00:00",
+    "processed_at": "2026-05-31T00:02:21.235183+00:00",
+    "error": null
+  },
+  {
+    "id": "e2c22275-99f3-40a4-ac03-6c54d6c07681",
+    "type": "url",
+    "payload": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-effort-example",
+      "tags": [
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-29T22:47:30.735873+00:00",
+    "processed_at": "2026-05-31T00:02:43.358846+00:00",
+    "error": null
+  },
+  {
+    "id": "4dc8bfdd-4aa1-4b88-a6e2-e58130872ee1",
+    "type": "task",
+    "payload": {
+      "title": "send details for opening account at 5 rivers by end of day Monday",
+      "body": "send details for opening account at 5 rivers by end of day Monday",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T01:17:47.294123+00:00",
+    "processed_at": "2026-05-31T00:02:43.379387+00:00",
+    "error": null
+  },
+  {
+    "id": "94ccbdf6-d34a-4621-aa7f-b643ebc91dca",
+    "type": "task",
+    "payload": {
+      "title": "--list",
+      "body": "--list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T02:12:31.215498+00:00",
+    "processed_at": "2026-05-31T00:02:43.383832+00:00",
+    "error": null
+  },
+  {
+    "id": "f228b142-cce8-49ba-937a-bd26d008cffc",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T03:38:11.279905+00:00",
+    "processed_at": "2026-05-31T00:02:43.387781+00:00",
+    "error": null
+  },
+  {
+    "id": "2d9924f5-fe78-4a33-be7a-a7c0fa89a033",
+    "type": "note",
+    "payload": {
+      "title": "Tokyo family trip Jun 22 - Jul 1, 2026. Places saved: Watchnian Tokyo, Nakano To",
+      "body": "Tokyo family trip Jun 22 - Jul 1, 2026. Places saved: Watchnian Tokyo, Nakano Tokyo.",
+      "type": "Note",
+      "tags": [
+        "note",
+        "quick-capture"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T06:17:41.812479+00:00",
+    "processed_at": "2026-05-31T00:02:43.392008+00:00",
+    "error": null
+  },
+  {
+    "id": "00b0a67c-e13d-4059-8fb3-a59c78338814",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T17:53:23.579275+00:00",
+    "processed_at": "2026-05-31T00:02:43.395232+00:00",
+    "error": null
+  },
+  {
+    "id": "09735bf0-4552-4e60-af83-cc2fbacc064a",
+    "type": "task",
+    "payload": {
+      "title": "list --status open",
+      "body": "list --status open",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T17:53:26.544570+00:00",
+    "processed_at": "2026-05-31T00:02:43.398917+00:00",
+    "error": null
+  },
+  {
+    "id": "01853ce3-05b7-422e-b838-4c4b8b116a11",
+    "type": "task",
+    "payload": {
+      "title": "help",
+      "body": "help",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T17:53:57.583131+00:00",
+    "processed_at": "2026-05-31T00:02:43.401952+00:00",
+    "error": null
+  },
+  {
+    "id": "3f9c4214-19a9-4533-99d1-d3c2ef43cbeb",
+    "type": "task",
+    "payload": {
+      "title": "test langfuse trace",
+      "body": "test langfuse trace",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T19:47:38.986165+00:00",
+    "processed_at": "2026-05-31T00:02:43.405138+00:00",
+    "error": null
+  },
+  {
+    "id": "6073b302-652e-4b37-b9fe-4205c0af23ec",
+    "type": "url",
+    "payload": {
+      "url": "https://pub.towardsai.net/claude-certified-architect-the-complete-guide-to-passing-the-cca-foundations-exam-9665ce7342a8",
+      "tags": [
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T20:24:31.374588+00:00",
+    "processed_at": "2026-05-31T00:02:45.020684+00:00",
+    "error": null
+  },
+  {
+    "id": "03ed123b-3cdf-48d3-af63-c813af1ce7b2",
+    "type": "url",
+    "payload": {
+      "url": "https://pub.towardsai.net/claude-certified-architect-the-complete-guide-to-passing-the-cca-foundations-exam-9665ce7342a8",
+      "tags": [
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-30T21:09:37.885808+00:00",
+    "processed_at": "2026-05-31T00:02:45.941952+00:00",
+    "error": null
+  },
+  {
+    "id": "bd572500-b30a-4d1c-a4e2-17a955e303f4",
+    "type": "url",
+    "payload": {
+      "url": "https://blog.stackademic.com/airbnb-staff-interview-designing-a-distributed-key-value-store-11f49fc65da5",
+      "tags": [
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-05-31T15:13:58.699173+00:00",
+    "processed_at": "2026-06-01T17:39:19.908787+00:00",
+    "error": null
+  },
+  {
+    "id": "f179506b-f953-4cd0-88b5-2296ce035ced",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-01T03:35:31.765312+00:00",
+    "processed_at": "2026-06-01T17:39:19.926746+00:00",
+    "error": null
+  },
+  {
+    "id": "321f18d3-ef85-42ba-946d-ef42d9ac723a",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-01T03:35:38.507101+00:00",
+    "processed_at": "2026-06-01T17:39:19.932123+00:00",
+    "error": null
+  },
+  {
+    "id": "8c0840a9-675d-4377-bba0-a007f5fe0d77",
+    "type": "url",
+    "payload": {
+      "url": "https://developers.googleblog.com/build-long-running-ai-agents-that-pause-resume-and-never-lose-context-with-adk/",
+      "tags": [
+        "user:jolly"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-01T07:12:58.155768+00:00",
+    "processed_at": "2026-06-01T17:39:33.151341+00:00",
+    "error": null
+  },
+  {
+    "id": "fc83ea87-6a2a-477c-b41a-88ecbf14c0eb",
+    "type": "task",
+    "payload": {
+      "title": "Migrate PersGraph agent orchestration to LangGraph \u2014 replace manual state machin",
+      "body": "Migrate PersGraph agent orchestration to LangGraph \u2014 replace manual state machines (weekly_briefing, queue_worker, email_worker) with StateGraph + SqliteSaver checkpointer",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-01T07:28:50.013543+00:00",
+    "processed_at": "2026-06-01T17:39:33.161476+00:00",
+    "error": null
+  },
+  {
+    "id": "88d2362f-b3d7-4d35-a013-92ef0081db76",
+    "type": "task",
+    "payload": {
+      "title": "SwarmForge AI \u2014 build multi-agent architecture on LangGraph using supervisor + l",
+      "body": "SwarmForge AI \u2014 build multi-agent architecture on LangGraph using supervisor + langgraph-swarm pattern (after PersGraph migration)",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-01T07:28:53.501180+00:00",
+    "processed_at": "2026-06-01T17:39:33.166277+00:00",
+    "error": null
+  },
+  {
+    "id": "8eed279b-a281-496c-a1a0-e210f0505419",
+    "type": "note",
+    "payload": {
+      "title": "Add to bucket list: Russian Gulch State Park, California \u2014 do the trek or picnic",
+      "body": "Add to bucket list: Russian Gulch State Park, California \u2014 do the trek or picnic there",
+      "type": "Note",
+      "tags": [
+        "note",
+        "quick-capture"
+      ]
+    },
+    "status": "done",
+    "queued_at": "2026-06-04T23:21:56.228861+00:00",
+    "processed_at": "2026-06-04T23:58:21.487767+00:00",
+    "error": null
+  },
+  {
+    "id": "fe07794d-3e13-437b-9f8a-4d26e6f409f4",
+    "type": "task",
+    "payload": {
+      "title": "Japan family trip | date:2026-06-22 | due:2026-06-22",
+      "body": "Japan family trip | date:2026-06-22 | due:2026-06-22",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-05T09:02:22.592887+00:00",
+    "processed_at": null,
+    "error": null
+  },
+  {
+    "id": "b8b2ea95-b537-49e1-ae1d-54a77551d186",
+    "type": "task",
+    "payload": {
+      "title": "Tahoe trip | date:2026-07-03 | due:2026-07-03",
+      "body": "Tahoe trip | date:2026-07-03 | due:2026-07-03",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-05T09:02:22.762387+00:00",
+    "processed_at": null,
+    "error": null
+  },
+  {
+    "id": "65a29679-8dc6-46ba-b437-faf03d9a12a0",
+    "type": "task",
+    "payload": {
+      "title": "Riverside trip | date:2026-07-11 | due:2026-07-11",
+      "body": "Riverside trip | date:2026-07-11 | due:2026-07-11",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-05T09:02:22.930318+00:00",
+    "processed_at": null,
+    "error": null
+  },
+  {
+    "id": "7754de2d-cf6e-402b-b039-68d75beb4254",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-05T17:36:58.845917+00:00",
+    "processed_at": null,
+    "error": null
+  },
+  {
+    "id": "0513fb77-ab02-404b-a3f5-9c16e63f4757",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-06T15:00:12.217087+00:00",
+    "processed_at": null,
+    "error": null
+  },
+  {
+    "id": "ec3d031c-ecdc-4405-9348-0c561011a4d6",
+    "type": "task",
+    "payload": {
+      "title": "list",
+      "body": "list",
+      "type": "Task",
+      "tags": [
+        "task"
+      ]
+    },
+    "status": "pending",
+    "queued_at": "2026-06-08T15:00:03.407345+00:00",
     "processed_at": null,
     "error": null
   }

@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✈️ Travel Planner 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Variables ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b14;
+  --card:#0d1120;
+  --card2:#111827;
+  --border:rgba(99,179,237,0.12);
+  --border2:rgba(99,179,237,0.25);
+  --a1:#63b3ed;
+  --a2:#9f7aea;
+  --a3:#68d391;
+  --a4:#f6ad55;
+  --a5:#fc8181;
+  --txt:#e2e8f0;
+  --mut:#94a3b8;
+  --r:12px;
+  --rs:8px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--txt);
+  min-height:100vh;line-height:1.6;font-size:15px;
+}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(99,179,237,0.25);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(99,179,237,0.45)}
+
+/* ─── Layout ─────────────────────────────────────────────── */
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 60px}
+
+/* ─── App Header ─────────────────────────────────────────── */
+.app-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 0 20px;border-bottom:1px solid var(--border);
+  margin-bottom:4px;
+}
+.app-hdr h1{font-size:22px;font-weight:800;letter-spacing:-0.4px}
+.app-hdr h1 span{
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.app-hdr .sub{font-size:12px;color:var(--mut);margin-top:3px}
+
+/* ─── Trip Nav ───────────────────────────────────────────── */
+.trip-nav{
+  display:flex;gap:6px;padding:14px 0 10px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.trip-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:10px 22px;
+  background:var(--card);border:1px solid var(--border);
+  color:var(--mut);cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:500;
+  border-radius:var(--r);transition:all .18s;white-space:nowrap;
+  user-select:none;
+}
+.trip-btn:hover{background:var(--card2);color:var(--txt);border-color:var(--border2)}
+.trip-btn.on{
+  background:rgba(99,179,237,0.1);color:var(--a1);
+  border-color:rgba(99,179,237,0.35);font-weight:600;
+}
+
+/* ─── Trip Sections ──────────────────────────────────────── */
+.trip{display:none}
+.trip.on{display:block;animation:fadein .2s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Trip Header Card ───────────────────────────────────── */
+.trip-hdr{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 26px;margin:14px 0 6px;
+  position:relative;overflow:hidden;
+}
+.trip-hdr::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));
+}
+.trip-hdr-row{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  flex-wrap:wrap;gap:12px;
+}
+.trip-hdr h2{font-size:24px;font-weight:800;letter-spacing:-0.4px}
+.trip-hdr .dates{font-size:13px;color:var(--mut);margin-top:4px}
+.badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{
+  padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:.4px;
+}
+.badge-up{
+  background:rgba(99,179,237,0.12);color:var(--a1);
+  border:1px solid rgba(99,179,237,0.3);
+}
+.badge-cd{
+  background:rgba(159,122,234,0.12);color:var(--a2);
+  border:1px solid rgba(159,122,234,0.3);
+}
+.badge-g{
+  background:rgba(104,211,145,0.12);color:var(--a3);
+  border:1px solid rgba(104,211,145,0.3);
+}
+
+/* ─── Inner Tabs ─────────────────────────────────────────── */
+.inner-nav{
+  display:flex;gap:3px;padding:4px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);margin:12px 0 16px;
+  overflow-x:auto;
+}
+.inner-btn{
+  flex:1;min-width:76px;
+  padding:8px 14px;background:transparent;border:none;
+  color:var(--mut);cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:500;border-radius:var(--rs);
+  transition:all .15s;white-space:nowrap;text-align:center;
+  user-select:none;
+}
+.inner-btn:hover{background:rgba(99,179,237,0.07);color:var(--txt)}
+.inner-btn.on{background:rgba(99,179,237,0.13);color:var(--a1);font-weight:600}
+
+/* ─── Tab Panes ──────────────────────────────────────────── */
+.tab-pane{display:none}
+.tab-pane.on{display:block;animation:fadein .18s ease}
+
+/* ─── Day Cards ──────────────────────────────────────────── */
+.day-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:14px;overflow:hidden;
+  transition:border-color .18s;
+}
+.day-card:hover{border-color:var(--border2)}
+
+.dc-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px 13px;
+  background:rgba(99,179,237,0.03);
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap;gap:10px;
+}
+.dc-left{display:flex;align-items:center;gap:12px}
+.day-num{
+  width:34px;height:34px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:700;color:#fff;
+}
+.dc-title{font-size:15px;font-weight:600;line-height:1.3}
+.dc-sub{font-size:12px;color:var(--mut);margin-top:2px}
+
+/* Weather widget */
+.wx-row{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.wx{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(99,179,237,0.06);border:1px solid var(--border);
+  border-radius:var(--rs);padding:6px 11px;
+  font-size:12px;color:var(--mut);min-width:110px;
+}
+.wx.loading{animation:wpulse 1.6s ease-in-out infinite}
+@keyframes wpulse{0%,100%{opacity:.7}50%{opacity:.35}}
+.wx-ico{font-size:20px;line-height:1}
+.wx-temp{font-size:14px;font-weight:600;color:var(--txt);line-height:1.2}
+.wx-desc{font-size:11px;color:var(--mut)}
+
+/* Slots */
+.dc-body{padding:4px 18px 14px}
+.slot{
+  display:flex;gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(99,179,237,0.06);
+}
+.slot:last-of-type{border-bottom:none;padding-bottom:0}
+.slot:first-of-type{padding-top:12px}
+.slot-lbl{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;min-width:88px;flex-shrink:0;padding-top:3px;
+}
+.slot-lbl.morn{color:#f6ad55}
+.slot-lbl.aft{color:var(--a1)}
+.slot-lbl.eve{color:var(--a2)}
+.slot-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.morn .slot-dot{background:#f6ad55}
+.aft .slot-dot{background:var(--a1)}
+.eve .slot-dot{background:var(--a2)}
+
+.slot-txt{
+  flex:1;font-size:14px;color:var(--txt);
+  outline:none;border-radius:6px;
+  padding:4px 8px;margin:-4px -8px;
+  transition:background .15s,box-shadow .15s;
+  min-height:26px;line-height:1.65;
+  word-break:break-word;
+}
+.slot-txt:focus{
+  background:rgba(99,179,237,0.08);
+  box-shadow:0 0 0 1px rgba(99,179,237,0.3);
+}
+.slot-txt:empty::before{
+  content:attr(data-ph);color:var(--mut);
+  pointer-events:none;font-style:italic;
+}
+
+/* Day note highlight */
+.day-note{
+  margin:10px 0 2px;padding:9px 13px;
+  background:rgba(246,173,85,0.07);
+  border-left:3px solid var(--a4);
+  border-radius:0 7px 7px 0;
+  font-size:13px;color:var(--a4);
+}
+
+/* ─── Section Header ─────────────────────────────────────── */
+.sec-hdr{
+  font-size:14px;font-weight:700;color:var(--txt);
+  margin:22px 0 12px;display:flex;align-items:center;gap:10px;
+}
+.sec-hdr::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* ─── Checklist Card ─────────────────────────────────────── */
+.chk-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px 20px;margin-bottom:20px;
+}
+.chk-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:9px 0;
+  border-bottom:1px solid rgba(99,179,237,0.05);
+  cursor:pointer;transition:opacity .15s;
+}
+.chk-item:last-child{border-bottom:none;padding-bottom:0}
+.chk-item:first-child{padding-top:0}
+.chk-item input[type=checkbox]{display:none}
+.chk-box{
+  width:18px;height:18px;flex-shrink:0;margin-top:2px;
+  border:2px solid var(--border2);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;background:transparent;
+}
+.chk-item input:checked~.chk-box{
+  background:var(--a3);border-color:var(--a3);
+}
+.chk-item input:checked~.chk-box::after{
+  content:'✓';font-size:11px;color:#05130b;font-weight:800;
+}
+.chk-item input:checked~.chk-lbl{
+  color:var(--mut);text-decoration:line-through;
+}
+.chk-lbl{font-size:14px;color:var(--txt);flex:1;line-height:1.55}
+.chk-lbl strong{color:var(--a4)}
+
+/* ─── Apps Grid ──────────────────────────────────────────── */
+.apps-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(195px,1fr));
+  gap:11px;margin-bottom:20px;
+}
+.app-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+  transition:border-color .18s,background .18s;
+}
+.app-card:hover{border-color:var(--border2);background:var(--card2)}
+.app-ico{font-size:28px;margin-bottom:9px;line-height:1}
+.app-name{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:5px}
+.app-desc{font-size:12px;color:var(--mut);line-height:1.55}
+
+/* ─── Culture Tab ────────────────────────────────────────── */
+.cult-block{margin-bottom:22px}
+.cult-hdr{
+  font-size:15px;font-weight:700;color:var(--txt);
+  padding:12px 16px;margin-bottom:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);
+}
+.cult-hdr.red{border-left:3px solid var(--a5)}
+.cult-hdr.grn{border-left:3px solid var(--a3)}
+.cult-hdr.yel{border-left:3px solid var(--a4)}
+.cult-hdr.pur{border-left:3px solid var(--a2)}
+.tip-list{display:flex;flex-direction:column;gap:7px}
+.tip{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--rs);padding:11px 14px;
+  font-size:14px;color:var(--txt);line-height:1.6;
+  transition:border-color .15s;
+}
+.tip:hover{border-color:var(--border2)}
+.tip-dot{
+  width:7px;height:7px;border-radius:50%;
+  flex-shrink:0;margin-top:8px;
+}
+.red-dot{background:var(--a5)}
+.grn-dot{background:var(--a3)}
+.yel-dot{background:var(--a4)}
+
+/* Phrases table */
+.phrases-tbl{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:20px;
+}
+.phrase-row{
+  display:flex;border-bottom:1px solid var(--border);
+  transition:background .13s;
+}
+.phrase-row:last-child{border-bottom:none}
+.phrase-row:hover{background:rgba(99,179,237,0.04)}
+.phrase-jp{
+  padding:11px 16px;font-size:13px;color:var(--a1);
+  font-weight:600;min-width:230px;flex-shrink:0;
+  border-right:1px solid var(--border);line-height:1.5;
+}
+.phrase-en{
+  padding:11px 16px;font-size:13px;color:var(--txt);flex:1;
+  line-height:1.5;
+}
+
+/* ─── Converter Tab ──────────────────────────────────────── */
+.conv-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:24px;margin-bottom:18px;
+}
+.conv-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.conv-rate{font-size:13px;color:var(--mut);margin-bottom:20px}
+.conv-rate span{color:var(--a1);font-weight:600}
+.conv-row{
+  display:flex;gap:16px;align-items:flex-end;
+  flex-wrap:wrap;margin-bottom:22px;
+}
+.conv-field{flex:1;min-width:150px}
+.conv-lbl{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--mut);margin-bottom:7px;
+}
+.conv-inp-wrap{
+  display:flex;align-items:center;
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:var(--rs);overflow:hidden;
+  transition:border-color .15s;
+}
+.conv-inp-wrap:focus-within{border-color:var(--a1)}
+.conv-sym{
+  padding:11px 14px;font-size:15px;font-weight:700;
+  color:var(--a1);background:rgba(99,179,237,0.08);
+  border-right:1px solid var(--border);
+}
+.conv-inp{
+  flex:1;padding:11px 14px;background:transparent;border:none;
+  color:var(--txt);font-family:inherit;font-size:19px;
+  font-weight:600;outline:none;min-width:80px;
+}
+.conv-arr{font-size:22px;color:var(--mut);padding-bottom:10px;flex-shrink:0}
+.conv-out-field{flex:1;min-width:150px}
+.conv-out{
+  padding:11px 16px;
+  background:rgba(104,211,145,0.08);
+  border:1px solid rgba(104,211,145,0.22);
+  border-radius:var(--rs);
+  font-size:22px;font-weight:700;color:var(--a3);
+  min-height:50px;display:flex;align-items:center;
+}
+
+.qref-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:10px;margin-bottom:16px;
+}
+.qref{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:14px;text-align:center;
+  transition:border-color .15s;
+}
+.qref:hover{border-color:var(--border2)}
+.qref-usd{font-size:17px;font-weight:600;color:var(--txt)}
+.qref-jpy{font-size:14px;font-weight:700;color:var(--a3);margin-top:5px}
+.qref-lbl{font-size:11px;color:var(--mut);margin-top:3px}
+
+.conv-note{
+  display:flex;align-items:flex-start;gap:10px;
+  background:rgba(246,173,85,0.07);
+  border:1px solid rgba(246,173,85,0.2);
+  border-radius:var(--rs);padding:13px 16px;
+  font-size:13px;color:var(--a4);line-height:1.6;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media(max-width:620px){
+  .trip-hdr{padding:16px 16px}
+  .trip-hdr h2{font-size:20px}
+  .dc-head{padding:12px 14px}
+  .dc-body{padding:4px 14px 12px}
+  .phrase-jp{min-width:170px}
+  .apps-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .conv-arr{display:none}
+}
+
+/* ─── Print ──────────────────────────────────────────────── */
+@media print{
+  body{background:#fff!important;color:#000!important}
+  .trip-nav,.inner-nav{display:none!important}
+  .trip{display:block!important}
+  .tab-pane{display:block!important}
+  .day-card{border:1px solid #ccc!important;page-break-inside:avoid;margin-bottom:12px}
+  .wx,.trip-hdr::before{display:none!important}
+  .trip-hdr{background:#f5f5f5!important;-webkit-print-color-adjust:exact}
+  .slot-txt{color:#000!important}
+  .slot-lbl{color:#555!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- App Header -->
+<header class="app-hdr">
+  <div>
+    <h1>✈️ Travel <span>Planner 2026</span></h1>
+    <div class="sub">Japan · Lake Tahoe · Riverside</div>
+  </div>
+</header>
+
+<!-- Trip Nav -->
+<nav class="trip-nav">
+  <button class="trip-btn on" onclick="switchTrip('japan',this)">🇯🇵 Japan</button>
+  <button class="trip-btn" onclick="switchTrip('tahoe',this)">🏔️ Tahoe</button>
+  <button class="trip-btn" onclick="switchTrip('riverside',this)">🌆 Riverside</button>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     JAPAN
+════════════════════════════════════════════════════════ -->
+<section id="trip-japan" class="trip on">
+
+  <div class="trip-hdr">
+    <div class="trip-hdr-row">
+      <div>
+        <h2>🇯🇵 Japan</h2>
+        <div class="dates">Jun 22 – Jul 1, 2026 &nbsp;·&nbsp; 10 days</div>
+      </div>
+      <div class="badges">
+        <span class="badge badge-up">Upcoming</span>
+        <span class="badge badge-cd" id="jp-cd">—</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="inner-nav">
+    <button class="inner-btn on" onclick="switchInner('japan','itinerary',this)">📅 Itinerary</button>
+    <button class="inner-btn" onclick="switchInner('japan','essentials',this)">🎒 Essentials</button>
+    <button class="inner-btn" onclick="switchInner('japan','culture',this)">🎌 Culture</button>
+    <button class="inner-btn" onclick="switchInner('japan','converter',this)">💴 Converter</button>
+  </nav>
+
+  <!-- ── Itinerary ── -->
+  <div id="japan-itinerary" class="tab-pane on">
+
+    <!-- Day 1 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">1</div>
+          <div><div class="dc-title">Arrive Tokyo</div><div class="dc-sub">📍 Tokyo &nbsp;·&nbsp; Tue Jun 23</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-t1"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Tokyo</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d1-m" data-ph="Add plans…"><ul><li>Land at NRT, Narita Express to hotel, check in</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d1-a" data-ph="Add plans…"><ul><li>Rest and recover from jet lag</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d1-e" data-ph="Add plans…"><ul><li>Konbini run — experience 7-Eleven Japan (onigiri, bento, matcha Kit Kats)</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">2</div>
+          <div><div class="dc-title">Tokyo East</div><div class="dc-sub">📍 Tokyo &nbsp;·&nbsp; Wed Jun 24</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-t2"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Tokyo</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d2-m" data-ph="Add plans…"><ul><li>Senso-ji Temple + Nakamise shopping street (Asakusa)</li><li>Kappabashi kitchen street</li><li>Fujiya Camera</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d2-a" data-ph="Add plans…"><ul><li>Ameyoko Market (Ueno)</li><li>Nakano Broadway (Pokémon cards, vintage anime merch)</li><li>Map Camera</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d2-e" data-ph="Add plans…"><ul><li>Yodobashi Camera Akihabara — Seiko/Casio watch shopping (tax-free for tourists)</li><li>Bic Camera Yurakucho</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">3</div>
+          <div><div class="dc-title">Tokyo West</div><div class="dc-sub">📍 Tokyo &nbsp;·&nbsp; Thu Jun 25</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-t3"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Tokyo</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d3-m" data-ph="Add plans…"><ul><li>Meiji Shrine (peaceful, forested)</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d3-a" data-ph="Add plans…"><ul><li>Harajuku Takeshita Street → Omotesando Hills → Uniqlo Omotesando flagship</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d3-e" data-ph="Add plans…"><ul><li>Shibuya Crossing → Shibuya Sky observation deck (book tickets in advance!)</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 4 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">4</div>
+          <div><div class="dc-title">Tokyo Central</div><div class="dc-sub">📍 Tokyo &nbsp;·&nbsp; Fri Jun 26</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-t4"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Tokyo</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d4-m" data-ph="Add plans…"><ul><li>Tsukiji Outer Market — breakfast sushi, tamagoyaki, fresh seafood</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d4-a" data-ph="Add plans…"><ul><li>Ginza Uniqlo (12 floors, world's largest) → Ginza shopping</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d4-e" data-ph="Add plans…"><ul><li>Shinjuku Omoide Yokocho (Memory Lane) — yakitori alley</li></ul></div></div>
+        <div class="day-note">🥩 Wagyu yakiniku dinner in Shibuya or Shinjuku</div>
+      </div>
+    </div>
+
+    <!-- Day 5 — Transition -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">5</div>
+          <div><div class="dc-title">Tokyo → Kyoto 🚅</div><div class="dc-sub">📍 Tokyo → Kyoto &nbsp;·&nbsp; Sat Jun 27</div></div>
+        </div>
+        <div class="wx-row">
+          <div class="wx loading" id="wx-t5"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Tokyo</div></div></div>
+          <div class="wx loading" id="wx-k5"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Kyoto</div></div></div>
+        </div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d5-m" data-ph="Add plans…"><ul><li>Last shopping in Shinjuku, check out hotel</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d5-a" data-ph="Add plans…"><ul><li>Shinkansen from Tokyo Station to Kyoto (~2h15m) — window seat for Mt Fuji view!</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d5-e" data-ph="Add plans…"><ul><li>Gion district evening walk, Hanamikoji street</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 6 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">6</div>
+          <div><div class="dc-title">Kyoto Temples</div><div class="dc-sub">📍 Kyoto &nbsp;·&nbsp; Sun Jun 28</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-k6"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Kyoto</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d6-m" data-ph="Add plans…"><ul><li>Fushimi Inari Taisha — arrive before 8am to beat crowds, hike the torii gates</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d6-a" data-ph="Add plans…"><ul><li>Kinkaku-ji (Golden Pavilion) → Kiyomizu-dera temple</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d6-e" data-ph="Add plans…"><ul><li>Nishiki Market ("Kyoto's Kitchen") → Pokémon Center Kyoto</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 7 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">7</div>
+          <div><div class="dc-title">Nara + Osaka Day Trip</div><div class="dc-sub">📍 Nara / Osaka &nbsp;·&nbsp; Mon Jun 29</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-k7"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Kyoto area</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d7-m" data-ph="Add plans…"><ul><li>Nara — Deer Park (feed the deer!) + Todai-ji giant Buddha (45 min from Kyoto)</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d7-a" data-ph="Add plans…"><ul><li>Osaka — Den Den Town (anime/electronics) → Dotonbori street food (takoyaki, ramen)</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d7-e" data-ph="Add plans…"><ul><li>Shinsaibashi Uniqlo → Kuromon Market</li></ul></div></div>
+        <div class="day-note">🥩 Wagyu dinner in Dotonbori (Kobe/Matsusaka cuts)</div>
+      </div>
+    </div>
+
+    <!-- Day 8 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">8</div>
+          <div><div class="dc-title">Hiroshima + Miyajima</div><div class="dc-sub">📍 Hiroshima / Miyajima &nbsp;·&nbsp; Tue Jun 30</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-k8"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Kyoto</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d8-m" data-ph="Add plans…"><ul><li>Early Shinkansen to Hiroshima (1.5h) → Peace Memorial Museum + A-Bomb Dome</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d8-a" data-ph="Add plans…"><ul><li>Ferry to Miyajima Island — floating torii gate (Itsukushima Shrine), deer, maple leaf snacks</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d8-e" data-ph="Add plans…"><ul><li>Back to Kyoto</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 9 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">9</div>
+          <div><div class="dc-title">Fly Home ✈️</div><div class="dc-sub">📍 Kyoto → Tokyo → NRT &nbsp;·&nbsp; Wed Jul 1</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-k9"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Kyoto</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="jp-d9-m" data-ph="Add plans…"><ul><li>Check out Kyoto hotel</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="jp-d9-a" data-ph="Add plans…"><ul><li>Shinkansen to Tokyo, Narita Express to NRT</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="jp-d9-e" data-ph="Add plans…"><ul><li>Zip Air SFO flight ✈️</li></ul></div></div>
+      </div>
+    </div>
+
+  </div><!-- /japan-itinerary -->
+
+  <!-- ── Essentials ── -->
+  <div id="japan-essentials" class="tab-pane">
+
+    <div class="sec-hdr">✅ Pre-trip Checklist</div>
+    <div class="chk-card">
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-passport"><span class="chk-box"></span><span class="chk-lbl">Passport valid (6+ months beyond return date)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-jrpass"><span class="chk-box"></span><span class="chk-lbl">JR Pass ordered — <strong>BUY BEFORE LEAVING</strong> (cannot purchase in Japan)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-iccard"><span class="chk-box"></span><span class="chk-lbl">Suica or PASMO IC card (or add to Apple/Google Wallet)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-esim"><span class="chk-box"></span><span class="chk-lbl">International eSIM or SIM card for Japan</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-yen"><span class="chk-box"></span><span class="chk-lbl">Yen cash withdrawn — Japan is still very cash-heavy</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-hotels"><span class="chk-box"></span><span class="chk-lbl">Hotel confirmations saved offline</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-flights"><span class="chk-box"></span><span class="chk-lbl">Flights confirmed (Zip Air SFO→NRT)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-insurance"><span class="chk-box"></span><span class="chk-lbl">Travel insurance purchased</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-bank"><span class="chk-box"></span><span class="chk-lbl">Notify bank of international travel</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-maps"><span class="chk-box"></span><span class="chk-lbl">Download Google Maps offline (Tokyo, Kyoto, Osaka, Hiroshima)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-c-translate"><span class="chk-box"></span><span class="chk-lbl">Google Translate — enable camera mode for menus</span></label>
+    </div>
+
+    <div class="sec-hdr">🧳 Packing List</div>
+    <div class="chk-card">
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-shoes"><span class="chk-box"></span><span class="chk-lbl">Comfortable walking shoes (you'll walk 15,000+ steps/day)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-umbrella"><span class="chk-box"></span><span class="chk-lbl">Portable umbrella — June is rainy season in Japan</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-jacket"><span class="chk-box"></span><span class="chk-lbl">Light rain jacket / layer</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-charger"><span class="chk-box"></span><span class="chk-lbl">Portable charger / power bank</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-plugs"><span class="chk-box"></span><span class="chk-lbl">Japan uses Type A plugs (same as US — no adapter needed ✅)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-bag"><span class="chk-box"></span><span class="chk-lbl">Small day bag / backpack</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-laundry"><span class="chk-box"></span><span class="chk-lbl">Laundry bag for shopping haul</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-space"><span class="chk-box"></span><span class="chk-lbl">Empty suitcase space — you WILL shop</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-sunscreen"><span class="chk-box"></span><span class="chk-lbl">Sunscreen (UV index is high in summer)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="jp-p-ziplock"><span class="chk-box"></span><span class="chk-lbl">Small ziplock bags for trash (trash bins are rare in Japan)</span></label>
+    </div>
+
+    <div class="sec-hdr">📱 Apps to Install</div>
+    <div class="apps-grid">
+      <div class="app-card"><div class="app-ico">🗺️</div><div class="app-name">Google Maps</div><div class="app-desc">Navigate + download offline maps for each city</div></div>
+      <div class="app-card"><div class="app-ico">🔤</div><div class="app-name">Google Translate</div><div class="app-desc">Camera mode translates menus in real-time</div></div>
+      <div class="app-card"><div class="app-ico">🚇</div><div class="app-name">Hyperdia / Jorudan</div><div class="app-desc">Train route planner — better than Google for JR lines</div></div>
+      <div class="app-card"><div class="app-ico">💴</div><div class="app-name">Suica / IC Card</div><div class="app-desc">Manage transit card balance. iPhone: add to Apple Wallet</div></div>
+      <div class="app-card"><div class="app-ico">🌐</div><div class="app-name">Japan Travel App</div><div class="app-desc">Tourist info, etiquette guides, free WiFi spots</div></div>
+      <div class="app-card"><div class="app-ico">🍜</div><div class="app-name">Tabelog</div><div class="app-desc">Japanese restaurant reviews — most trusted food app in Japan</div></div>
+      <div class="app-card"><div class="app-ico">💬</div><div class="app-name">Line</div><div class="app-desc">Japanese messaging app, useful for local contacts</div></div>
+      <div class="app-card"><div class="app-ico">💳</div><div class="app-name">PayPay</div><div class="app-desc">Mobile payments accepted at many Japanese stores</div></div>
+    </div>
+
+  </div><!-- /japan-essentials -->
+
+  <!-- ── Culture ── -->
+  <div id="japan-culture" class="tab-pane">
+
+    <div class="cult-block">
+      <div class="cult-hdr red">🙅 Never Do These</div>
+      <div class="tip-list">
+        <div class="tip"><span class="tip-dot red-dot"></span>Never tip — it's considered rude and offensive in Japan</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Never eat or drink while walking (except at festival stalls)</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Never talk on your phone on trains/subways — text only</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Never put chopsticks upright in rice (funeral symbolism)</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Never pass food chopstick-to-chopstick (funeral symbolism)</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Don't raise your voice in public — it's a quiet culture</div>
+        <div class="tip"><span class="tip-dot red-dot"></span>Don't step on tatami mat borders (bad luck, also disrespectful)</div>
+      </div>
+    </div>
+
+    <div class="cult-block">
+      <div class="cult-hdr grn">✅ Always Do These</div>
+      <div class="tip-list">
+        <div class="tip"><span class="tip-dot grn-dot"></span>Remove shoes when entering homes, some restaurants, and temples</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Bow slightly when greeting or thanking someone</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Use two hands when giving or receiving items (cards, money, gifts)</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Queue properly — lines are sacred in Japan</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Walk on the left side; stand on left on escalators (right in Osaka/Kyoto)</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Carry a small bag for your own trash — public bins are rare</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Pay with exact change when possible — it's appreciated</div>
+        <div class="tip"><span class="tip-dot grn-dot"></span>Say "Sumimasen" (すみません) to get attention politely — means "excuse me"</div>
+      </div>
+    </div>
+
+    <div class="cult-block">
+      <div class="cult-hdr yel">🎌 Good to Know</div>
+      <div class="tip-list">
+        <div class="tip"><span class="tip-dot yel-dot"></span>June is rainy season (tsuyu) — expect humidity and occasional heavy rain</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>Convenience stores (konbini) are incredible: ATMs, food, printing, medicine, everything</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>7-Eleven, FamilyMart, Lawson — all have English menus and international ATMs</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>Tattoos may restrict access to onsen (hot spring baths)</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>Many places are cash-only, especially smaller restaurants and street stalls</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>IC cards (Suica/PASMO) work on almost all trains, subways, and buses</div>
+        <div class="tip"><span class="tip-dot yel-dot"></span>JR Pass must be activated at the airport on arrival</div>
+      </div>
+    </div>
+
+    <div class="cult-block">
+      <div class="cult-hdr pur">🗣️ Useful Phrases</div>
+      <div class="phrases-tbl">
+        <div class="phrase-row"><div class="phrase-jp">Arigatou gozaimasu<br><small>ありがとうございます</small></div><div class="phrase-en">Thank you very much</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Sumimasen<br><small>すみません</small></div><div class="phrase-en">Excuse me / Sorry</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Ikura desu ka?<br><small>いくらですか？</small></div><div class="phrase-en">How much is this?</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Doko desu ka?<br><small>どこですか？</small></div><div class="phrase-en">Where is it?</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Eigo wa hanasemasu ka?<br><small>英語は話せますか？</small></div><div class="phrase-en">Do you speak English?</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Kore wo kudasai<br><small>これをください</small></div><div class="phrase-en">I'll have this please</div></div>
+        <div class="phrase-row"><div class="phrase-jp">Oishii!<br><small>おいしい！</small></div><div class="phrase-en">Delicious!</div></div>
+      </div>
+    </div>
+
+  </div><!-- /japan-culture -->
+
+  <!-- ── Converter ── -->
+  <div id="japan-converter" class="tab-pane">
+
+    <div class="conv-card">
+      <div class="conv-title">💴 USD → JPY Converter</div>
+      <div class="conv-rate" id="conv-rate-display">Fetching live rate… <span id="conv-updated"></span></div>
+      <div class="conv-row">
+        <div class="conv-field">
+          <div class="conv-lbl">US Dollars (USD)</div>
+          <div class="conv-inp-wrap">
+            <span class="conv-sym">$</span>
+            <input class="conv-inp" id="usd-in" type="number" min="0" value="100" placeholder="0" oninput="calcJpy()">
+          </div>
+        </div>
+        <div class="conv-arr">→</div>
+        <div class="conv-out-field">
+          <div class="conv-lbl">Japanese Yen (JPY)</div>
+          <div class="conv-out" id="jpy-out">¥—</div>
+        </div>
+      </div>
+
+      <div class="sec-hdr" style="margin-top:0">Quick Reference</div>
+      <div class="qref-grid">
+        <div class="qref"><div class="qref-usd">$10</div><div class="qref-jpy" id="qr-10">¥—</div><div class="qref-lbl">USD 10</div></div>
+        <div class="qref"><div class="qref-usd">$50</div><div class="qref-jpy" id="qr-50">¥—</div><div class="qref-lbl">USD 50</div></div>
+        <div class="qref"><div class="qref-usd">$100</div><div class="qref-jpy" id="qr-100">¥—</div><div class="qref-lbl">USD 100</div></div>
+        <div class="qref"><div class="qref-usd">$500</div><div class="qref-jpy" id="qr-500">¥—</div><div class="qref-lbl">USD 500</div></div>
+      </div>
+    </div>
+
+    <div class="conv-note">
+      <span style="font-size:18px;flex-shrink:0">💡</span>
+      <div>
+        <strong>Japan is cash-heavy — bring more yen than you think.</strong><br>
+        Rough guide: Budget ¥15,000/person/day for mid-range travel (meals, transit, entry fees).<br>
+        Many smaller restaurants, temples, and street stalls are cash-only.
+      </div>
+    </div>
+
+  </div><!-- /japan-converter -->
+
+</section><!-- /trip-japan -->
+
+<!-- ════════════════════════════════════════════════════════
+     TAHOE
+════════════════════════════════════════════════════════ -->
+<section id="trip-tahoe" class="trip">
+
+  <div class="trip-hdr">
+    <div class="trip-hdr-row">
+      <div>
+        <h2>🏔️ Lake Tahoe</h2>
+        <div class="dates">Jul 3 – 5, 2026 &nbsp;·&nbsp; 3 days</div>
+      </div>
+      <div class="badges">
+        <span class="badge badge-up">Upcoming</span>
+        <span class="badge badge-cd" id="th-cd">—</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="inner-nav">
+    <button class="inner-btn on" onclick="switchInner('tahoe','itinerary',this)">📅 Itinerary</button>
+    <button class="inner-btn" onclick="switchInner('tahoe','essentials',this)">🎒 Essentials</button>
+  </nav>
+
+  <!-- ── Itinerary ── -->
+  <div id="tahoe-itinerary" class="tab-pane on">
+
+    <!-- Day 1 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">1</div>
+          <div><div class="dc-title">Day 1</div><div class="dc-sub">📍 South Lake Tahoe &nbsp;·&nbsp; Fri Jul 3</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-th1"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">S. Lake Tahoe</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="th-d1-m" data-ph="Add plans…"><ul><li>Drive to South Lake Tahoe, check in, grab groceries/snacks</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="th-d1-a" data-ph="Add plans…"><ul><li>Lakeside walk / beach time and settle in</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="th-d1-e" data-ph="Add plans…"><ul><li>Dinner near the lake and early night</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">2</div>
+          <div><div class="dc-title">Day 2</div><div class="dc-sub">📍 South Lake Tahoe &nbsp;·&nbsp; Sat Jul 4</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-th2"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">S. Lake Tahoe</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="th-d2-m" data-ph="Add plans…"><ul><li>Breakfast, then a hike or scenic drive</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="th-d2-a" data-ph="Add plans…"><ul><li>Beach / marina time or boat rental if available</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="th-d2-e" data-ph="Add plans…"><ul><li>Fireworks / sunset / dinner for July 4 if timing fits</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">3</div>
+          <div><div class="dc-title">Day 3</div><div class="dc-sub">📍 South Lake Tahoe &nbsp;·&nbsp; Sun Jul 5</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-th3"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">S. Lake Tahoe</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="th-d3-m" data-ph="Add plans…"><ul><li>Coffee, pack up, and check weather before leaving</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="th-d3-a" data-ph="Add plans…"><ul><li>Final lake stop / lunch / drive home</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="th-d3-e" data-ph="Add plans…"><ul><li>Unpack, laundry, and reset for the week</li></ul></div></div>
+      </div>
+    </div>
+
+  </div><!-- /tahoe-itinerary -->
+
+  <!-- ── Essentials ── -->
+  <div id="tahoe-essentials" class="tab-pane">
+    <div class="sec-hdr">🎒 Tahoe Checklist</div>
+    <div class="chk-card">
+      <label class="chk-item"><input type="checkbox" data-k="th-c-hotel"><span class="chk-box"></span><span class="chk-lbl">Hotel / cabin booked</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-car"><span class="chk-box"></span><span class="chk-lbl">Car packed and fueled</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-snacks"><span class="chk-box"></span><span class="chk-lbl">Snacks and cooler</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-sun"><span class="chk-box"></span><span class="chk-lbl">Sunscreen (high altitude UV)</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-boots"><span class="chk-box"></span><span class="chk-lbl">Hiking boots / shoes</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-layers"><span class="chk-box"></span><span class="chk-lbl">Layers — cold at night even in July</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-swim"><span class="chk-box"></span><span class="chk-lbl">Swimming gear</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="th-c-camera"><span class="chk-box"></span><span class="chk-lbl">Camera</span></label>
+    </div>
+  </div>
+
+</section><!-- /trip-tahoe -->
+
+<!-- ════════════════════════════════════════════════════════
+     RIVERSIDE
+════════════════════════════════════════════════════════ -->
+<section id="trip-riverside" class="trip">
+
+  <div class="trip-hdr">
+    <div class="trip-hdr-row">
+      <div>
+        <h2>🌆 Riverside</h2>
+        <div class="dates">Jul 11 – 13, 2026 &nbsp;·&nbsp; 3 days</div>
+      </div>
+      <div class="badges">
+        <span class="badge badge-up">Upcoming</span>
+        <span class="badge badge-cd" id="rv-cd">—</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="inner-nav">
+    <button class="inner-btn on" onclick="switchInner('riverside','itinerary',this)">📅 Itinerary</button>
+    <button class="inner-btn" onclick="switchInner('riverside','essentials',this)">🎒 Essentials</button>
+  </nav>
+
+  <!-- ── Itinerary ── -->
+  <div id="riverside-itinerary" class="tab-pane on">
+
+    <!-- Day 1 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">1</div>
+          <div><div class="dc-title">Day 1</div><div class="dc-sub">📍 Riverside, CA &nbsp;·&nbsp; Sat Jul 11</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-rv1"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Riverside CA</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="rv-d1-m" data-ph="Add plans…"><ul><li>Arrive in Riverside, check in, and get oriented</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="rv-d1-a" data-ph="Add plans…"><ul><li>Explore downtown / Mission Inn area</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="rv-d1-e" data-ph="Add plans…"><ul><li>Dinner and early night if travel day is long</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">2</div>
+          <div><div class="dc-title">Day 2</div><div class="dc-sub">📍 Riverside, CA &nbsp;·&nbsp; Sun Jul 12</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-rv2"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Riverside CA</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="rv-d2-m" data-ph="Add plans…"><ul><li>Breakfast, then family / city activities</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="rv-d2-a" data-ph="Add plans…"><ul><li>Museum, park, or shopping stop</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="rv-d2-e" data-ph="Add plans…"><ul><li>Dinner and prep for next day</li></ul></div></div>
+      </div>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-card">
+      <div class="dc-head">
+        <div class="dc-left">
+          <div class="day-num">3</div>
+          <div><div class="dc-title">Day 3</div><div class="dc-sub">📍 Riverside, CA &nbsp;·&nbsp; Mon Jul 13</div></div>
+        </div>
+        <div class="wx-row"><div class="wx loading" id="wx-rv3"><span class="wx-ico">⏳</span><div><div class="wx-temp">—</div><div class="wx-desc">Riverside CA</div></div></div></div>
+      </div>
+      <div class="dc-body">
+        <div class="slot"><div class="slot-lbl morn"><span class="slot-dot"></span>Morning</div><div class="slot-txt" contenteditable="true" data-k="rv-d3-m" data-ph="Add plans…"><ul><li>Pack up and check out</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl aft"><span class="slot-dot"></span>Afternoon</div><div class="slot-txt" contenteditable="true" data-k="rv-d3-a" data-ph="Add plans…"><ul><li>Drive home / lunch on the way</li></ul></div></div>
+        <div class="slot"><div class="slot-lbl eve"><span class="slot-dot"></span>Evening</div><div class="slot-txt" contenteditable="true" data-k="rv-d3-e" data-ph="Add plans…"><ul><li>Unwind and sort photos / notes</li></ul></div></div>
+      </div>
+    </div>
+
+  </div><!-- /riverside-itinerary -->
+
+  <!-- ── Essentials ── -->
+  <div id="riverside-essentials" class="tab-pane">
+    <div class="sec-hdr">🎒 Riverside Checklist</div>
+    <div class="chk-card">
+      <label class="chk-item"><input type="checkbox" data-k="rv-c-hotel"><span class="chk-box"></span><span class="chk-lbl">Hotel booked</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="rv-c-car"><span class="chk-box"></span><span class="chk-lbl">Car serviced / ready</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="rv-c-plan"><span class="chk-box"></span><span class="chk-lbl">Itinerary confirmed with contacts</span></label>
+      <label class="chk-item"><input type="checkbox" data-k="rv-c-sun"><span class="chk-box"></span><span class="chk-lbl">Sunscreen (it's hot in Riverside in July)</span></label>
+    </div>
+  </div>
+
+</section><!-- /trip-riverside -->
+
+</div><!-- /.wrap -->
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   CONSTANTS & HELPERS
+───────────────────────────────────────────────────────── */
+const LS = 'tp26_';
+const get = id => document.getElementById(id);
+
+/* ─────────────────────────────────────────────────────────
+   TAB SWITCHING
+───────────────────────────────────────────────────────── */
+function switchTrip(name, btn) {
+  document.querySelectorAll('.trip').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.trip-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('trip-' + name).classList.add('on');
+  btn.classList.add('on');
+  fetchWeatherForTrip(name);
+}
+
+function switchInner(trip, tab, btn) {
+  const sec = document.getElementById('trip-' + trip);
+  sec.querySelectorAll('.inner-btn').forEach(b => b.classList.remove('on'));
+  sec.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('on'));
+  document.getElementById(trip + '-' + tab).classList.add('on');
+  btn.classList.add('on');
+}
+
+/* ─────────────────────────────────────────────────────────
+   COUNTDOWN
+───────────────────────────────────────────────────────── */
+function setCountdown(elId, isoDate) {
+  const el = get(elId);
+  if (!el) return;
+  const diff = new Date(isoDate) - new Date();
+  if (diff <= 0) { el.textContent = '🎉 It\'s time!'; return; }
+  const days = Math.ceil(diff / 86400000);
+  el.textContent = days === 1 ? '1 day to go' : `${days} days to go`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   WEATHER
+───────────────────────────────────────────────────────── */
+const wxCache = {};
+
+function wxEmoji(code) {
+  code = +code;
+  if (code === 113) return '☀️';
+  if (code === 116) return '⛅';
+  if ([119,122].includes(code)) return '☁️';
+  if ([143,248,260].includes(code)) return '🌫️';
+  if ([176,263,266,281,284,293,296,299,302,305,308].includes(code)) return '🌦️';
+  if ([353,356,359].includes(code)) return '🌧️';
+  if ([200,386,389,392].includes(code)) return '⛈️';
+  if ([179,182,185,227,230,317,320,323,326,329,332,335,338,362,365,368,371,374,377,395].includes(code)) return '❄️';
+  return '🌡️';
+}
+
+async function fetchWx(city) {
+  if (wxCache[city] !== undefined) return wxCache[city];
+  try {
+    const r = await fetch('https://wttr.in/' + encodeURIComponent(city) + '?format=j1', {
+      signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined
+    });
+    if (!r.ok) throw new Error('bad');
+    const d = await r.json();
+    wxCache[city] = d;
+    return d;
+  } catch(e) {
+    wxCache[city] = null;
+    return null;
+  }
+}
+
+function renderWx(elId, data, cityLabel) {
+  const el = get(elId);
+  if (!el) return;
+  el.classList.remove('loading');
+  if (!data) {
+    el.innerHTML = `<span class="wx-ico">🌡️</span><div><div class="wx-temp">N/A</div><div class="wx-desc">${cityLabel}</div></div>`;
+    return;
+  }
+  const c = data.current_condition[0];
+  const emoji = wxEmoji(c.weatherCode);
+  const fahr = c.temp_F + '°F';
+  const desc = c.weatherDesc[0].value;
+  el.innerHTML = `<span class="wx-ico">${emoji}</span><div><div class="wx-temp">${fahr}</div><div class="wx-desc">${desc}</div></div>`;
+}
+
+async function fetchWeatherForTrip(trip) {
+  if (trip === 'japan') {
+    const [tokyo, kyoto] = await Promise.all([fetchWx('Tokyo'), fetchWx('Kyoto')]);
+    ['wx-t1','wx-t2','wx-t3','wx-t4','wx-t5'].forEach(id => renderWx(id, tokyo, 'Tokyo'));
+    ['wx-k5','wx-k6','wx-k7','wx-k8','wx-k9'].forEach(id => renderWx(id, kyoto, 'Kyoto'));
+  } else if (trip === 'tahoe') {
+    const d = await fetchWx('South Lake Tahoe');
+    ['wx-th1','wx-th2','wx-th3'].forEach(id => renderWx(id, d, 'S. Lake Tahoe'));
+  } else if (trip === 'riverside') {
+    const d = await fetchWx('Riverside,CA');
+    ['wx-rv1','wx-rv2','wx-rv3'].forEach(id => renderWx(id, d, 'Riverside CA'));
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   CHECKLISTS
+───────────────────────────────────────────────────────── */
+function initChecklists() {
+  document.querySelectorAll('.chk-item input[type=checkbox]').forEach(cb => {
+    const k = cb.dataset.k;
+    if (!k) return;
+    if (localStorage.getItem(LS + k) === '1') cb.checked = true;
+    cb.addEventListener('change', () => {
+      localStorage.setItem(LS + k, cb.checked ? '1' : '0');
+    });
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   EDITABLE SLOTS
+───────────────────────────────────────────────────────── */
+function initSlots() {
+  document.querySelectorAll('.slot-txt[contenteditable]').forEach(el => {
+    const k = el.dataset.k;
+    if (!k) return;
+    const saved = localStorage.getItem(LS + k);
+    if (saved !== null) el.textContent = saved;
+    el.addEventListener('blur', () => {
+      localStorage.setItem(LS + k, el.textContent);
+    });
+    // Ctrl+Enter / Cmd+Enter to blur
+    el.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   CURRENCY CONVERTER
+───────────────────────────────────────────────────────── */
+let jpyRate = 155; // sensible fallback
+
+async function initConverter() {
+  calcJpy(); // show with fallback first
+  updateQRef();
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?from=USD&to=JPY');
+    if (!r.ok) throw new Error('bad');
+    const d = await r.json();
+    jpyRate = d.rates.JPY;
+    const rateEl = get('conv-rate-display');
+    const updEl  = get('conv-updated');
+    if (rateEl) rateEl.innerHTML = `Live rate: <span>1 USD = ¥${jpyRate.toFixed(2)} JPY</span> &nbsp;<span id="conv-updated"></span>`;
+    const now = new Date();
+    const updEl2 = get('conv-updated');
+    if (updEl2) updEl2.textContent = `· Updated ${now.toLocaleTimeString()}`;
+    calcJpy();
+    updateQRef();
+  } catch(e) {
+    const rateEl = get('conv-rate-display');
+    if (rateEl) rateEl.innerHTML = `Fallback rate: <span>1 USD ≈ ¥${jpyRate} JPY</span> &nbsp;<span style="color:var(--a5);font-size:11px">(offline)</span>`;
+    calcJpy();
+    updateQRef();
+  }
+}
+
+function calcJpy() {
+  const inp = get('usd-in');
+  const out = get('jpy-out');
+  if (!inp || !out) return;
+  const usd = parseFloat(inp.value) || 0;
+  out.textContent = '¥' + Math.round(usd * jpyRate).toLocaleString();
+}
+
+function updateQRef() {
+  [10,50,100,500].forEach(amt => {
+    const el = get('qr-' + amt);
+    if (el) el.textContent = '¥' + Math.round(amt * jpyRate).toLocaleString();
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Countdowns (trip start dates)
+  setCountdown('jp-cd', '2026-06-22');
+  setCountdown('th-cd', '2026-07-03');
+  setCountdown('rv-cd', '2026-07-11');
+
+  initChecklists();
+  initSlots();
+  fetchWeatherForTrip('japan'); // active by default
+  initConverter();
+});
+</script>
+<div id="save-indicator" style="position:fixed;bottom:1.2rem;right:1.5rem;padding:0.4rem 0.9rem;border-radius:8px;font-size:0.8rem;font-weight:600;opacity:0;transition:opacity 0.3s;z-index:999;"></div>
+<script>
+// ── Server-backed persistence ──────────────────────────────────────────────
+const indicator = document.getElementById('save-indicator');
+let indicatorTimer;
+
+function showIndicator(msg, ok) {
+  indicator.textContent = msg;
+  indicator.style.background = ok ? 'rgba(104,211,145,0.15)' : 'rgba(252,129,74,0.15)';
+  indicator.style.color = ok ? '#68d391' : '#fc814a';
+  indicator.style.border = `1px solid ${ok ? 'rgba(104,211,145,0.3)' : 'rgba(252,129,74,0.3)'}`;
+  indicator.style.opacity = '1';
+  clearTimeout(indicatorTimer);
+  indicatorTimer = setTimeout(() => indicator.style.opacity = '0', 2000);
+}
+
+async function saveNote(key, value) {
+  localStorage.setItem('note_' + key, value);
+  try {
+    const r = await fetch('/api/notes', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({key, value})
+    });
+    if (r.ok) showIndicator('✓ Saved', true);
+    else showIndicator('⚠ Save failed', false);
+  } catch(e) {
+    showIndicator('⚠ Offline — saved locally', false);
+  }
+}
+
+async function loadNotes() {
+  try {
+    const r = await fetch('/api/notes');
+    if (!r.ok) throw new Error();
+    const {notes} = await r.json();
+    document.querySelectorAll('[data-k]').forEach(el => {
+      const v = notes[el.dataset.k];
+      if (v !== undefined) {
+        if (el.type === 'checkbox') el.checked = v;
+        else if (el.contentEditable === 'true') el.innerText = v;
+      }
+    });
+  } catch(e) {
+    // Fall back to localStorage
+    document.querySelectorAll('[data-k]').forEach(el => {
+      const v = localStorage.getItem('note_' + el.dataset.k);
+      if (v !== null) {
+        if (el.type === 'checkbox') el.checked = v === 'true';
+        else if (el.contentEditable === 'true') el.innerText = v;
+      }
+    });
+  }
+}
+
+// Attach save on blur for contenteditable
+document.querySelectorAll('[data-k][contenteditable]').forEach(el => {
+  el.addEventListener('blur', () => saveNote(el.dataset.k, el.innerText.trim()));
+});
+
+// Attach save on change for checkboxes
+document.querySelectorAll('[data-k][type="checkbox"]').forEach(el => {
+  el.addEventListener('change', () => saveNote(el.dataset.k, el.checked));
+});
+
+// Load on startup
+loadNotes();
+</script>
+</body>
+</html>

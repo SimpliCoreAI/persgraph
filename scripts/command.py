@@ -306,10 +306,14 @@ def cmd_places(text: str) -> str:
         notes = p.get("notes", "")
         rating = p.get("rating")
         stars = f" {'⭐' * int(rating)}" if rating else ""
-        notes_str = f" — {notes[:60]}" if notes else ""
+        # Keep a short, readable description on the primary line.
+        desc = notes.strip() if notes else ""
+        if desc:
+            desc = desc[:80]
+        desc_str = f" — {desc}" if desc else ""
         maps = p.get("maps_url", "")
         maps_str = f"\n  🗺 {maps}" if maps else ""
-        lines.append(f"• {name}, {city} [{cat}]{stars}{notes_str}{maps_str}")
+        lines.append(f"• {name}, {city} [{cat}]{stars}{desc_str}{maps_str}")
 
     return "\n".join(lines)
 
@@ -440,6 +444,7 @@ COMMANDS = {
     "/place":       cmd_place,
     "/places":      cmd_places,
     "/email":       cmd_email,
+    "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
 }
 

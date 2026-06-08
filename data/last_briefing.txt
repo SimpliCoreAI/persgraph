@@ -1,0 +1,31 @@
+============================================================
+  📋 WEEKLY BRIEFING — Week 23  (Monday, June 01 2026)
+============================================================
+
+📅  Upcoming This Week
+----------------------------------------
+  No upcoming appointments found.
+
+✅  Open Tasks
+----------------------------------------
+  🔥 Send details for opening account at 5 rivers by end of day Monday  (2026-05-30T01:17:57.642142+00:00)
+  🔥 Finalize executive coach — deadline end of May  (2026-05-29T17:19:19.989411+00:00)
+     send details for opening account at 5 rivers by end of day Monday  (2026-05-31T00:02:43.364983+00:00)
+     Find a fun AI project to do with Agambir over summer  (2026-05-29T17:19:19.990619+00:00)
+     Find maths class for Agambir for July — find class by end of May  (2026-05-29T17:19:19.988194+00:00)
+  … and 1 more task(s).
+
+🖥️   System Health
+----------------------------------------
+  ChromaDB (100.122.130.89:8000): 🔴 Offline
+  Hostname: macbookair.lan
+
+💬  Quote of the Week
+----------------------------------------
+  "Code is like humor. When you have to explain it, it's bad." — Cory House
+
+😄  Dev Joke
+----------------------------------------
+  Why do Java developers wear glasses? Because they don't C#! 👓
+
+============================================================

@@ -121,6 +121,7 @@ def _extract_event_details(subject: str, body: str) -> dict | None:
     try:
         import anthropic
         from second_brain.config import settings
+        from second_brain.tracing import trace_event
 
         client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         today = datetime.now().strftime("%Y-%m-%d")
@@ -140,6 +141,11 @@ Return ONLY valid JSON with these fields (no markdown, no explanation):
 
 If no specific date/time found, return: {{"summary": null, "start": null, "end": null, "description": null}}"""
 
+        trace_event(
+            name="extract_event_details",
+            input=f"subject: {subject[:100]}",
+            tags=["email", "calendar", "llm"]
+        )
         message = client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=200,
@@ -155,6 +161,11 @@ If no specific date/time found, return: {{"summary": null, "start": null, "end":
         data = json.loads(text)
         if not data.get("start"):
             return None
+        trace_event(
+            name="extract_event_details_result",
+            output=f"parsed: {data.get('summary', 'unknown')}",
+            tags=["email", "calendar", "llm"]
+        )
         return data
     except Exception:
         return None

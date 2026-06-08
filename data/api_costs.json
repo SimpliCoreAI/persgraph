@@ -11,11 +11,17 @@
       "output_tokens": 5295,
       "cost_usd": 0.07956,
       "calls": 12
+    },
+    "2026-06-05": {
+      "input_tokens": 3,
+      "output_tokens": 745,
+      "cost_usd": 0.011184,
+      "calls": 1
     }
   },
   "total": {
-    "input_tokens": 121418,
-    "output_tokens": 10195,
-    "cost_usd": 0.517179
+    "input_tokens": 121421,
+    "output_tokens": 10940,
+    "cost_usd": 0.528363
   }
 }
