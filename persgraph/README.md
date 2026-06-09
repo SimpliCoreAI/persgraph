@@ -35,3 +35,16 @@ Expected CSV columns: `Date, Account, Description, Category, Tags, Amount`
 
 ## Part of PersGraph
 PersGraph is a local-first personal data graph — knowledge, finance, places, tasks. All on your machine. See the [main repo](https://github.com/SimpliCoreAI/persgraph).
+
+
+## Everyday Commands
+
+PersGraph is becoming more than a dashboard — it is a personal command layer.
+
+- `/ask` — ask questions across your saved knowledge
+- `/ingest` — save articles and links
+- `/place` — remember places worth revisiting
+- `/appointment` — store important appointments
+- `/schedule` — see what is coming up
+- `/sport` — sports status command path is ready for provider config
+- `/reminder` — reminder command exists; native delivery bridge is still pending

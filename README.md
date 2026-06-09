@@ -29,7 +29,19 @@ Claude Sonnet is used only for agent reasoning (orchestration decisions, synthes
 
 ## What It Does
 
-Ask anything about your own life in natural language:
+PersGraph turns messy personal data into a clean command interface you can actually use every day.
+
+### Consumer-friendly commands
+
+- `/ask <question>` — ask about your life in natural language
+- `/ingest <url>` — save a web page, article, or reference
+- `/place <name>, <city>` — remember restaurants, hotels, shops, and bucket-list spots
+- `/appointment <title>, <date/time>` — save an appointment
+- `/schedule [week]` — see what’s coming up
+- `/sport [soccer|football|nba|cricket]` — check sports status (provider-backed live data path ready)
+- `/reminder <time> <text>` — reminder command path added; native scheduler hookup pending
+
+### Example flow
 
 ```
 → /ask what are my upcoming appointments this week?
@@ -38,20 +50,16 @@ Ask anything about your own life in natural language:
    · Team sync — Wed Jun 4, 2:00 PM          [calendar] [email]
    · Flight YVR → SFO — Fri Jun 6, 7:45 AM  [travel]
 
-→ /ask how much did I spend on dining last month?
-💳 Dining spend — May 2026:
-   · Total: $312.40 across 14 transactions   [chase] [amex]
-   · Top spot: Nobu SF · $84.20
+→ /place Fujiya Camera, Tokyo
+✅ Saved place: Fujiya Camera — Tokyo
 
-→ /ask show my notes about RAG vs agents
-📚 Found 4 notes matching your query:
-   · "RAG vs Fine-tuning" — ingested Mar 2026        [obsidian]
-   · "Beyond RAG: Agent Memory Patterns" — from Medium [web]
+→ /appointment Dentist, Jun 20, 2pm
+✅ Appointment saved!
+📅 Dentist — Jun 20, 2:00 PM PDT
 
-→ /quiz biology chapter 5
-🧠 Generated 5 flashcards from your saved notes:
-   Q1: What is the powerhouse of the cell?
-   Q2: Describe the process of mitosis in 3 steps…
+→ /schedule week
+📅 Schedule — Next 7 days
+   · Jun 20, 2:00 PM PDT — Dentist [Appointment]
 ```
 
 ---
@@ -85,8 +93,10 @@ Watches your vault, incrementally ingests notes with frontmatter tags. Your thin
 ### 🧠 Wiki Ingestion
 Synthesize Wikipedia articles into structured notes with key insights, concepts, and tags — saved to your vault automatically.
 
-### 🔭 Observability (Langfuse)
+### 🔭 Observability (Langfuse + OpenTelemetry-friendly)
 Every slash command is automatically traced with [Langfuse](https://langfuse.com) — input, output, latency, and tags captured per run. Tracing is best-effort: commands work even if Langfuse is unreachable. Uses Langfuse Cloud (`us.cloud.langfuse.com`); add keys to `.env.local` (gitignored — never commit secrets to this public repo).
+
+PersGraph is also **OpenTelemetry-friendly** at the architecture level: command execution, ingestion workers, and query flows are structured to support broader telemetry pipelines and monitoring as the product matures.
 
 ### 🧠 Scratchpad Workflow
 Use `scratchpad/` for transient shared thinking between models. It is the working-memory layer for active topics, handoffs, and drafts. It is intentionally separate from `MEMORY.md`. Start with `scratchpad/prompts.md` and `scratchpad/template.md`.
@@ -155,7 +165,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | Interface | Telegram Bot + Streamlit UI |
 | Tool Protocol | MCP (Model Context Protocol) |
 | Ingest Formats | PDF, URL, Markdown, Email, Images, Wiki |
-| Observability | Langfuse v4 (cloud, traces all commands) |
+| Observability | Langfuse v4 + OpenTelemetry-friendly tracing architecture |
 
 ---
 
@@ -167,6 +177,10 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | URL / web ingestion | ✅ Working |
 | RAG Q&A (Qwen2.5:7b via Ollama) | ✅ Working |
 | Tasks, Notes, Appointments | ✅ Working |
+| `/appointment` command | ✅ Working |
+| `/schedule` command | ✅ Working |
+| `/sport` command path | ✅ Working (provider config pending) |
+| `/reminder` command | ⚠️ Partial (native scheduler hookup pending) |
 | Appointment reminders (cron, hourly check) | ✅ Live |
 | Morning Briefing (8am PST daily) | ✅ Live |
 | API cost tracking (cron, 8pm daily) | ✅ Live |

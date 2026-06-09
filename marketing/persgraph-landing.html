@@ -466,8 +466,7 @@
       <span class="gradient">graphed & queryable</span>
     </h1>
     <p class="hero-sub">
-      PersGraph ingests everything about you — emails, notes, tasks, finance, travel —
-      and makes it all semantically searchable with AI. Your data, your graph, your machine.
+      PersGraph turns scattered personal data into an everyday operating system — one place to ask, save, plan, remember, and act without digging through ten apps.
     </p>
     <div class="hero-actions">
       <a href="#cta" class="btn-primary">Get Early Access →</a>
@@ -484,35 +483,32 @@
 
 <!-- Terminal demo -->
 <section class="demo-section" id="demo">
-  <div class="section-label">Live Query</div>
-  <h2 class="section-title">Ask anything about yourself</h2>
-  <p class="section-sub">Your entire personal data graph, one natural language query away.</p>
+  <div class="section-label">Everyday Commands</div>
+  <h2 class="section-title">The personal AI command layer for your life</h2>
+  <p class="section-sub">From places and appointments to schedules and sports, PersGraph gives you a clean command surface over the chaos of daily life.</p>
   <div class="terminal">
     <div class="terminal-bar">
       <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
       <div class="terminal-title">persgraph — personal data shell</div>
     </div>
     <div class="terminal-body">
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask what are my upcoming appointments this week?</span></div>
-      <div class="t-out">📅 Found <strong>3 appointments</strong> in the next 7 days:<br/>
-        &nbsp;· Dentist — Mon Jun 2, 10:00 AM <span class="t-tag">calendar</span><br/>
-        &nbsp;· Team sync — Wed Jun 4, 2:00 PM <span class="t-tag">calendar</span><span class="t-tag">email</span><br/>
-        &nbsp;· Flight YVR → SFO — Fri Jun 6, 7:45 AM <span class="t-tag">travel</span>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/place Fujiya Camera, Tokyo</span></div>
+      <div class="t-out">✅ Saved place:<br/>
+        &nbsp;· Fujiya Camera — Tokyo <span class="t-tag">shop</span><span class="t-tag">travel</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask how much did I spend on dining last month?</span></div>
-      <div class="t-out">💳 Dining spend — May 2026:<br/>
-        &nbsp;· Total: <strong>$312.40</strong> across 14 transactions <span class="t-tag">chase</span><span class="t-tag">amex</span><br/>
-        &nbsp;· Top spot: Nobu SF · $84.20
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/appointment Dentist, Jun 20, 2pm</span></div>
+      <div class="t-out">📅 Appointment saved:<br/>
+        &nbsp;· Dentist — Jun 20, 2:00 PM PDT <span class="t-tag">calendar</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ask show my notes about RAG vs agents</span></div>
-      <div class="t-out">📚 Found <strong>4 notes</strong> matching your query:<br/>
-        &nbsp;· “RAG vs Fine-tuning” — ingested Mar 2026 <span class="t-tag">obsidian</span><br/>
-        &nbsp;· “Beyond RAG: Agent Memory Patterns” — from Medium <span class="t-tag">web</span>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/schedule week</span></div>
+      <div class="t-out">🗓 This week:<br/>
+        &nbsp;· Jun 20, 2:00 PM PDT — Dentist <span class="t-tag">appointment</span><br/>
+        &nbsp;· Japan trip prep <span class="t-tag">task</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/quiz biology chapter 5<span class="cursor"></span></span></div>
-      <div class="t-out">🧠 Generated <strong>5 flashcards</strong> from your saved notes:<br/>
-        &nbsp;Q1: What is the powerhouse of the cell?<br/>
-        &nbsp;Q2: Describe the process of mitosis in 3 steps…
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/sport nba<span class="cursor"></span></span></div>
+      <div class="t-out">🏟 Sports lookup ready:<br/>
+        &nbsp;· Live provider integration path is ready <span class="t-tag">sports</span><br/>
+        &nbsp;· Add API key to enable real fixtures and local kickoff times
       </div>
     </div>
   </div>
@@ -522,8 +518,8 @@
 <section class="features-section" id="features">
   <div style="text-align:center; margin-bottom:3rem;">
     <div class="section-label">Features</div>
-    <h2 class="section-title">Everything about you, in one graph</h2>
-    <p class="section-sub">Every data type is ingested, semantically indexed, and instantly retrievable.</p>
+    <h2 class="section-title">One system for your notes, tasks, travel, and decisions</h2>
+    <p class="section-sub">PersGraph connects the fragments of your life into a private, queryable personal operating system.</p>
   </div>
   <div class="bento">
 
@@ -548,9 +544,9 @@
     <!-- Observability - full width -->
     <div class="card card-wide" style="--card-glow:rgba(159,122,234,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">🔭</div>
-      <h3>Built-in Observability</h3>
-      <p>Every slash command &mdash; <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/ask</code>, <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/ingest</code>, <code style="font-size:0.8rem;color:var(--accent);background:rgba(99,179,237,0.08);padding:0.1rem 0.35rem;border-radius:4px">/note</code>, and more &mdash; is automatically traced with Langfuse Cloud. See latency, inputs, outputs, and usage patterns in the cloud dashboard. Secrets stay in `.env.local` (gitignored); public repo, no key leakage.</p>
-      <div class="card-tags"><span class="tag">Langfuse v4</span><span class="tag">Cloud</span><span class="tag">Best-effort tracing</span></div>
+      <h3>Built for observability from day one</h3>
+      <p>PersGraph already traces command activity with Langfuse and is designed to plug cleanly into OpenTelemetry-style monitoring as the product scales from personal system to serious platform.</p>
+      <div class="card-tags"><span class="tag">Langfuse v4</span><span class="tag">OpenTelemetry-friendly</span><span class="tag">Best-effort tracing</span></div>
     </div>
 
     <!-- Web Ingestion -->
@@ -600,24 +596,24 @@
 <section class="howitworks" id="how">
   <div style="text-align:center">
     <div class="section-label">How It Works</div>
-    <h2 class="section-title">Simple pipeline, powerful results</h2>
-    <p class="section-sub">Three steps from raw data to queryable intelligence.</p>
+    <h2 class="section-title">From raw life data to usable intelligence</h2>
+    <p class="section-sub">Ingest once, organize automatically, and query everything through one always-on interface.</p>
   </div>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <h3>Ingest</h3>
-      <p>Drop emails, links, PDFs, notes, finance data — Gru, your AI agent running 24/7 on a DigitalOcean VPS, ingests everything automatically. No need to keep your Mac open.</p>
+      <h3>Capture</h3>
+      <p>Feed PersGraph emails, links, notes, travel plans, and tasks. Your always-on AI agent keeps collecting useful context so nothing important slips through the cracks.</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <h3>Embed</h3>
-      <p>Every piece of data is chunked and embedded by Ollama running on your Windows machine, connected securely over Tailscale VPN. Sensitive local files stay on your Mac — the VPS only sees what you share.</p>
+      <h3>Organize</h3>
+      <p>PersGraph structures and indexes your data behind the scenes, turning scattered inputs into something searchable, connected, and ready for action.</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <h3>Query</h3>
-      <p>Ask anything in natural language via Telegram, terminal, or the web UI. Your always-on AI agent answers instantly from your own graph — 24/7, even when your laptop is closed.</p>
+      <h3>Act</h3>
+      <p>Use simple commands to ask questions, save places, review schedules, and run your life from one interface — without hunting through inboxes, notes apps, and tabs.</p>
     </div>
   </div>
 </section>
@@ -925,8 +921,8 @@
 
 <!-- CTA -->
 <section class="cta-section" id="cta">
-  <h2 class="cta-title">Own your personal<br/><span style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">data graph</span></h2>
-  <p class="cta-sub">Open source and self-hosted. Clone it and run it today.</p>
+  <h2 class="cta-title">Build the personal operating system you actually want to use</h2>
+  <p class="cta-sub">Private by default, command-first, and useful from day one — PersGraph turns your data into leverage.</p>
   <div class="cta-actions">
     <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-primary">⭐ Star on GitHub</a>
     <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-secondary">View on GitHub</a>
