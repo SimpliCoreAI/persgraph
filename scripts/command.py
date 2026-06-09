@@ -21,6 +21,97 @@ import sys
 import os
 import json
 import time
+import re
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+LOCAL_TZ = ZoneInfo("America/Los_Angeles")
+
+
+def _now_local() -> datetime:
+    return datetime.now(LOCAL_TZ)
+
+
+def _parse_datetime_loose(text: str) -> tuple[datetime | None, str | None]:
+    s = text.strip()
+    now = _now_local()
+
+    m = re.match(r'^in\s+(\d+)\s*([mh])\s+(.+)$', s, re.I)
+    if m:
+        qty = int(m.group(1))
+        unit = m.group(2).lower()
+        title = m.group(3).strip()
+        dt = now + (timedelta(hours=qty) if unit == 'h' else timedelta(minutes=qty))
+        return dt, title
+
+    m = re.match(r'^(tomorrow)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+(.+)$', s, re.I)
+    if m:
+        day_word, hour_s, minute_s, ampm, title = m.groups()
+        hour = int(hour_s)
+        minute = int(minute_s or 0)
+        if ampm:
+            ampm = ampm.lower()
+            if ampm == 'pm' and hour != 12:
+                hour += 12
+            if ampm == 'am' and hour == 12:
+                hour = 0
+        base = now + timedelta(days=1)
+        dt = base.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        return dt, title.strip()
+
+    m = re.match(r'^(.+?)\s*,\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?$', s, re.I)
+    if m:
+        title, date_s, hour_s, minute_s, ampm = m.groups()
+        try:
+            dt = datetime.fromisoformat(date_s).replace(tzinfo=LOCAL_TZ)
+            if hour_s:
+                hour = int(hour_s)
+                minute = int(minute_s or 0)
+                if ampm:
+                    ampm = ampm.lower()
+                    if ampm == 'pm' and hour != 12:
+                        hour += 12
+                    if ampm == 'am' and hour == 12:
+                        hour = 0
+                dt = dt.replace(hour=hour, minute=minute)
+            return dt, title.strip()
+        except ValueError:
+            return None, None
+
+    m = re.match(r'^(.+?)\s*,\s*(\w+\s+\d{1,2})(?:\s*,?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?)?$', s, re.I)
+    if m:
+        title, month_day, hour_s, minute_s, ampm = m.groups()
+        try:
+            dt = datetime.strptime(f"{month_day} {now.year}", "%b %d %Y")
+        except ValueError:
+            try:
+                dt = datetime.strptime(f"{month_day} {now.year}", "%B %d %Y")
+            except ValueError:
+                return None, None
+        dt = dt.replace(tzinfo=LOCAL_TZ)
+        if hour_s:
+            hour = int(hour_s)
+            minute = int(minute_s or 0)
+            if ampm:
+                ampm = ampm.lower()
+                if ampm == 'pm' and hour != 12:
+                    hour += 12
+                if ampm == 'am' and hour == 12:
+                    hour = 0
+            dt = dt.replace(hour=hour, minute=minute)
+        return dt, title.strip()
+
+    return None, None
+
+
+def _fmt_local(dt: datetime) -> str:
+    return dt.astimezone(LOCAL_TZ).strftime("%b %d, %-I:%M %p %Z")
+
+
+def _extract_due_from_body(text: str) -> str | None:
+    m = re.search(r'(?:date|due):(\d{4}-\d{2}-\d{2})', text)
+    return m.group(1) if m else None
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -318,6 +409,139 @@ def cmd_places(text: str) -> str:
     return "\n".join(lines)
 
 
+def cmd_sport(text: str) -> str:
+    from second_brain.sports import get_sports_status
+    return get_sports_status(text.strip())
+
+
+def cmd_appointment(text: str) -> str:
+    from second_brain.notes import save, list_all
+
+    raw = text.strip()
+    if not raw:
+        return "❌ Usage: /appointment <title>, <date/time> or /appointment list"
+
+    if raw.lower() == 'list':
+        rows = list_all(item_type='Appointment', limit=50)
+        items = []
+        now = _now_local()
+        for r in rows:
+            ds = (r.get('date') or '').strip()
+            if not ds:
+                continue
+            try:
+                dt = datetime.fromisoformat(ds)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=LOCAL_TZ)
+                if dt >= now - timedelta(days=1):
+                    items.append((dt, r))
+            except Exception:
+                continue
+        items.sort(key=lambda x: x[0])
+        if not items:
+            return "📅 No upcoming appointments."
+        lines = ["📅 Upcoming appointments", ""]
+        for dt, r in items[:10]:
+            lines.append(f"• {r.get('title','Untitled')} — {_fmt_local(dt)}")
+        return "\n".join(lines)
+
+    dt, title = _parse_datetime_loose(raw)
+    if not dt or not title:
+        return "❌ Usage: /appointment <title>, <date/time> (e.g. /appointment Dentist, Jun 20, 2pm)"
+
+    item = save(title=title, item_type='Appointment', date=dt.isoformat(), tags=['appointment'])
+    return f"✅ Appointment saved!\n📅 {title} — {_fmt_local(dt)}"
+
+
+def cmd_reminder(text: str) -> str:
+    import json
+    import subprocess
+    from datetime import timezone
+    from second_brain.notes import save
+
+    raw = text.strip()
+    if not raw:
+        return "❌ Usage: /reminder in 2h pick up kids"
+
+    dt, title = _parse_datetime_loose(raw)
+    if not dt or not title:
+        return "❌ Usage: /reminder in 2h pick up kids | /reminder tomorrow 9am call dentist"
+
+    save(title=title, item_type='Note', body=f'reminder_at:{dt.isoformat()}', date=dt.isoformat(), tags=['reminder'])
+
+    iso_utc = dt.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+    try:
+        proc = subprocess.run(
+            [
+                'openclaw', 'gateway', 'cron', 'add', '--json',
+                json.dumps({
+                    'name': f'Reminder: {title[:60]}',
+                    'schedule': {'kind': 'at', 'at': iso_utc},
+                    'payload': {'kind': 'systemEvent', 'text': f'Reminder: {title}'},
+                    'delivery': {'mode': 'announce', 'channel': 'telegram', 'to': 'telegram:8596241969'},
+                    'sessionTarget': 'main',
+                    'deleteAfterRun': True,
+                })
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        cron_note = '\n🆔 Cron scheduled'
+    except Exception:
+        cron_note = '\n⚠️ Reminder saved, but cron scheduling failed.'
+
+    return (
+        f"✅ Reminder set!\n"
+        f"⏰ {title} — {_fmt_local(dt)}"
+        f"{cron_note}"
+    )
+
+
+def cmd_schedule(text: str) -> str:
+    from second_brain.notes import list_all
+
+    mode = (text.strip().lower() or 'today')
+    now = _now_local()
+    end = now + timedelta(days=7 if mode == 'week' else 1)
+
+    items = []
+
+    for r in list_all(item_type='Appointment', limit=100):
+        ds = (r.get('date') or '').strip()
+        if not ds:
+            continue
+        try:
+            dt = datetime.fromisoformat(ds)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=LOCAL_TZ)
+            if now <= dt <= end:
+                items.append((dt, 'Appointment', r.get('title','Untitled')))
+        except Exception:
+            pass
+
+    for r in list_all(item_type='Task', limit=100):
+        due = _extract_due_from_body((r.get('body') or '') + ' ' + (r.get('title') or ''))
+        if not due:
+            continue
+        try:
+            dt = datetime.fromisoformat(due).replace(tzinfo=LOCAL_TZ)
+            if now <= dt <= end:
+                items.append((dt, 'Task', r.get('title','Untitled')))
+        except Exception:
+            pass
+
+    items.sort(key=lambda x: x[0])
+    label = 'Next 7 days' if mode == 'week' else 'Today'
+    if not items:
+        return f"📅 Schedule — {label}\n\n• Nothing scheduled"
+
+    lines = [f"📅 Schedule — {label}", ""]
+    for dt, kind, title in items[:20]:
+        lines.append(f"• {_fmt_local(dt)} — {title} [{kind}]")
+    return '\n'.join(lines)
+
+
 def cmd_status() -> str:
     from second_brain.queue import stats as queue_stats
     from second_brain.vectorstore import vectorstore
@@ -444,6 +668,9 @@ COMMANDS = {
     "/place":       cmd_place,
     "/places":      cmd_places,
     "/email":       cmd_email,
+    "/appointment": cmd_appointment,
+    "/reminder":    cmd_reminder,
+    "/schedule":    cmd_schedule,
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
 }
@@ -514,6 +741,10 @@ def _dispatch(raw_input: str, user: dict) -> str:
         "  /task <text>                    — save a task\n"
         "  /place <name>, <city> [, notes] — save a place (instant)\n"
         "  /places [city]                  — list saved places\n"
+        "  /appointment <title>, <date/time> | list — save/list appointments\n"
+        "  /reminder <time> <text>         — save reminder intent\n"
+        "  /schedule [week]                — show upcoming schedule\n"
+        "  /sport [soccer|football|nba] — sports schedule\n"
         "  /debrief [today|week|month]     — generate activity debrief\n"
         "  /status                         — collection + queue stats"
     )
