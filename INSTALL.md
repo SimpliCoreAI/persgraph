@@ -160,12 +160,12 @@ PYTHONPATH=. python scripts/command.py "/status"
 
 | Command | What it does |
 |---------|-------------|
-| `/ingest <url or file>` | Ingest a URL, PDF, or text into the knowledge base |
+| `/ingest <url or file>` | Raw-ingest a URL, PDF, or text into the semantic index |
 | `/ask <question>` | Semantic search + AI synthesis from your saved data |
-| `/note <text>` | Save a quick note |
+| `/note <text>` | Save a quick note to SQLite |
 | `/place <name, location, notes>` | Save a point of interest |
 | `/task <description>` | Add a task |
-| `/wiki-ingest <url>` | Ingest a Wikipedia article as a structured note |
+| `/wiki-ingest <url>` | Write a curated Obsidian wiki note from a URL, then index it |
 | `/status` | Check system status |
 
 ---

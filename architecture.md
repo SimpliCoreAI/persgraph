@@ -523,10 +523,10 @@ The agent (Claude) acts as the synthesis engine — Ollama is used only for embe
 
 | Command | What it does | Output |
 |---------|-------------|--------|
-| `/wiki-ingest <url>` | Ingest URL to ChromaDB + Claude synthesizes structured Obsidian note | Note written to `InsightsData/wiki/articles/` |
-| `/ingest <url>` | Ingest URL to ChromaDB only (no synthesis) | Chunk count + collection |
+| `/wiki-ingest <url>` | Write curated markdown to Obsidian first, then index it for semantic search | Note written to `InsightsData/wiki/articles/`, indexing follows |
+| `/ingest <url>` | Raw-ingest URL content into the semantic index/search layer | Chunk count + collection |
 | `/ask <question>` | Embed question → semantic search ChromaDB → Claude answers with citations | Answer + sources |
-| `/note <text>` | Queue a quick note | Queued confirmation |
+| `/note <text>` | Save a quick operational note to SQLite | Queued confirmation |
 | `/task <text>` | Queue a task | Queued confirmation |
 | `/place <name>, <city>` | Queue a place/POI | Queued confirmation |
 | `/status` | Collection chunk counts + queue stats | Stats summary |
@@ -541,14 +541,21 @@ cd ~/AgenticHub/Persgraph
 PYTHONPATH=. .venv/bin/python scripts/command.py "/ask what is RAG?"
 ```
 
-### LLM Wiki — Two-layer architecture
+### Source-of-truth architecture
 ```
-/ingest       → ChromaDB only  (fast, for /ask semantic search)
-/wiki-ingest  → ChromaDB + Obsidian note (synthesis by Claude, no extra API cost)
-/ask          → ChromaDB retrieval + Claude answers
+/note         → SQLite               (operational capture)
+/ingest       → ChromaDB             (raw semantic indexing)
+/wiki-ingest  → Obsidian → ChromaDB  (curated markdown first, index second)
+/ask          → ChromaDB retrieval + synthesis
 ```
 
-Obsidian vault: `~/AgenticHub/InsightsData/wiki/articles/`
+Source-of-truth rules:
+- SQLite stores quick operational items: notes, tasks, appointments, reminders metadata.
+- Obsidian stores curated markdown knowledge.
+- ChromaDB is the search/index layer, not the durable source of truth.
+- If indexing is unavailable, `/wiki-ingest` should still leave behind the markdown note in the vault.
+
+Obsidian vault path for wiki notes: `~/AgenticHub/InsightsData/wiki/articles/`
 
 ---
 
@@ -564,7 +571,7 @@ Obsidian vault: `~/AgenticHub/InsightsData/wiki/articles/`
 - **API Cost Tracking:** `track_api_cost.py` + OpenClaw cron at 8pm daily → Telegram summary
 - **GitHub:** Private repo at github.com/SimpliCoreAI/persgraph, all code versioned
 - **Slash Command Interface** (May 2026): Telegram slash commands wired via OpenClaw — see Section 12
-- **LLM Wiki Layer** (May 2026): `/wiki-ingest` synthesizes Obsidian notes via Claude — zero extra API cost
+- **LLM Wiki Layer** (May 2026): `/wiki-ingest` creates curated Obsidian notes first, then indexes them for retrieval
 - **Batch Embeddings** (May 2026): all chunks embedded in one Ollama call (was per-chunk — much faster)
 - **Python 3.13 venv** (May 2026): rebuilt from 3.14 (too new) — all deps now install cleanly
 - **AGENT_CONTEXT.md**: agent contract file defining collections, tagging rules, query behavior
@@ -583,7 +590,7 @@ Obsidian vault: `~/AgenticHub/InsightsData/wiki/articles/`
 - Notes/markdown ingester
 - YouTube ingester (yt-dlp + Whisper)
 - Human feedback loop (👍/👎 on RAG answers)
-- `/wiki-ingest` confirmation step before writing (plan-before-execute pattern)
+- Improve `/wiki-ingest` summarization quality and optional confirmation step before writing
 
 **Multi-Agent (Phase 2)**
 - Intent classifier + sequential dispatcher in OpenClaw

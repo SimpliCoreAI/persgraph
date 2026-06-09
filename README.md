@@ -88,10 +88,10 @@ Send a link, get it chunked and embedded. No more "I saved that article somewher
 Log places you've been, want to go, or want to remember. Searchable by city, category, country — with ratings and auto-tagging via local AI.
 
 ### 📓 Obsidian Sync
-Watches your vault, incrementally ingests notes with frontmatter tags. Your thinking, always searchable.
+Watches your vault, incrementally ingests notes with frontmatter tags. Your curated markdown stays human-readable first, searchable second.
 
 ### 🧠 Wiki Ingestion
-Synthesize Wikipedia articles into structured notes with key insights, concepts, and tags — saved to your vault automatically.
+Create curated wiki-style notes in Obsidian from URLs. The markdown note is the source of truth; semantic indexing happens after.
 
 ### 🔭 Observability (Langfuse + OpenTelemetry-friendly)
 Every slash command is automatically traced with [Langfuse](https://langfuse.com) — input, output, latency, and tags captured per run. Tracing is best-effort: commands work even if Langfuse is unreachable. Uses Langfuse Cloud (`us.cloud.langfuse.com`); add keys to `.env.local` (gitignored — never commit secrets to this public repo).
@@ -307,16 +307,57 @@ PYTHONPATH=. python scripts/query.py "What are my notes on RAG vs fine-tuning?"
 
 | Command | Description |
 |---|---|
-| `/ingest <url or file>` | Ingest a URL, PDF, or web article |
+| `/ingest <url or file>` | Raw ingest of a URL, PDF, or web article into the search/index layer |
 | `/ask <question>` | RAG query + AI synthesis from saved content |
-| `/note <text>` | Save a quick note |
+| `/note <text>` | Save a quick operational note to SQLite |
 | `/task <text>` | Save a task or appointment |
 | `/place <name> in <city>` | Save a place to your POI graph |
-| `/wiki-ingest <url>` | Ingest a Wikipedia article as a structured note |
+| `/wiki-ingest <url>` | Write a curated Obsidian wiki note from a URL, then index it |
 | `/summarize <url or topic>` | Summarize a page or saved notes on a topic |
 | `/quiz <topic>` | Generate Q&A flashcards from saved content |
 | `/create notes <topic>` | Create structured study notes |
 | `/status` | System status (Ollama, ChromaDB, note count) |
+
+---
+
+## Source of Truth Model
+
+PersGraph is simpler if each storage layer has one clear job:
+
+- **SQLite** — operational capture
+  - `/note`
+  - `/task`
+  - `/appointment`
+  - reminders and schedule metadata
+- **Obsidian vault** — curated markdown knowledge
+  - `/wiki-ingest` writes here first
+  - humans read and edit this directly
+- **ChromaDB** — semantic index/search layer
+  - `/ingest` writes raw source content here
+  - Obsidian notes can also be indexed here
+  - not the source of truth
+
+### Command split
+
+- **`/ingest <url>`**
+  - raw import for retrieval/search
+  - optimized for getting content into the knowledge system fast
+  - primary output: indexed chunks for semantic search
+
+- **`/wiki-ingest <url>`**
+  - curated knowledge capture
+  - writes a markdown note into `~/AgenticHub/InsightsData/wiki/articles/` first
+  - then attempts semantic indexing
+  - if indexing is down, the markdown note still exists and can be indexed later
+
+- **`/note <text>`**
+  - quick capture
+  - stored in SQLite, not directly in Obsidian
+
+This keeps the mental model clean:
+- where is the durable note? → Obsidian or SQLite
+- where is semantic search? → ChromaDB
+- what survives backend outages? → SQLite and Obsidian markdown
 
 ---
 

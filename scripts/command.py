@@ -23,6 +23,7 @@ import json
 import time
 import re
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
@@ -172,72 +173,77 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
     if "github.com" in args:
         tags.append("github")
 
-    # User tag — from --user flag or resolved sender
     user_name = flag_user or (user["name"] if user and user["name"] != "guest" else None)
     if user_name:
         tags.append(f"user:{user_name}")
 
-    # ⭐ Connectivity check — fail fast instead of hanging
     from second_brain.connectivity import chromadb_reachable
+    from second_brain.queue import enqueue_retry, DEP_CHROMADB, DEP_OLLAMA
+
     if not chromadb_reachable():
-        from second_brain.queue import enqueue_retry, DEP_CHROMADB
         enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_CHROMADB])
-        return (
-            f"⏳ Queued for retry\n"
-            f"📶 Windows machine is offline — will ingest when it\'s back\n"
-            f"🔗 {original_url}"
-        )
+        return "⏳ Queued for retry\n📶 Knowledge backend is offline — will ingest when it's back\n🔗 {}".format(original_url)
 
     from second_brain.ingesters.url import URLIngester
-    result = URLIngester().ingest(url, tags=tags)
+    try:
+        result = URLIngester().ingest(url, tags=tags)
+    except Exception as e:
+        err = str(e)
+        if any(k in err.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+            enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
+            return "⏳ Saved for retry\n🧠 Embedding backend not ready right now — will ingest automatically later\n🔗 {}".format(original_url)
+        return f"❌ Ingestion failed: {err}"
+
     if result.success:
         return (
-            f"✅ Ingested!\n"
+            "✅ Ingested!\n"
             f"📦 Collection: {result.collection}\n"
             f"✂️ Chunks: {result.chunks_new} new / {result.chunks_total} total\n"
             f"🏷️ Tags: {', '.join(result.tags) or 'none'}"
         )
-    else:
-        return f"❌ Ingestion failed: {'; '.join(result.errors)}"
 
+    errors = '; '.join(result.errors)
+    if any(k in errors.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+        enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
+        return "⏳ Saved for retry\n🧠 Embedding backend not ready right now — will ingest automatically later\n🔗 {}".format(original_url)
+
+    return f"❌ Ingestion failed: {errors}"
 
 def cmd_ask(question: str, user: dict | None = None) -> str:
     """Retrieve relevant chunks from the brain. Claude synthesizes the answer."""
-    # Parse --user flag
     question, flag_user = _parse_user_flag(question)
 
     if not question.strip():
         return "❌ Usage: /ask <question> [--user <name>]"
 
-    # ⭐ Connectivity check — fail fast instead of hanging
     from second_brain.connectivity import chromadb_reachable
     if not chromadb_reachable():
         return (
-            "📶 Can\'t reach the knowledge base right now — Windows machine is offline.\n"
-            "Try again when it\'s back, or save this as a note: /note \"<your question>\""
+            "📶 Can't reach the knowledge base right now — Windows machine is offline.\n"
+            "Try again when it's back, or save this as a note: /note \"<your question>\""
         )
 
     from second_brain.embeddings import embedder
     from second_brain.vectorstore import vectorstore
 
-    # Embed the question
-    q_vec = embedder.embed(question)
+    try:
+        q_vec = embedder.embed(question)
+    except Exception as e:
+        err = str(e)
+        if any(k in err.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+            return (
+                "🧠 The knowledge base is reachable, but embeddings are temporarily unavailable.\n"
+                "Immediate semantic lookup is paused until the embedding model comes back.\n"
+                "You can still use /note, /task, /place, /appointment, and /schedule right now."
+            )
+        return f"❌ Ask failed: {err}"
 
-    # Build optional where filter for user-scoped queries
-    where = None
-    scoped_user = flag_user or (user["name"] if user and user["name"] != "guest" else None)
-    # Only filter if explicitly requested via --user flag
-    # Auto-sender routing does NOT restrict search (owner/kids share the knowledge base by default)
-    if flag_user:
-        where = {"$contains": f"user:{flag_user}"}
-
-    # Query all collections
+    where = {"$contains": f"user:{flag_user}"} if flag_user else None
     results = vectorstore.query_all(q_vec, top_k=5, where=where)
     if not results:
         scope_msg = f" tagged --user {flag_user}" if flag_user else ""
         return f"🤷 Nothing relevant found{scope_msg}. Try /ingest some articles first!"
 
-    # Return structured context for Claude to synthesize
     scope_label = f" [scoped to: {flag_user}]" if flag_user else ""
     output_lines = [f"📖 Retrieved {len(results)} chunks for: \"{question}\"{scope_label}\n"]
     for i, r in enumerate(results, 1):
@@ -251,90 +257,164 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
 
     return "\n".join(output_lines)
 
-
-def cmd_wiki_ingest(args: str) -> str:
-    """
-    Step 1 of /wiki-ingest: ingest to ChromaDB and return raw chunks.
-    The agent (Claude via OpenClaw) handles synthesis + writes the Obsidian note.
-    """
-    url = args.strip()
-    if not url:
+def cmd_wiki_ingest(text: str) -> str:
+    raw = text.strip()
+    if not raw:
         return "❌ Usage: /wiki-ingest <url>"
 
-    # Auto-apply Freedium for Medium
-    fetch_url = url
-    tags = []
-    if "medium.com" in url and "freedium" not in url:
-        fetch_url = f"https://freedium-mirror.cfd/{url}"
-        tags.append("medium")
-    if "youtube.com" in url or "youtu.be" in url:
-        tags.append("youtube")
-    if "github.com" in url:
-        tags.append("github")
+    if not re.match(r"^https?://", raw, re.I):
+        return "❌ /wiki-ingest currently expects a URL"
 
     from second_brain.ingesters.url import URLIngester
-    from second_brain.embeddings import embedder
-    from second_brain.vectorstore import vectorstore
-    from second_brain.config import settings
-    import trafilatura
+    from second_brain.queue import enqueue_retry, DEP_CHROMADB, DEP_OLLAMA
+    from second_brain.connectivity import chromadb_reachable
 
-    # Ingest to ChromaDB
-    result = URLIngester().ingest(fetch_url, tags=tags)
-    if not result.success:
-        return f"❌ Ingestion failed: {'; '.join(result.errors)}"
+    def _slugify(text: str, max_len: int = 80) -> str:
+        slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+        return (slug[:max_len].strip("-") or "note")
 
-    # Fetch title
-    title = ""
+    def _wiki_dir() -> Path:
+        try:
+            from second_brain.app_config import app_config
+            vault_path = str(app_config._get("obsidian", "vault_path", default="~/AgenticHub/InsightsData"))
+        except Exception:
+            from second_brain.config import settings
+            vault_path = settings.obsidian_vault_path
+        return Path(os.path.expanduser(vault_path)) / "wiki" / "articles"
+
+    url = raw
+    if "medium.com" in url and "freedium" not in url:
+        url = f"https://freedium-mirror.cfd/{url}"
+
     try:
-        downloaded = trafilatura.fetch_url(fetch_url)
-        if downloaded:
-            meta = trafilatura.extract_metadata(downloaded)
-            title = meta.title if meta and meta.title else ""
+        text_content, title = URLIngester()._fetch(url)
+    except Exception as e:
+        return f"❌ Could not fetch source: {e}"
+
+    if not text_content.strip():
+        return "❌ Could not extract readable content from that URL"
+
+    title = (title or "Untitled").strip()
+    date_str = _now_local().strftime("%Y-%m-%d")
+    wiki_dir = _wiki_dir()
+    wiki_dir.mkdir(parents=True, exist_ok=True)
+    out_path = wiki_dir / f"{date_str}-{_slugify(title)}.md"
+
+    clean_words = text_content.split()
+    fallback_overview = " ".join(clean_words[:140]).strip() or "Source captured for later curation."
+    fallback_key_points = [
+        " ".join(clean_words[i:i + 45]).strip()
+        for i in range(140, min(len(clean_words), 365), 45)
+        if " ".join(clean_words[i:i + 45]).strip()
+    ][:5]
+    fallback_references = [
+        " ".join(clean_words[i:i + 35]).strip()
+        for i in range(365, min(len(clean_words), 540), 35)
+        if " ".join(clean_words[i:i + 35]).strip()
+    ][:3]
+
+    overview = fallback_overview
+    key_points = fallback_key_points
+    why_it_matters = "Add why this note matters to your work, decisions, or memory graph."
+    references = fallback_references
+    synthesis_note = ""
+
+    try:
+        from second_brain.llm import complete
+        synthesis_source = text_content[:12000]
+        prompt = f"""You are writing a concise personal wiki note from a source article.
+
+Return plain JSON with this exact schema:
+{{
+  \"overview\": \"2-4 sentence summary\",
+  \"key_points\": [\"bullet 1\", \"bullet 2\", \"bullet 3\"],
+  \"why_it_matters\": \"1-2 sentence practical relevance\",
+  \"reference_excerpts\": [\"short quote or excerpt 1\", \"short quote or excerpt 2\"]
+}}
+
+Rules:
+- Be concrete, not fluffy.
+- Keep key_points to 3-5 items.
+- Keep excerpts short.
+- No markdown fences.
+- Output valid JSON only.
+
+Title: {title}
+URL: {url}
+Date: {date_str}
+
+Source text:
+{synthesis_source}
+"""
+        raw_json = complete(prompt, tier="fast", max_tokens=900).strip()
+        data = json.loads(raw_json)
+        overview = (str(data.get("overview") or overview)).strip()
+        key_points = [str(x).strip() for x in (data.get("key_points") or []) if str(x).strip()][:5] or key_points
+        why_it_matters = (str(data.get("why_it_matters") or why_it_matters)).strip()
+        references = [str(x).strip() for x in (data.get("reference_excerpts") or []) if str(x).strip()][:3] or references
+        synthesis_note = "\n✨ LLM-curated summary generated"
     except Exception:
-        pass
-    title = title or url
+        synthesis_note = "\n📝 Used extraction fallback; LLM summary unavailable"
 
-    # Retrieve chunks for this specific URL only
-    import hashlib
-    url_hash = hashlib.md5(fetch_url.encode()).hexdigest()
-    collection = vectorstore.get_or_create(result.collection)
-    all_docs = collection.get(where={"source": fetch_url}) if fetch_url else None
+    safe_title = title.replace('"', "'")
+    markdown = (
+        "---\n"
+        f"title: \"{safe_title}\"\n"
+        f"source: \"{url}\"\n"
+        f"date: {date_str}\n"
+        "tags: [wiki, curated, web]\n"
+        "---\n\n"
+        f"# {title}\n\n"
+        "## Overview\n"
+        f"{overview}\n\n"
+        "## Key Points\n"
+        + ("\n".join(f"- {point}" for point in key_points) if key_points else "- Add key takeaways after review.")
+        + "\n\n## Why It Matters\n"
+        + f"{why_it_matters}\n\n"
+        + "## Source\n"
+        + f"- URL: {url}\n"
+        + f"- Captured: {date_str}\n\n"
+        + "## Reference Excerpts\n"
+        + (("\n".join(f"> {ref}" for ref in references)) if references else "> No reference excerpts captured.")
+        + "\n"
+    )
+    out_path.write_text(markdown, encoding="utf-8")
 
-    # Fallback: hash-based ID prefix filter
-    if not all_docs or not all_docs.get("documents"):
-        all_ids = collection.get()["ids"]
-        matching_ids = [i for i in all_ids if i.startswith(url_hash)]
-        if matching_ids:
-            all_docs = collection.get(ids=matching_ids)
+    vault_root = str(wiki_dir.parent.parent)
+    tags = ["wiki", "curated", "obsidian"]
+    index_note = ""
 
-    chunk_texts = all_docs["documents"] if all_docs and all_docs.get("documents") else []
-    combined = "\n\n---\n\n".join(chunk_texts)
-
-    # Quality gate — catch thin/junk articles before synthesis
-    total_chars = sum(len(t) for t in chunk_texts)
-    quality_warnings = []
-
-    if len(chunk_texts) < 3:
-        quality_warnings.append(f"⚠️ Only {len(chunk_texts)} chunks extracted — article may be paywalled or very short")
-    if total_chars < 1500:
-        quality_warnings.append(f"⚠️ Low content volume ({total_chars} chars) — may be a stub or blocked page")
-    if any(w in combined.lower() for w in ["referral", "affiliate", "promo code", "sign up and get", "use my link"]):
-        quality_warnings.append("⚠️ Affiliate/promo content detected — signal-to-noise may be low")
-
-    warnings_str = "\n".join(quality_warnings)
-    quality_block = f"\n{warnings_str}" if quality_warnings else ""
+    if not chromadb_reachable():
+        enqueue_retry("obsidian", {"vault": vault_root, "tags": tags}, needs=[DEP_CHROMADB])
+        index_note = "\n📶 Vault note saved; semantic indexing queued until backend returns"
+    else:
+        try:
+            from second_brain.ingesters.obsidian import ObsidianIngester
+            result = ObsidianIngester(vault_path=vault_root).ingest_file(str(out_path), tags=tags)
+            if result.success:
+                index_note = f"\n🧠 Indexed in {result.collection}: {result.chunks_new} new chunks"
+            else:
+                errors = "; ".join(result.errors)
+                if any(k in errors.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+                    enqueue_retry("obsidian", {"vault": vault_root, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
+                    index_note = "\n🧠 Vault note saved; indexing queued until embeddings/backend return"
+                else:
+                    index_note = f"\n⚠️ Vault note saved, but indexing failed: {errors}"
+        except Exception as e:
+            err = str(e)
+            if any(k in err.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+                enqueue_retry("obsidian", {"vault": vault_root, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
+                index_note = "\n🧠 Vault note saved; indexing queued until embeddings/backend return"
+            else:
+                index_note = f"\n⚠️ Vault note saved, but indexing failed: {err}"
 
     return (
-        f"WIKI_INGEST_READY\n"
-        f"title: {title}\n"
-        f"source_url: {url}\n"
-        f"chunks_new: {result.chunks_new}\n"
-        f"chunks_total: {result.chunks_total}\n"
-        f"content_chars: {total_chars}\n"
-        f"quality_warnings: {len(quality_warnings)}{quality_block}\n"
-        f"vault_path: {settings.obsidian_vault_path}\n"
-        f"---CHUNKS---\n"
-        f"{combined}"
+        f"✅ Wiki note saved!\n"
+        f"📝 {title}\n"
+        f"📂 {out_path}\n"
+        f"🔗 {url}"
+        f"{synthesis_note}"
+        f"{index_note}"
     )
 
 
@@ -595,7 +675,6 @@ def cmd_email(text: str) -> str:
     import shlex
     import subprocess
     import sys
-    from pathlib import Path
 
     # Support a compact structured form:
     # /email to=person@example.com subject=Hello body=Hi there
@@ -734,8 +813,8 @@ def _dispatch(raw_input: str, user: dict) -> str:
 
     return (
         "🤖 Unknown command. Available:\n"
-        "  /wiki-ingest <url>              — ingest + synthesize wiki note\n"
-        "  /ingest <url> [--user <name>]   — ingest URL to ChromaDB\n"
+        "  /wiki-ingest <url>              — write curated Obsidian wiki note, then index it\n"
+        "  /ingest <url> [--user <name>]   — raw URL ingest for semantic search\n"
         "  /ask <question> [--user <name>] — query the brain\n"
         "  /note <text>                    — save a note\n"
         "  /task <text>                    — save a task\n"
