@@ -3,7 +3,7 @@
 ## What Lives Here
 - `index.html` — standalone travel planner UI (served on port 8766)
 - Login is controlled by server-side auth config; do not store passwords in repo
-- Public URL: http://5.78.196.42:8766
+- Public URL: use your configured PersGraph host URL
 
 ## Data Schema
 - Trip data: stored in Persgraph SQLite (places collection) + config.yaml trip entries

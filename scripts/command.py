@@ -8,12 +8,16 @@ Handles commands sent from Telegram via OpenClaw:
   /note <text>               — save a quick note
   /task <text>               — save a task
   /place <name>, <city>      — save a place
+  /bucketlist ...            — save/list bucket list places
+  /digest [today|week]       — on-demand summary report
   /status                    — show queue + collection stats
 
 Usage:
     python scripts/command.py "/ingest https://example.com"
     python scripts/command.py "/ask what is RAG?"
     python scripts/command.py "/note buy groceries"
+    python scripts/command.py "/bucketlist add Kurama Onsen, Kyoto, scenic day trip"
+    python scripts/command.py "/digest today"
     python scripts/command.py "/status"
 """
 
@@ -189,9 +193,14 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
         result = URLIngester().ingest(url, tags=tags)
     except Exception as e:
         err = str(e)
-        if any(k in err.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+        err_l = err.lower()
+        backend_unavailable = any(k in err_l for k in ["connection refused", "failed to connect", "timed out", "timeout", "name or service not known", "temporary failure in name resolution", "404"])
+        context_overflow = "context length" in err_l
+        if backend_unavailable:
             enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
             return "⏳ Saved for retry\n🧠 Embedding backend not ready right now — will ingest automatically later\n🔗 {}".format(original_url)
+        if context_overflow:
+            return f"❌ Ingestion failed: article text still exceeds embedding context after fallback chunking: {err}"
         return f"❌ Ingestion failed: {err}"
 
     if result.success:
@@ -203,7 +212,8 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
         )
 
     errors = '; '.join(result.errors)
-    if any(k in errors.lower() for k in ["model", "ollama", "embed", "embedding", "404"]):
+    errors_l = errors.lower()
+    if any(k in errors_l for k in ["connection refused", "failed to connect", "timed out", "timeout", "name or service not known", "temporary failure in name resolution", "404"]):
         enqueue_retry("url", {"url": url, "tags": tags}, needs=[DEP_OLLAMA, DEP_CHROMADB])
         return "⏳ Saved for retry\n🧠 Embedding backend not ready right now — will ingest automatically later\n🔗 {}".format(original_url)
 
@@ -489,6 +499,156 @@ def cmd_places(text: str) -> str:
     return "\n".join(lines)
 
 
+def _llm_format(prompt: str, fallback: str, tier: str = "fast") -> str:
+    try:
+        from second_brain.llm import complete
+        out = complete(prompt, tier=tier, max_tokens=900).strip()
+        return out or fallback
+    except Exception:
+        return fallback
+
+
+def cmd_bucketlist(text: str) -> str:
+    from second_brain.places_db import save, list_all, search, _expand_city
+
+    raw = text.strip()
+    if not raw:
+        return "❌ Usage: /bucketlist add <name>, <city> [, intent] | /bucketlist list [city]"
+
+    lower = raw.lower()
+    if lower.startswith("add "):
+        payload = raw[4:].strip()
+        parts = [p.strip() for p in payload.split(",", 2)]
+        name = parts[0] if parts else payload
+        city = parts[1] if len(parts) > 1 else ""
+        notes = parts[2] if len(parts) > 2 else ""
+        result = save(
+            name=name,
+            city=city,
+            notes=notes,
+            category="BucketList",
+            extra_tags=["bucketlist", "want-to-go"],
+        )
+        base = (
+            f"Saved bucket list item.\n"
+            f"Name: {result.get('name','')}\n"
+            f"Location: {result.get('city','') or 'Unknown'}\n"
+            f"Intent: {result.get('notes','') or 'none'}\n"
+            f"Maps: {result.get('maps_url','')}"
+        )
+        prompt = f"""Turn this into a visually formatted Telegram confirmation.
+Use short sections, bullets, and emoji. Keep it compact.
+
+{base}
+"""
+        return _llm_format(prompt, f"✅ Bucket list saved!\n• {name} — {city or 'Unknown'}\n↳ {notes or 'Added for later'}", tier="fast")
+
+    query = raw
+    if lower.startswith("list"):
+        query = raw[4:].strip()
+
+    city_filter = _expand_city(query) if query else None
+    if query:
+        results = [r for r in search(query, city=city_filter, top_k=40) if r.get('category') == 'BucketList']
+        if city_filter and not results:
+            results = list_all(city=city_filter, category='BucketList', limit=25)
+    else:
+        results = list_all(category='BucketList', limit=25)
+
+    if not results:
+        return "🧭 No bucket list items found yet. Add one with /bucketlist add <name>, <city>, <intent>"
+
+    rows = []
+    for r in results:
+        rows.append(f"- {r.get('name','?')} | city={r.get('city','')} | notes={r.get('notes','')} | maps={r.get('maps_url','')}")
+    base = "Bucket list items:\n" + "\n".join(rows)
+    prompt = f"""Format this as a visually pleasing Telegram bucket list view.
+Rules:
+- Use bullets
+- First line for each item: • Name — Location
+- Optional second indented line: ↳ intent/details
+- Keep it compact
+- Add a short title line
+
+{base}
+"""
+    fallback_lines = ["🧭 Bucket List", ""]
+    for r in results:
+        fallback_lines.append(f"• {r.get('name','?')} — {r.get('city','Unknown')}")
+        if r.get('notes'):
+            fallback_lines.append(f"  ↳ {r.get('notes')}")
+    return _llm_format(prompt, "\n".join(fallback_lines), tier="fast")
+
+
+def cmd_digest(text: str) -> str:
+    from second_brain.notes_db import list_all as list_notes
+    from second_brain.places_db import list_all as list_places
+
+    mode = (text or "today").strip().lower()
+    now = _now_local()
+    horizon_days = 1 if mode in ("", "today", "now") else 7
+
+    tasks = list_notes(item_type="Task", limit=20)
+    appointments = list_notes(item_type="Appointment", limit=20)
+    notes = list_notes(item_type="Note", limit=12)
+    places = list_places(limit=20)
+    bucket = [p for p in places if p.get('category') == 'BucketList'][:8]
+
+    upcoming = []
+    for item in appointments:
+        ds = (item.get('date') or '').strip()
+        if not ds:
+            continue
+        try:
+            dt = datetime.fromisoformat(ds)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=LOCAL_TZ)
+            if now <= dt <= now + timedelta(days=horizon_days):
+                upcoming.append((dt, item.get('title','Untitled')))
+        except Exception:
+            continue
+    upcoming.sort(key=lambda x: x[0])
+
+    task_lines = [f"- {t.get('title','')[:90]}" for t in tasks[:8]]
+    appt_lines = [f"- {title} @ {_fmt_local(dt)}" for dt, title in upcoming[:8]]
+    note_lines = [f"- {n.get('title','')[:90]}" for n in notes[:5]]
+    bucket_lines = [f"- {b.get('name','?')} ({b.get('city','')})" for b in bucket[:5]]
+
+    base = f"""Mode: {mode or 'today'}
+Now: {_fmt_local(now)}
+
+Tasks:
+{chr(10).join(task_lines) if task_lines else '- none'}
+
+Appointments:
+{chr(10).join(appt_lines) if appt_lines else '- none'}
+
+Recent notes:
+{chr(10).join(note_lines) if note_lines else '- none'}
+
+Bucket list:
+{chr(10).join(bucket_lines) if bucket_lines else '- none'}
+"""
+    prompt = f"""Create a visually formatted on-demand digest for Telegram.
+Rules:
+- Use a crisp title
+- Use sections with emoji
+- Prioritize what matters now
+- Highlight upcoming appointments and top tasks
+- End with a short 'Next moves' section
+- Keep it concise but polished
+
+{base}
+"""
+    fallback = (
+        f"📋 Digest — {mode or 'today'}\n\n"
+        f"Appointments\n" + ("\n".join(f"• {title} — {_fmt_local(dt)}" for dt, title in upcoming[:5]) if upcoming else "• None") +
+        f"\n\nTasks\n" + ("\n".join(f"• {t.get('title','')[:90]}" for t in tasks[:5]) if tasks else "• None") +
+        f"\n\nRecent notes\n" + ("\n".join(f"• {n.get('title','')[:90]}" for n in notes[:3]) if notes else "• None")
+    )
+    return _llm_format(prompt, fallback, tier="fast")
+
+
 def cmd_sport(text: str) -> str:
     from second_brain.sports import get_sports_status
     return get_sports_status(text.strip())
@@ -533,51 +693,6 @@ def cmd_appointment(text: str) -> str:
     return f"✅ Appointment saved!\n📅 {title} — {_fmt_local(dt)}"
 
 
-def cmd_reminder(text: str) -> str:
-    import json
-    import subprocess
-    from datetime import timezone
-    from second_brain.notes import save
-
-    raw = text.strip()
-    if not raw:
-        return "❌ Usage: /reminder in 2h pick up kids"
-
-    dt, title = _parse_datetime_loose(raw)
-    if not dt or not title:
-        return "❌ Usage: /reminder in 2h pick up kids | /reminder tomorrow 9am call dentist"
-
-    save(title=title, item_type='Note', body=f'reminder_at:{dt.isoformat()}', date=dt.isoformat(), tags=['reminder'])
-
-    iso_utc = dt.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
-    try:
-        proc = subprocess.run(
-            [
-                'openclaw', 'gateway', 'cron', 'add', '--json',
-                json.dumps({
-                    'name': f'Reminder: {title[:60]}',
-                    'schedule': {'kind': 'at', 'at': iso_utc},
-                    'payload': {'kind': 'systemEvent', 'text': f'Reminder: {title}'},
-                    'delivery': {'mode': 'announce', 'channel': 'telegram', 'to': 'telegram:8596241969'},
-                    'sessionTarget': 'main',
-                    'deleteAfterRun': True,
-                })
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        cron_note = '\n🆔 Cron scheduled'
-    except Exception:
-        cron_note = '\n⚠️ Reminder saved, but cron scheduling failed.'
-
-    return (
-        f"✅ Reminder set!\n"
-        f"⏰ {title} — {_fmt_local(dt)}"
-        f"{cron_note}"
-    )
-
-
 def cmd_schedule(text: str) -> str:
     from second_brain.notes import list_all
 
@@ -611,6 +726,16 @@ def cmd_schedule(text: str) -> str:
         except Exception:
             pass
 
+    # Add known trips
+    trips = [
+        (datetime(2026, 6, 22, tzinfo=LOCAL_TZ), datetime(2026, 7, 1, tzinfo=LOCAL_TZ), "✈️ Japan trip"),
+        (datetime(2026, 7, 3, tzinfo=LOCAL_TZ), datetime(2026, 7, 5, tzinfo=LOCAL_TZ), "✈️ Tahoe trip"),
+        (datetime(2026, 7, 11, tzinfo=LOCAL_TZ), datetime(2026, 7, 13, tzinfo=LOCAL_TZ), "✈️ Riverside trip"),
+    ]
+    for start_dt, end_dt, trip_name in trips:
+        if now <= start_dt <= end:
+            items.append((start_dt, 'Trip', trip_name))
+
     items.sort(key=lambda x: x[0])
     label = 'Next 7 days' if mode == 'week' else 'Today'
     if not items:
@@ -618,7 +743,7 @@ def cmd_schedule(text: str) -> str:
 
     lines = [f"📅 Schedule — {label}", ""]
     for dt, kind, title in items[:20]:
-        lines.append(f"• {_fmt_local(dt)} — {title} [{kind}]")
+        lines.append(f"• {_fmt_local(dt)} — {title}")
     return '\n'.join(lines)
 
 
@@ -661,11 +786,11 @@ def cmd_debrief(args: str) -> str:
             cwd=base_dir
         )
         if result.returncode == 0:
-            return f"📊 Debrief generated for period: **{period}**\nView at: http://5.78.196.42:8766/debrief\n\n{result.stdout.strip()}"
+            return f"📊 Debrief generated for period: **{period}**\nView at: /debrief on your configured PersGraph host\n\n{result.stdout.strip()}"
         else:
             return f"❌ Debrief failed:\n{result.stderr.strip()}"
     except subprocess.TimeoutExpired:
-        return "⏱ Debrief is taking longer than expected. Check http://5.78.196.42:8766/debrief in a minute."
+        return "⏱ Debrief is taking longer than expected. Check /debrief on your configured PersGraph host in a minute."
     except Exception as e:
         return f"❌ Error: {e}"
 
@@ -746,9 +871,10 @@ COMMANDS = {
     "/task":        cmd_task,
     "/place":       cmd_place,
     "/places":      cmd_places,
+    "/bucketlist":  cmd_bucketlist,
+    "/digest":      cmd_digest,
     "/email":       cmd_email,
     "/appointment": cmd_appointment,
-    "/reminder":    cmd_reminder,
     "/schedule":    cmd_schedule,
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
@@ -821,7 +947,6 @@ def _dispatch(raw_input: str, user: dict) -> str:
         "  /place <name>, <city> [, notes] — save a place (instant)\n"
         "  /places [city]                  — list saved places\n"
         "  /appointment <title>, <date/time> | list — save/list appointments\n"
-        "  /reminder <time> <text>         — save reminder intent\n"
         "  /schedule [week]                — show upcoming schedule\n"
         "  /sport [soccer|football|nba] — sports schedule\n"
         "  /debrief [today|week|month]     — generate activity debrief\n"

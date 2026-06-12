@@ -8,29 +8,34 @@ from zoneinfo import ZoneInfo
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 API_BASE = "https://www.thesportsdb.com/api/v1/json/123"
-SPORTS = ["soccer", "football", "nba"]
-SPORT_LABELS = {"soccer": "Soccer", "football": "Football", "nba": "NBA"}
+SPORTS = ["soccer", "worldcup", "football", "nba"]
+SPORT_LABELS = {"soccer": "Soccer", "worldcup": "World Cup", "football": "Football", "nba": "NBA"}
+ALIASES = {"soccer": "worldcup"}
 
 # Starter league set only. Expand later if needed.
 LEAGUES = {
     "nba": [{"id": "4387", "name": "NBA"}],
     "football": [{"id": "4391", "name": "NFL"}],
-    "soccer": [
-        {"id": "4328", "name": "English Premier League"},
-        {"id": "4480", "name": "UEFA Champions League"},
-        {"id": "4346", "name": "MLS"},
+    "worldcup": [
+        {"id": "4429", "name": "FIFA World Cup"},
     ],
 }
 
 
 def _date_strings_window() -> list[str]:
-    now = datetime.now(LOCAL_TZ)
-    return [
-        now.strftime("%Y-%m-%d"),
-        (now.replace(hour=0, minute=0, second=0, microsecond=0)).strftime("%Y-%m-%d"),
-        __import__('datetime').datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%d"),
-        (now + __import__('datetime').timedelta(days=1)).strftime("%Y-%m-%d"),
+    """Return UTC date strings to query for today's events.
+    Since games may be scheduled early morning UTC (previous or next day UTC),
+    which translates to today's PST, we query today's UTC and the next day's UTC.
+    This captures games scheduled for early morning UTC tomorrow that are still
+    on today's PST calendar (e.g., 2026-06-13 01:00 UTC = 2026-06-12 18:00 PST).
+    """
+    from datetime import timedelta
+    now_utc = datetime.now(LOCAL_TZ).astimezone(ZoneInfo("UTC"))
+    dates = [
+        now_utc.strftime("%Y-%m-%d"),
+        (now_utc + timedelta(days=1)).strftime("%Y-%m-%d"),
     ]
+    return dates
 
 
 def _parse_event_dt(date_str: str | None, time_str: str | None) -> datetime | None:
@@ -55,11 +60,15 @@ def _fetch_json(url: str) -> dict:
 def _events_for_league_today(league_id: str) -> list[dict]:
     seen = set()
     out = []
+    today_local = datetime.now(LOCAL_TZ).date()
     for d in _date_strings_window():
         date_q = urllib.parse.quote(d)
         url = f"{API_BASE}/eventsday.php?d={date_q}&l={league_id}"
         data = _fetch_json(url)
         for e in (data.get("events") or []):
+            dt = _parse_event_dt(e.get("dateEvent") or e.get("dateEventLocal"), e.get("strTime") or e.get("strTimeLocal"))
+            if dt and dt.date() != today_local:
+                continue
             eid = e.get("idEvent")
             if eid and eid in seen:
                 continue
@@ -81,34 +90,57 @@ def _normalize_event(sport: str, league_name: str, e: dict) -> dict | None:
         "away": away,
         "status": status,
         "dt": dt,
+        "venue": e.get("strVenue") or "",
+        "round": e.get("intRound") or "",
     }
 
 
+def _status_text(status: str) -> str:
+    s = (status or '').upper()
+    if s == 'NS':
+        return 'Scheduled'
+    if s == 'FT':
+        return 'Final'
+    return status or 'Scheduled'
+
+
 def _format_events(events: list[dict], sport_filter: str) -> str:
+    target = ALIASES.get(sport_filter, sport_filter)
     if not events:
-        target = "sports" if sport_filter == "all" else sport_filter
-        return f"🏟 No {target} games found for today / near-now."
+        label = "sports" if target == "all" else SPORT_LABELS.get(target, target)
+        return f"🏟 No {label.lower()} games found for today / near-now."
 
     events.sort(key=lambda x: (x["dt"] is None, x["dt"] or datetime.max.replace(tzinfo=LOCAL_TZ), x["league"], x["home"]))
     lines = []
-    header = "🏟 Today's sports schedule" if sport_filter == "all" else f"🏟 {SPORT_LABELS.get(sport_filter, sport_filter.title())} schedule"
-    lines.append(header)
+    if target == 'worldcup':
+        lines.append("🏆 World Cup — today (PST)")
+    else:
+        lines.append("🏟 Today's sports schedule" if target == "all" else f"🏟 {SPORT_LABELS.get(target, target.title())} schedule")
     lines.append("")
     for e in events[:20]:
-        when = e["dt"].strftime("%b %d, %-I:%M %p %Z") if e["dt"] else "Time TBD"
+        when = e["dt"].strftime("%-I:%M %p PST") if e["dt"] else "Time TBD"
         matchup = f"{e['home']} vs {e['away']}" if e['away'] != 'TBD' else e['home']
-        prefix = SPORT_LABELS.get(e["sport"], e["sport"].title())
-        lines.append(f"• {prefix} — {matchup} — {when}")
+        lines.append(f"⚽ {matchup}")
+        meta = [when]
+        if e.get('venue'):
+            meta.append(e['venue'])
+        if target == 'worldcup' and e.get('round'):
+            meta.append(f"Group stage · Matchday {e['round']}")
+        status = _status_text(e.get('status', ''))
+        if status and status != 'Scheduled':
+            meta.append(status)
+        lines.append(f"   {' · '.join(meta)}")
     return "\n".join(lines)
 
 
 def get_sports_status(query: str) -> str:
     raw = (query or '').strip().lower()
     sport = raw or 'all'
+    sport = ALIASES.get(sport, sport)
     if sport not in SPORTS and sport != 'all':
-        return '❌ Usage: /sport [soccer|football|nba]'
+        return '❌ Usage: /sport [soccer|worldcup|football|nba]'
 
-    selected = SPORTS if sport == 'all' else [sport]
+    selected = [s for s in SPORTS if s != 'soccer'] if sport == 'all' else [sport]
     all_events: list[dict] = []
     errors: list[str] = []
 

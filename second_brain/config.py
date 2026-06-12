@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Ollama / LiteLLM routing
     ollama_base_url: str = "http://localhost:11434"
-    embed_model: str = "mxbai-embed-large"
+    embed_model: str = "nomic-embed-text"
     llm_model: str = "qwen2.5:72b"
     llm_fast_model: str = "qwen2.5:7b"
     llm_heavy_model: str = "qwen2.5:72b"

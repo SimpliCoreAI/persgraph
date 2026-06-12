@@ -263,11 +263,9 @@ class EmailIngester:
         return INTENT_UNKNOWN, True
 
     def _classify_with_llm(self, subject: str, body: str) -> tuple[str, bool]:
-        """Use Anthropic to classify intent. Returns (intent, needs_clarification)."""
-        import anthropic
+        """Classify intent via LiteLLM fast tier (OpenAI-first, Claude fallback)."""
+        from ..llm import complete
         from ..tracing import trace_event
-
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
         prompt = f"""Classify this email into exactly one category: task, appointment, note, url.
 
@@ -287,13 +285,7 @@ Reply with ONLY one word: task, appointment, note, or url"""
             input=f"subject: {subject[:100]}",
             tags=["email", "llm", "classification"]
         )
-        message = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=10,
-            messages=[{"role": "user", "content": prompt}],
-        )
-
-        intent_raw = message.content[0].text.strip().lower()
+        intent_raw = complete(prompt, tier="fast").strip().lower()
         intent_map = {
             "task": INTENT_TASK,
             "appointment": INTENT_APPOINTMENT,

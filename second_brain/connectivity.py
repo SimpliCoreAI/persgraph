@@ -7,15 +7,22 @@ so we can fail fast and queue for retry instead of hanging for 30s+.
 
 from __future__ import annotations
 
+import os
 import socket
 import time
-from functools import lru_cache
-from typing import Optional
+from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+load_dotenv()
+load_dotenv('.env.local')
 
 # Windows machine running ChromaDB + Ollama (Tailscale VPN)
-WINDOWS_HOST = "100.122.130.89"
-CHROMA_PORT = 8000
-OLLAMA_PORT = 11434
+CHROMA_HOST = os.getenv("CHROMA_HOST")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "")
+OLLAMA_HOST = urlparse(OLLAMA_BASE_URL).hostname if OLLAMA_BASE_URL else None
+WINDOWS_HOST = CHROMA_HOST or OLLAMA_HOST or os.getenv("WINDOWS_TAILSCALE_IP", "localhost")
+CHROMA_PORT = int(os.getenv("CHROMA_PORT", "8000"))
+OLLAMA_PORT = int(urlparse(OLLAMA_BASE_URL).port or os.getenv("OLLAMA_PORT", "11434")) if (OLLAMA_BASE_URL or os.getenv("OLLAMA_PORT")) else 11434
 
 # Cache result for this many seconds so we don't probe on every call
 _CACHE_TTL = 30

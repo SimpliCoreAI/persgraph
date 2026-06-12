@@ -117,13 +117,11 @@ def _create_calendar_event(email: ParsedEmail) -> str:
 
 
 def _extract_event_details(subject: str, body: str) -> dict | None:
-    """Use Anthropic to extract structured event details from free-form text."""
+    """Extract structured event details via LiteLLM fast tier (OpenAI-first, Claude fallback)."""
     try:
-        import anthropic
-        from second_brain.config import settings
+        from second_brain.llm import complete
         from second_brain.tracing import trace_event
 
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         today = datetime.now().strftime("%Y-%m-%d")
 
         prompt = f"""Extract calendar event details from this email. Today is {today}.
@@ -146,13 +144,7 @@ If no specific date/time found, return: {{"summary": null, "start": null, "end":
             input=f"subject: {subject[:100]}",
             tags=["email", "calendar", "llm"]
         )
-        message = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=200,
-            messages=[{"role": "user", "content": prompt}],
-        )
-
-        text = message.content[0].text.strip()
+        text = complete(prompt, tier="fast").strip()
         # Strip markdown code fences if present
         text = text.strip("`").strip()
         if text.startswith("json"):

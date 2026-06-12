@@ -466,7 +466,7 @@
       <span class="gradient">graphed & queryable</span>
     </h1>
     <p class="hero-sub">
-      PersGraph turns scattered personal data into an everyday operating system — one place to ask, save, plan, remember, and act without digging through ten apps.
+      PersGraph turns scattered personal data into an everyday operating system — one place to ask, ingest, save, plan, debrief, and act without digging through ten apps.
     </p>
     <div class="hero-actions">
       <a href="#cta" class="btn-primary">Get Early Access →</a>
@@ -485,30 +485,49 @@
 <section class="demo-section" id="demo">
   <div class="section-label">Everyday Commands</div>
   <h2 class="section-title">The personal AI command layer for your life</h2>
-  <p class="section-sub">From places and appointments to schedules and sports, PersGraph gives you a clean command surface over the chaos of daily life.</p>
+  <p class="section-sub">From ingesting links and notes to saving places, bucket-list ideas, appointments, reminders, agenda checks, and on-demand digests, PersGraph gives you a clean command surface over the chaos of daily life.</p>
   <div class="terminal">
     <div class="terminal-bar">
       <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
       <div class="terminal-title">persgraph — personal data shell</div>
     </div>
     <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ingest https://example.com/article</span></div>
+      <div class="t-out">🌐 Indexed raw source:<br/>
+        &nbsp;· Article chunked for semantic search <span class="t-tag">ingest</span>
+      </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/note book Japan trip ideas</span></div>
+      <div class="t-out">📝 Quick note captured:<br/>
+        &nbsp;· Japan trip ideas <span class="t-tag">sqlite</span>
+      </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/place Fujiya Camera, Tokyo</span></div>
       <div class="t-out">✅ Saved place:<br/>
         &nbsp;· Fujiya Camera — Tokyo <span class="t-tag">shop</span><span class="t-tag">travel</span>
       </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/bucketlist add Kurama Onsen, Kyoto, scenic day trip</span></div>
+      <div class="t-out">🧭 Bucket list saved:<br/>
+        &nbsp;· Kurama Onsen — Kyoto <span class="t-tag">bucketlist</span><span class="t-tag">travel</span>
+      </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/appointment Dentist, Jun 20, 2pm</span></div>
       <div class="t-out">📅 Appointment saved:<br/>
         &nbsp;· Dentist — Jun 20, 2:00 PM PDT <span class="t-tag">calendar</span>
+      </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/digest today</span></div>
+      <div class="t-out">📋 Daily digest:<br/>
+        &nbsp;· Key appointments, tasks, and next moves <span class="t-tag">digest</span>
+      </div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/debrief</span></div>
+      <div class="t-out">🧭 Debrief flow ready:<br/>
+        &nbsp;· Capture what happened, what matters, and what to do next <span class="t-tag">workflow</span>
       </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/schedule week</span></div>
       <div class="t-out">🗓 This week:<br/>
         &nbsp;· Jun 20, 2:00 PM PDT — Dentist <span class="t-tag">appointment</span><br/>
         &nbsp;· Japan trip prep <span class="t-tag">task</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/sport nba<span class="cursor"></span></span></div>
-      <div class="t-out">🏟 Sports lookup ready:<br/>
-        &nbsp;· Live provider integration path is ready <span class="t-tag">sports</span><br/>
-        &nbsp;· Add API key to enable real fixtures and local kickoff times
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/status<span class="cursor"></span></span></div>
+      <div class="t-out">🟢 System status:<br/>
+        &nbsp;· Ollama, ChromaDB, notes, and workflows healthy <span class="t-tag">status</span>
       </div>
     </div>
   </div>
@@ -537,7 +556,7 @@
     <div class="card" style="--card-glow:rgba(104,211,145,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1)">✅</div>
       <h3>Tasks &amp; Notes</h3>
-      <p>Captured from Telegram, email, or directly. Reminded before it&rsquo;s too late via daily cron + Telegram alert.</p>
+      <p>Capture with <code>/note</code> and <code>/task</code> from Telegram, email, or directly. Reminded before it&rsquo;s too late via daily cron + Telegram alert.</p>
       <div class="card-tags"><span class="tag">SQLite</span><span class="tag">Telegram</span></div>
     </div>
 
@@ -553,15 +572,15 @@
     <div class="card" style="--card-glow:rgba(99,179,237,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.08)">🌐</div>
       <h3>URL &amp; Web Ingestion</h3>
-      <p>Send a link, get it chunked and embedded. No more &ldquo;I saved that article somewhere&rdquo; moments.</p>
-      <div class="card-tags"><span class="tag">URL</span><span class="tag">PDF</span><span class="tag">Markdown</span></div>
+      <p>Use <code>/ingest</code> for raw capture and <code>/wiki-ingest</code> when the note should be curated first. No more &ldquo;I saved that article somewhere&rdquo; moments.</p>
+      <div class="card-tags"><span class="tag">URL</span><span class="tag">PDF</span><span class="tag">Wiki</span></div>
     </div>
 
     <!-- Travel -->
     <div class="card" style="--card-glow:rgba(252,211,77,0.04)">
       <div class="card-icon" style="--icon-bg:rgba(252,211,77,0.08)">✈️</div>
       <h3>Travel &amp; Places Graph</h3>
-      <p>Log places you&rsquo;ve been, want to go, or want to remember. Searchable by city, category, and country.</p>
+      <p>Save places with <code>/place</code> and search them later with <code>/places</code>. Searchable by city, category, and country.</p>
       <div class="card-tags"><span class="tag">POI</span><span class="tag">SQLite</span></div>
     </div>
 
@@ -577,7 +596,7 @@
     <div class="card" style="--card-glow:rgba(252,193,77,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(252,193,77,0.1)">🌅</div>
       <h3>Morning Briefing</h3>
-      <p>Every day at 8am, get a personalized digest — top headlines, tasks due today, and upcoming appointments — delivered straight to Telegram.</p>
+      <p>Every day at 8am, get a personalized digest — top headlines, tasks due today, and upcoming appointments — delivered straight to Telegram, alongside the live command surface.</p>
       <div class="card-tags"><span class="tag">Cron</span><span class="tag">Telegram</span><span class="tag">Always-on</span></div>
     </div>
 
@@ -613,7 +632,7 @@
     <div class="step">
       <div class="step-num">3</div>
       <h3>Act</h3>
-      <p>Use simple commands to ask questions, save places, review schedules, and run your life from one interface — without hunting through inboxes, notes apps, and tabs.</p>
+      <p>Use simple commands to ask questions, ingest links, save notes and tasks, review schedules, and run your life from one interface — without hunting through inboxes, notes apps, and tabs.</p>
     </div>
   </div>
 </section>

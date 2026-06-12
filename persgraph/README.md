@@ -47,4 +47,3 @@ PersGraph is becoming more than a dashboard — it is a personal command layer.
 - `/appointment` — store important appointments
 - `/schedule` — see what is coming up
 - `/sport` — sports status command path is ready for provider config
-- `/reminder` — reminder command exists; native delivery bridge is still pending

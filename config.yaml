@@ -29,7 +29,7 @@ external_storage:
 
 # ── Windows Compute (via Tailscale) ───────────────────────────────────────────
 windows:
-  tailscale_ip: "100.122.130.89"
+  tailscale_ip: "100.x.x.x"
   ollama_port: 11434
   chromadb_port: 8000
   streamlit_port: 8501

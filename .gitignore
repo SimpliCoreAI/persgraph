@@ -3,6 +3,10 @@
 .env.local
 config/users.json
 
+# Scratchpad — transient working memory, not for public repos
+scratchpad/active/
+scratchpad/handoff/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -32,7 +36,22 @@ chroma_db/
 data/chroma/
 persgraph/data/
 persgraph/financial_report*.html
-.env.local
 db/persgraph.db
 
+# Runtime and personal data — should not be in public repo
+data/heartbeat-state.json
+data/briefing_state.json
+data/debrief.json
+data/queue.json
+data/last_briefing.txt
+data/notes.db
+data/places.db
+data/api_costs.json
+data/travel_notes.json
+data/shopping_list.md
+
 streamlit_archive/
+
+# Langfuse credentials and runtime state
+.langfuse*
+.tracing_state.json

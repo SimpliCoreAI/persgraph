@@ -4,7 +4,7 @@
 - `second_brain.*` is the core package — import from here, not from scripts
 - All config via `second_brain.config` (pydantic-settings, reads config.yaml + .env)
 - ChromaDB client lives in `vectorstore.py` — never instantiate directly elsewhere
-- Embeddings client lives in `embeddings.py` — Ollama on Windows via Tailscale
+- Embeddings client lives in `embeddings.py` — local/remote Ollama via config or env
 
 ## ChromaDB Conventions
 - Collections: `urls`, `notes`, `pdfs`, `places`, `emails`, `youtube` — NEVER mix
@@ -13,8 +13,8 @@
 - Duplicate detection: automatic via chunk IDs — don't re-ingest manually
 
 ## Embeddings
-- Model: `nomic-embed-text` on Ollama (Windows, Tailscale: 100.122.130.89)
-- If Andromeda offline: embeddings will fail — check connectivity before bulk ingestion
+- Model: `nomic-embed-text` on Ollama (host configured via env/config)
+- If the model host is offline: embeddings will fail — check connectivity before bulk ingestion
 - Never call OpenAI/Anthropic for embeddings — local only
 
 ## Query / RAG Engine

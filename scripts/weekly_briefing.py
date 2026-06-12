@@ -26,7 +26,7 @@ STATE_PATH = os.path.join(BASE_DIR, "data", "briefing_state.json")
 DB_PATH = os.path.join(BASE_DIR, "data", "notes.db")
 BRIEFING_OUTPUT = os.path.join(BASE_DIR, "data", "last_briefing.txt")
 
-CHROMADB_HOST = "100.122.130.89"
+CHROMADB_HOST = os.getenv("CHROMA_HOST", "localhost")  # Load from config/env
 CHROMADB_PORT = 8000
 
 # ---------------------------------------------------------------------------

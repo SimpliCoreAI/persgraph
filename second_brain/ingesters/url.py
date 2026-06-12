@@ -4,6 +4,7 @@ import hashlib
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from ollama import ResponseError
 from typing import Optional
 
 import trafilatura
@@ -12,6 +13,11 @@ from ..config import settings
 from ..embeddings import embedder
 from ..vectorstore import vectorstore
 from .base import BaseIngester, IngestResult
+
+
+EMBED_SAFE_MAX_WORDS = 220
+EMBED_SAFE_OVERLAP_WORDS = 32
+EMBED_MIN_WORDS = 40
 
 
 class URLIngester(BaseIngester):
@@ -42,8 +48,12 @@ class URLIngester(BaseIngester):
                 errors=[f"Could not extract content from: {source}"],
             )
 
-        # Chunk
-        chunks = self._chunk_text(text, settings.chunk_size, settings.chunk_overlap)
+        # Chunk conservatively for embedding-model context safety.
+        chunks = self._chunk_text(
+            text,
+            min(settings.chunk_size, EMBED_SAFE_MAX_WORDS),
+            min(settings.chunk_overlap, EMBED_SAFE_OVERLAP_WORDS),
+        )
         url_hash = hashlib.md5(source.encode()).hexdigest()
         domain = urlparse(source).netloc
 
@@ -58,21 +68,27 @@ class URLIngester(BaseIngester):
             if doc_id in existing_ids:
                 continue
 
-            ids.append(doc_id)
-            documents.append(chunk)
-            metadatas.append({
-                "source": source,
-                "title": title or "",
-                "domain": domain,
-                "chunk_index": i,
-                "total_chunks": len(chunks),
-                "ingested_at": datetime.now(timezone.utc).isoformat(),
-                "tags": ",".join(tags),
-                "source_type": self._detect_source_type(source, tags),
-            })
+            subchunks = self._split_for_embedding(chunk)
+            for sub_index, subchunk in enumerate(subchunks):
+                sub_id = doc_id if sub_index == 0 else f"{doc_id}_s{sub_index}"
+                ids.append(sub_id)
+                documents.append(subchunk)
+                metadatas.append({
+                    "source": source,
+                    "title": title or "",
+                    "domain": domain,
+                    "chunk_index": i,
+                    "total_chunks": len(chunks),
+                    "ingested_at": datetime.now(timezone.utc).isoformat(),
+                    "tags": ",".join(tags),
+                    "source_type": self._detect_source_type(source, tags),
+                    "subchunk_index": sub_index,
+                    "subchunk_total": len(subchunks),
+                })
 
-        # Batch embed all new chunks in one call
-        embeddings = embedder.embed_batch(documents) if documents else []
+        # Embed each chunk individually so a long article never becomes one oversized
+        # batch payload at the embedding model boundary.
+        embeddings = [embedder.embed(document) for document in documents] if documents else []
 
         if ids:
             vectorstore.upsert(
@@ -90,6 +106,30 @@ class URLIngester(BaseIngester):
             collection=settings.collection_urls,
             tags=tags,
         )
+
+    def _split_for_embedding(self, document: str) -> list[str]:
+        try:
+            embedder.embed(document)
+            return [document]
+        except ResponseError as exc:
+            message = str(exc).lower()
+            if "context length" not in message:
+                raise
+            words = document.split()
+            if len(words) <= EMBED_MIN_WORDS:
+                raise ValueError(
+                    "Chunk still exceeds embedding context even at minimum fallback size; "
+                    f"document words={len(words)}"
+                ) from exc
+            mid = max(len(words) // 2, EMBED_MIN_WORDS)
+            left = " ".join(words[:mid]).strip()
+            right = " ".join(words[mid:]).strip()
+            parts: list[str] = []
+            if left:
+                parts.extend(self._split_for_embedding(left))
+            if right:
+                parts.extend(self._split_for_embedding(right))
+            return parts
 
     def _fetch(self, url: str) -> "tuple[str, str]":
         """Fetch URL and extract main content using trafilatura with browser headers."""

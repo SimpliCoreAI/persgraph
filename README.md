@@ -31,15 +31,22 @@ Claude Sonnet is used only for agent reasoning (orchestration decisions, synthes
 
 PersGraph turns messy personal data into a clean command interface you can actually use every day.
 
-### Consumer-friendly commands
+### Current slash commands
 
-- `/ask <question>` — ask about your life in natural language
-- `/ingest <url>` — save a web page, article, or reference
-- `/place <name>, <city>` — remember restaurants, hotels, shops, and bucket-list spots
-- `/appointment <title>, <date/time>` — save an appointment
-- `/schedule [week]` — see what’s coming up
-- `/sport [soccer|football|nba|cricket]` — check sports status (provider-backed live data path ready)
-- `/reminder <time> <text>` — reminder command path added; native scheduler hookup pending
+- `/ingest <url or file>` — raw URL/file ingest into the semantic search layer
+- `/wiki-ingest <url>` — write a curated Obsidian wiki note first, then index it
+- `/ask <question>` — semantic search + answer synthesis
+- `/note <text>` — quick SQLite note capture
+- `/task <text>` — quick task capture
+- `/place <name>` — save a place
+- `/places [query]` — list or search saved places
+- `/bucketlist ...` — save or list bucket list places
+- `/digest [today|week]` — on-demand summary report
+- `/email <message>` — email workflow
+- `/appointment <title>, <date/time>` — save or list appointments
+- `/schedule [range]` — show your agenda
+- `/debrief` — run the debrief flow
+- `/status` — system status
 
 ### Example flow
 
@@ -116,9 +123,20 @@ Use `scratchpad/` for transient shared thinking between models. It is the workin
 Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegram. Each user's content is auto-tagged — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
 
 ```
-/quiz      → Generate Q&A flashcards from saved content
-/summarize → Summarize a page or topic from your notes
-/ask       → RAG query + AI synthesis from saved content
+/ingest      → Raw URL/file ingest into semantic search
+/wiki-ingest → Curated Obsidian note first, then index it
+/ask         → Semantic search + answer synthesis
+/note        → Quick SQLite note capture
+/task        → Quick task capture
+/place       → Save a place
+/places      → List/search saved places
+/bucketlist  → Save/list bucket list places
+/digest      → On-demand summary report
+/email       → Email workflow
+/appointment → Save/list appointments
+/schedule    → Show agenda
+/debrief     → Debrief flow
+/status      → System status
 ```
 
 ---
@@ -126,12 +144,12 @@ Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegr
 ## Architecture
 
 ```
-┌──────────────────────────────────────────┐     Tailscale VPN
-│  VPS: ubuntu-2gb-hil-1 (DigitalOcean)   │◄──────────────────►  Windows: andromeda
-│  5.78.196.42  — PRIMARY HOST             │                       100.122.130.89
-│  · Gru (AI agent / OpenClaw)             │                       · Ollama (Qwen2.5:7b)
-│  · Claude for reasoning                  │                       · ChromaDB vector store
-│  · Telegram interface                    │                       · All embeddings & LLM
+┌──────────────────────────────────────────┐     Private network / VPN
+│  VPS host (DigitalOcean or similar)     │◄──────────────────►  Model/DB host
+│  <public-host> — PRIMARY HOST           │                       <private-host>
+│  · Gru (AI agent / OpenClaw)             │                       · Ollama / local models
+│  · Reasoning + automation                │                       · ChromaDB vector store
+│  · Telegram interface                    │                       · Embeddings & local LLMs
 │  · Cron jobs & automation                │
 │  · Image scanning (vision AI)            │
 └──────────────────────────────────────────┘
@@ -177,10 +195,10 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | URL / web ingestion | ✅ Working |
 | RAG Q&A (Qwen2.5:7b via Ollama) | ✅ Working |
 | Tasks, Notes, Appointments | ✅ Working |
+| `/ingest` `/wiki-ingest` `/ask` | ✅ Working |
+| `/note` `/task` `/place` `/places` | ✅ Working |
 | `/appointment` command | ✅ Working |
 | `/schedule` command | ✅ Working |
-| `/sport` command path | ✅ Working (provider config pending) |
-| `/reminder` command | ⚠️ Partial (native scheduler hookup pending) |
 | Appointment reminders (cron, hourly check) | ✅ Live |
 | Morning Briefing (8am PST daily) | ✅ Live |
 | API cost tracking (cron, 8pm daily) | ✅ Live |
@@ -192,7 +210,6 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | Streamlit dashboard (9 tabs) | ✅ Live |
 | Telegram image scanning → Obsidian → ChromaDB | ✅ Working |
 | Multi-user (family) — per-sender tagging + model routing | ✅ Working |
-| `/quiz` `/summarize` `/create notes` — LLM study tools | ✅ Working |
 | Wiki ingestion + AI synthesis | ✅ Working |
 | Langfuse observability tracing | ✅ Working |
 | Portfolio / financial analysis | 🔲 Phase 2 |
@@ -308,15 +325,17 @@ PYTHONPATH=. python scripts/query.py "What are my notes on RAG vs fine-tuning?"
 | Command | Description |
 |---|---|
 | `/ingest <url or file>` | Raw ingest of a URL, PDF, or web article into the search/index layer |
-| `/ask <question>` | RAG query + AI synthesis from saved content |
-| `/note <text>` | Save a quick operational note to SQLite |
-| `/task <text>` | Save a task or appointment |
-| `/place <name> in <city>` | Save a place to your POI graph |
-| `/wiki-ingest <url>` | Write a curated Obsidian wiki note from a URL, then index it |
-| `/summarize <url or topic>` | Summarize a page or saved notes on a topic |
-| `/quiz <topic>` | Generate Q&A flashcards from saved content |
-| `/create notes <topic>` | Create structured study notes |
-| `/status` | System status (Ollama, ChromaDB, note count) |
+| `/wiki-ingest <url>` | Write a curated Obsidian wiki note first, then index it |
+| `/ask <question>` | Semantic search + AI synthesis from saved content |
+| `/note <text>` | Quick SQLite note capture |
+| `/task <text>` | Quick task capture |
+| `/place <name>` | Save a place |
+| `/places [query]` | List or search saved places |
+| `/email <message>` | Email workflow |
+| `/appointment <title>, <date/time>` | Save or list appointments |
+| `/schedule [range]` | Show your agenda |
+| `/debrief` | Run the debrief flow |
+| `/status` | System status |
 
 ---
 
@@ -327,19 +346,25 @@ PersGraph is simpler if each storage layer has one clear job:
 - **SQLite** — operational capture
   - `/note`
   - `/task`
+  - `/place`
+  - `/places`
   - `/appointment`
-  - reminders and schedule metadata
+  - `/email`
+  - `/schedule`
+  - `/debrief`
 - **Obsidian vault** — curated markdown knowledge
   - `/wiki-ingest` writes here first
   - humans read and edit this directly
 - **ChromaDB** — semantic index/search layer
   - `/ingest` writes raw source content here
+  - `/ask` searches here
+  - `/places` can search saved place data
   - Obsidian notes can also be indexed here
   - not the source of truth
 
 ### Command split
 
-- **`/ingest <url>`**
+- **`/ingest <url or file>`**
   - raw import for retrieval/search
   - optimized for getting content into the knowledge system fast
   - primary output: indexed chunks for semantic search
@@ -353,6 +378,8 @@ PersGraph is simpler if each storage layer has one clear job:
 - **`/note <text>`**
   - quick capture
   - stored in SQLite, not directly in Obsidian
+
+  - live command surface for capture, retrieval, planning, workflow, and health checks
 
 This keeps the mental model clean:
 - where is the durable note? → Obsidian or SQLite

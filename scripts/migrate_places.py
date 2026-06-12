@@ -2,7 +2,7 @@
 """
 migrate_places.py — One-time migration: ChromaDB places → SQLite places.db
 
-Run this ONCE when your Windows machine (100.122.130.89) is reachable:
+Run this ONCE when your Windows machine (Tailscale IP from config.yaml) is reachable:
     cd ~/AgenticHub/Persgraph && PYTHONPATH=. .venv/bin/python scripts/migrate_places.py
 
 Will not re-import already-existing records (skips duplicates by name+city).
