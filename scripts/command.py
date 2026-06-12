@@ -26,9 +26,15 @@ import os
 import json
 import time
 import re
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from dotenv import load_dotenv
+
+load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env.local")
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
@@ -747,7 +753,107 @@ def cmd_schedule(text: str) -> str:
     return '\n'.join(lines)
 
 
-def cmd_status() -> str:
+def _run(cmd: list[str], timeout: int = 10) -> tuple[bool, str]:
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        out = (r.stdout or '').strip()
+        err = (r.stderr or '').strip()
+        return r.returncode == 0, out or err
+    except Exception as e:
+        return False, str(e)
+
+
+def _http_code(url: str, timeout: int = 10) -> str:
+    ok, out = _run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", str(timeout), url], timeout=timeout + 2)
+    return out if ok else "ERR"
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
+def _service_status_view() -> str:
+    service = "persgraph-web.service"
+    lines = ["🛠 PersGraph Status — Service", ""]
+
+    ok, active = _run(["systemctl", "is-active", service])
+    active_text = active if active else "unknown"
+    lines.append(f"• Service: {active_text}")
+
+    ok_pid, pid = _run(["systemctl", "show", "-p", "MainPID", "--value", service])
+    if ok_pid and pid and pid != "0":
+        lines.append(f"• PID: {pid}")
+
+    ok_started, started = _run(["systemctl", "show", "-p", "ActiveEnterTimestamp", "--value", service])
+    if ok_started and started:
+        lines.append(f"• Started: {started}")
+
+    ok_port, port_out = _run(["bash", "-lc", "ss -ltnp | grep ':8766 '"])
+    lines.append(f"• Port 8766: {'listening' if ok_port and port_out else 'not listening'}")
+
+    public_root = _http_code("https://persgraph.simplicore.ai/")
+    public_login = _http_code("https://persgraph.simplicore.ai/login")
+    local_root = _http_code("http://127.0.0.1:8766/")
+    lines.append(f"• Public /: HTTP {public_root}")
+    lines.append(f"• Public /login: HTTP {public_login}")
+    lines.append(f"• Local /: HTTP {local_root}")
+
+    ok_logs, logs = _run(["journalctl", "-n", "5", "-u", service, "--no-pager"])
+    if ok_logs and logs:
+        log_lines = logs.splitlines()[-2:]
+        lines.append("")
+        lines.append("Recent logs:")
+        for line in log_lines:
+            lines.append(f"  {line[-120:]}")
+
+    return "\n".join(lines)
+
+
+def _ops_status_view() -> str:
+    service = "persgraph-web.service"
+    lines = ["⚙️ PersGraph Status — Ops", ""]
+
+    smoke = Path("/root/.openclaw/workspace/scratchpad/active/persgraph-smoke-test-2026-06-12.sh")
+    if smoke.exists():
+        ok_smoke, smoke_out = _run(["bash", str(smoke)], timeout=40)
+        smoke_out = _strip_ansi(smoke_out)
+        summary = "passed" if ok_smoke else "needs attention"
+        lines.append(f"• Smoke test: {summary}")
+        tail = [ln.strip() for ln in smoke_out.splitlines() if "Passed:" in ln or "Failed:" in ln or "All tests passed" in ln][-3:]
+        for ln in tail:
+            lines.append(f"  {ln}")
+    else:
+        lines.append("• Smoke test: script missing")
+
+    ok_caddy, caddy = _run(["caddy", "validate", "--config", "/etc/caddy/Caddyfile"], timeout=20)
+    lines.append(f"• Caddy config: {'valid' if ok_caddy else 'invalid'}")
+
+    ok_git, git = _run(["git", "status", "--short"], timeout=15)
+    if ok_git:
+        dirty = "dirty" if git.strip() else "clean"
+        lines.append(f"• Git working tree: {dirty}")
+
+    ok_commit, commit = _run(["git", "rev-parse", "--short", "HEAD"], timeout=10)
+    if ok_commit and commit:
+        lines.append(f"• Current commit: {commit}")
+
+    ok_active, active = _run(["systemctl", "is-active", service])
+    lines.append(f"• Service restartable: {'yes' if ok_active and active == 'active' else 'check manually'}")
+
+    ok_started, started = _run(["systemctl", "show", "-p", "ActiveEnterTimestamp", "--value", service])
+    if ok_started and started:
+        lines.append(f"• Last app restart: {started}")
+
+    return "\n".join(lines)
+
+
+def cmd_status(args: str = "") -> str:
+    mode = (args or "").strip().lower()
+    if mode == "service":
+        return _service_status_view()
+    if mode == "ops":
+        return _ops_status_view()
+
     from second_brain.queue import stats as queue_stats
     from second_brain.vectorstore import vectorstore
     from second_brain.config import settings
@@ -766,7 +872,8 @@ def cmd_status() -> str:
     return (
         f"📊 Second Brain Status\n\n"
         f"🗂 Collections:\n{col_lines}\n\n"
-        f"📬 Queue: {q['pending']} pending · {q['done']} done · {q['failed']} failed"
+        f"📬 Queue: {q['pending']} pending · {q['done']} done · {q['failed']} failed\n\n"
+        f"Modes: /status service · /status ops"
     )
 
 
@@ -936,6 +1043,8 @@ def _dispatch(raw_input: str, user: dict) -> str:
 
     if raw_input.lower() == "/status":
         return cmd_status()
+    if raw_input.lower().startswith("/status "):
+        return cmd_status(raw_input[8:])
 
     return (
         "🤖 Unknown command. Available:\n"
@@ -950,7 +1059,9 @@ def _dispatch(raw_input: str, user: dict) -> str:
         "  /schedule [week]                — show upcoming schedule\n"
         "  /sport [soccer|football|nba] — sports schedule\n"
         "  /debrief [today|week|month]     — generate activity debrief\n"
-        "  /status                         — collection + queue stats"
+        "  /status                         — collection + queue stats\n"
+        "  /status service                 — app service + route health\n"
+        "  /status ops                     — smoke test + deploy posture"
     )
 
 

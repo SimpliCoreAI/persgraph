@@ -51,6 +51,31 @@
         header {
             text-align: center;
             margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header-nav {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-link {
+            color: var(--mut);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 0.45rem 0.85rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .header-link:hover {
+            color: var(--txt);
+            border-color: var(--border2);
+            background: rgba(99, 179, 237, 0.08);
         }
 
         .logo {
@@ -213,6 +238,10 @@
 <body>
     <div class="container">
         <header>
+            <div class="header-nav">
+                <a href="/" class="header-link">Home</a>
+                <a href="/logout" class="header-link">Logout</a>
+            </div>
             <div class="logo">🧠 PersGraph</div>
             <div class="tagline">Your personal intelligence hub</div>
         </header>

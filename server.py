@@ -116,10 +116,10 @@ def login_required(f):
 
 @app.route("/")
 def index():
-    hub_path = BASE_DIR / "templates" / "hub.html"
-    if hub_path.exists():
-        return hub_path.read_text()
-    return redirect(url_for("travel"))
+    marketing_path = BASE_DIR / "marketing" / "persgraph-landing.html"
+    if marketing_path.exists():
+        return marketing_path.read_text()
+    return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

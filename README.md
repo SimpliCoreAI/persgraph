@@ -46,7 +46,16 @@ PersGraph turns messy personal data into a clean command interface you can actua
 - `/appointment <title>, <date/time>` — save or list appointments
 - `/schedule [range]` — show your agenda
 - `/debrief` — run the debrief flow
-- `/status` — system status
+- `/status` — collection + queue stats
+- `/status service` — PersGraph service/runtime health, route checks, recent logs
+- `/status ops` — smoke test, Caddy validity, git/deploy posture
+
+### Public web entry
+
+- Public landing page: `https://persgraph.simplicore.ai/`
+- Login page: `https://persgraph.simplicore.ai/login`
+- Protected app routes redirect to `/login` when not authenticated
+- PersGraph runs behind **Caddy** and the app service `persgraph-web.service` on port `8766`
 
 ### Example flow
 
