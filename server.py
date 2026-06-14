@@ -134,7 +134,7 @@ def login():
         if request.form.get("username") == USERNAME and request.form.get("password") == PASSWORD:
             session.permanent = True
             session["logged_in"] = True
-            return redirect(url_for("index"))
+            return redirect(url_for("travel"), code=303)
         error = "Invalid username or password."
     return render_template_string(LOGIN_HTML, error=error)
 

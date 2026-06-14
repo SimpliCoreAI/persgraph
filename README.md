@@ -97,6 +97,44 @@ Captured from email, Telegram messages, or directly. Reminded before it's too la
 ### 🌅 Morning Briefing
 Every morning at 8am PST, Gru delivers a personalized briefing to Telegram: top headlines (tech, world, finance), open tasks due today, and upcoming appointments within 24 hours.
 
+### 🕗 Calendar + Email Prebrief
+PersGraph includes a prebrief layer that generates a daily context pack from your calendar and inbox. Run `scripts/run_prebrief.py` to generate:
+
+**Machine-readable output** (`data/prebrief_context.json`):
+- Today's events and upcoming appointments (next 7 days)
+- Bills and payments due soon (ranked by urgency)
+- Follow-ups needing action (ranked by urgency)
+- Worth-checking emails (new info, invitations, articles)
+- Older items to carry forward
+- Suggested daily priorities
+
+**Human-readable output** (`data/prebrief_context.md`):
+- Daily briefing markdown with emojis and formatting
+- Sections with urgency indicators
+- Easy to scan and share
+
+**Usage:**
+```bash
+# Dry-run (synthetic fixtures, offline)
+python scripts/run_prebrief.py --dry-run
+
+# Dry-run calendar only
+python scripts/run_prebrief.py --dry-run --sources calendar
+
+# Live run (requires Gmail/Yahoo config in .env)
+python scripts/run_prebrief.py --sources calendar,gmail,yahoo
+```
+
+**Configuration:** Set credentials in `.env.local` (gitignored):
+```
+GMAIL_IMAP_USERNAME=your-gmail@example.com
+GMAIL_IMAP_APP_PASSWORD=your-gmail-app-password
+YAHOO_IMAP_USERNAME=your-yahoo@example.com
+YAHOO_IMAP_APP_PASSWORD=your-yahoo-app-password
+```
+
+See `second_brain/connectors/PREBRIEF_FOUNDATION.md` for full architecture and test coverage.
+
 ### 🌐 URL & Web Ingestion
 Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.
 
@@ -210,6 +248,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | `/schedule` command | ✅ Working |
 | Appointment reminders (cron, hourly check) | ✅ Live |
 | Morning Briefing (8am PST daily) | ✅ Live |
+| Calendar + Email Prebrief foundation | ✅ Batch 7 complete (runner + output) |
 | API cost tracking (cron, 8pm daily) | ✅ Live |
 | Recurring Events manager | ✅ Working |
 | Travel & POI (places graph) | ✅ Working |
@@ -233,7 +272,8 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | Integration | Purpose |
 |---|---|
 | Gmail | Email ingestion + intent classification |
-| Google Calendar | Appointment sync |
+| Yahoo Mail | Read-only inbox prebrief (planned) |
+| Google Calendar | Appointment sync + prebrief context |
 | Telegram | Command interface + image scanning |
 | Obsidian | Vault watcher + note sync |
 | Ollama | Local LLM + embeddings |

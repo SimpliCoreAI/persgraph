@@ -1,0 +1,50 @@
+{
+  "date": "2026-06-15",
+  "generated_at": "2026-06-15T07:00:00+00:00",
+  "events_today": {
+    "items": [
+      {"id": "evt_001", "title": "Dentist appointment", "start_time": "2026-06-15T14:00:00"},
+      {"id": "evt_002", "title": "School meeting", "start_time": "2026-06-15T17:00:00"}
+    ],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "events_upcoming": {
+    "items": [
+      {"id": "evt_003", "title": "Team sync", "start_time": "2026-06-17T10:00:00"}
+    ],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "bills_due": {
+    "items": [
+      {"id": "email_001", "subject": "Your statement is ready — due June 18", "amount": 142.5}
+    ],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "followups_needed": {
+    "items": [
+      {"id": "email_002", "subject": "Re: permission slip for field trip"}
+    ],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "worth_checking": {
+    "items": [
+      {"id": "email_003", "subject": "Flight time change for your July trip"}
+    ],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "carry_forward": {
+    "items": [],
+    "capped": false,
+    "cap_limit": 5
+  },
+  "suggested_priorities": [
+    "Review bill due June 18",
+    "Handle school permission slip",
+    "Prepare for today's appointments"
+  ]
+}

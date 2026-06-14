@@ -1,0 +1,38 @@
+[
+  {
+    "id": "evt_001",
+    "source": "fixture",
+    "title": "Dentist appointment",
+    "start_time": "2026-06-15T14:00:00",
+    "end_time": "2026-06-15T15:00:00",
+    "participants": [],
+    "location": "123 Main St",
+    "notes": "",
+    "category": "personal",
+    "prep_needed": false
+  },
+  {
+    "id": "evt_002",
+    "source": "fixture",
+    "title": "School meeting",
+    "start_time": "2026-06-15T17:00:00",
+    "end_time": "2026-06-15T18:00:00",
+    "participants": ["Sam Rivera"],
+    "location": "Lincoln Elementary",
+    "notes": "Bring last semester report",
+    "category": "family",
+    "prep_needed": true
+  },
+  {
+    "id": "evt_003",
+    "source": "fixture",
+    "title": "Team sync",
+    "start_time": "2026-06-17T10:00:00",
+    "end_time": "2026-06-17T10:30:00",
+    "participants": ["Alex Johnson"],
+    "location": "https://meet.example.com/room/123",
+    "notes": "",
+    "category": "work",
+    "prep_needed": false
+  }
+]

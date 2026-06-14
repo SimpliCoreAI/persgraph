@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     openclaw_email: str = ""  # Set via OPENCLAW_EMAIL in .env
     openclaw_email_password: str = ""  # Gmail App Password
 
+    # Prebrief email readers (read-only)
+    gmail_imap_username: str = ""
+    gmail_imap_app_password: str = ""
+    yahoo_imap_username: str = ""
+    yahoo_imap_app_password: str = ""
+
     # gog account for Google Calendar
     gog_account: str = ""  # Set via GOG_ACCOUNT in .env
 

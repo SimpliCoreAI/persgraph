@@ -49,6 +49,8 @@ data/places.db
 data/api_costs.json
 data/travel_notes.json
 data/shopping_list.md
+data/prebrief_context.json
+data/prebrief_context.md
 
 streamlit_archive/
 
