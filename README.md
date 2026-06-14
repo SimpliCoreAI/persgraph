@@ -95,10 +95,16 @@ Trusted sender filtering, intent classification, auto-routing to tasks, appointm
 Captured from email, Telegram messages, or directly. Reminded before it's too late via daily cron + Telegram alert.
 
 ### 🌅 Morning Briefing
-Every morning at 8am PST, Gru delivers a personalized briefing to Telegram: top headlines (tech, world, finance), open tasks due today, and upcoming appointments within 24 hours.
+Every morning at 8am PST, Gru delivers a personalized briefing to Telegram: top headlines (tech, world, finance), open tasks due today, upcoming appointments within 24 hours, plus the most useful fresh signals from your prebrief when available.
+
+The live Morning Brief runs from an OpenClaw cron job, not a repo script:
+- Cron id: `dd967dec`
+- Schedule: `0 8 * * *` in `America/Los_Angeles`
+- Delivery: isolated agent turn → Telegram
+- Handoff: the cron prompt first runs `scripts/run_prebrief.py`, then weaves in fresh `data/prebrief_context.json` context if present
 
 ### 🕗 Calendar + Email Prebrief
-PersGraph includes a prebrief layer that generates a daily context pack from your calendar and inbox. Run `scripts/run_prebrief.py` to generate:
+PersGraph includes a prebrief layer that generates a daily context pack from your calendar and inbox. It now acts as a supporting input to the daily Morning Brief while staying safe to run independently. Run `scripts/run_prebrief.py` to generate:
 
 **Machine-readable output** (`data/prebrief_context.json`):
 - Today's events and upcoming appointments (next 7 days)
@@ -123,6 +129,9 @@ python scripts/run_prebrief.py --dry-run --sources calendar
 
 # Live run (requires Gmail/Yahoo config in .env)
 python scripts/run_prebrief.py --sources calendar,gmail,yahoo
+
+# Quiet mode for scheduled handoff into Morning Brief
+python scripts/run_prebrief.py --output-dir data --quiet
 ```
 
 **Configuration:** Set credentials in `.env.local` (gitignored):
@@ -134,6 +143,11 @@ YAHOO_IMAP_APP_PASSWORD=your-yahoo-app-password
 ```
 
 See `second_brain/connectors/PREBRIEF_FOUNDATION.md` for full architecture and test coverage.
+
+**Morning Brief handoff behavior:**
+- The scheduled Morning Brief attempts a quiet prebrief run first.
+- If `data/prebrief_context.json` is fresh, the brief uses only the most actionable items: due-soon bills, urgent follow-ups, worth-checking inbox updates, and notable calendar context.
+- If prebrief generation fails or no fresh context exists, Morning Brief continues normally without surfacing any failure noise.
 
 ### 🌐 URL & Web Ingestion
 Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.
