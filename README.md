@@ -31,6 +31,8 @@ Claude Sonnet is used only for agent reasoning (orchestration decisions, synthes
 
 PersGraph turns messy personal data into a clean command interface you can actually use every day.
 
+It is built on OpenClaw, an open-source self-hosted agent runtime, with custom skills for personal data orchestration, RAG, and life automation.
+
 ### Current slash commands
 
 - `/pghelp` — PersGraph-specific command guide for Telegram/chat use
