@@ -161,6 +161,49 @@ def _parse_user_flag(args: str) -> tuple[str, str | None]:
     return args, None
 
 
+def cmd_pghelp(args: str = "") -> str:
+    return (
+        "🧭 PersGraph command guide\n"
+        "\n"
+        "QUICK CAPTURE\n"
+        "• /note <text> — save a quick note\n"
+        "• /task <text> — save a task or to-do\n"
+        "• /place <name>, <city> [, notes] — save a place\n"
+        "• /places [query] — list or search saved places\n"
+        "\n"
+        "KNOWLEDGE\n"
+        "• /wiki-ingest <url> — create a curated Obsidian wiki note, then index it\n"
+        "• /ingest <url> [--user <name>] — raw URL ingest into semantic search\n"
+        "• /ask <question> [--user <name>] — ask PersGraph what it knows\n"
+        "\n"
+        "PLANNING\n"
+        "• /appointment <title>, <date/time> — save an appointment\n"
+        "• /appointment list — list appointments\n"
+        "• /schedule [week] — show upcoming schedule\n"
+        "\n"
+        "REPORTS & UTILITIES\n"
+        "• /digest [today|week] — generate a summary\n"
+        "• /debrief [today|week|month] — generate an activity debrief\n"
+        "• /bucketlist ... — save/list bucket list places\n"
+        "• /TripToggle On|Off [opts] — enable/disable Explore Mode\n"
+        "• /sport [soccer|football|nba] — sports schedule\n"
+        "• /status — collection + queue stats\n"
+        "• /status service — app service + route health\n"
+        "• /status ops — smoke test + deploy posture\n"
+        "\n"
+        "EXAMPLES\n"
+        "• /note Call dentist tomorrow\n"
+        "• /place Blue Bottle Coffee, San Francisco, good espresso\n"
+        "• /appointment Dentist, Jun 20, 2pm\n"
+        "• /schedule week\n"
+        "• /bucketlist add Kurama Onsen, Kyoto, scenic day trip\n"
+        "• /ask what do I know about Japan trip plans\n"
+        "• /ingest https://example.com/article\n"
+        "\n"
+        "Tip: use /pghelp anytime for this guide."
+    )
+
+
 def cmd_ingest(args: str, user: dict | None = None) -> str:
     # Parse --user flag
     args, flag_user = _parse_user_flag(args)
@@ -753,6 +796,52 @@ def cmd_schedule(text: str) -> str:
     return '\n'.join(lines)
 
 
+def _parse_triptoggle_args(text: str) -> tuple[str, str | None, int | None, str | None]:
+    tokens = [t.strip() for t in text.split() if t.strip()]
+    if not tokens:
+        return "", None, None, None
+
+    action = tokens[0].lower()
+    duration = None
+    cadence = None
+    intensity = None
+
+    for token in tokens[1:]:
+        lower = token.lower()
+        if lower in {"2h", "4h", "8h", "eod", "trip"}:
+            duration = lower
+        elif lower.endswith("m") and lower[:-1].isdigit():
+            minutes = int(lower[:-1])
+            if minutes in {30, 60, 90}:
+                cadence = minutes
+        elif lower in {"low", "medium", "high"}:
+            intensity = lower
+
+    return action, duration, cadence, intensity
+
+
+def cmd_triptoggle(text: str) -> str:
+    from scripts.explore_mode import disable_explore, enable_explore, format_toggle_off, format_toggle_on, status_text
+
+    raw = (text or "").strip()
+    if not raw:
+        return (
+            "❌ Usage: /TripToggle On [duration] [cadence] [intensity] | /TripToggle Off\n"
+            "Examples: /TripToggle On 4h 60m medium · /TripToggle Off"
+        )
+
+    action, duration, cadence, intensity = _parse_triptoggle_args(raw)
+    if action == "on":
+        state = enable_explore(duration=duration, cadence=cadence, intensity=intensity)
+        return format_toggle_on(state)
+    if action == "off":
+        disable_explore(reason="manual")
+        return format_toggle_off()
+    if action == "status":
+        return status_text()
+    return "❌ Usage: /TripToggle On [duration] [cadence] [intensity] | /TripToggle Off | /TripToggle Status"
+
+
 def _run(cmd: list[str], timeout: int = 10) -> tuple[bool, str]:
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
@@ -974,6 +1063,7 @@ COMMANDS = {
     "/wiki-ingest": cmd_wiki_ingest,
     "/ingest":      cmd_ingest,
     "/ask":         cmd_ask,
+    "/pghelp":      cmd_pghelp,
     "/note":        cmd_note,
     "/task":        cmd_task,
     "/place":       cmd_place,
@@ -983,6 +1073,7 @@ COMMANDS = {
     "/email":       cmd_email,
     "/appointment": cmd_appointment,
     "/schedule":    cmd_schedule,
+    "/TripToggle":  cmd_triptoggle,
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
 }
@@ -1033,9 +1124,11 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
 
 
 def _dispatch(raw_input: str, user: dict) -> str:
+    raw_lower = raw_input.lower()
     # Sort longest-first so /places doesn't match before /place
     for cmd, handler in sorted(COMMANDS.items(), key=lambda x: -len(x[0])):
-        if raw_input.lower().startswith(cmd):
+        cmd_lower = cmd.lower()
+        if raw_lower.startswith(cmd_lower):
             args = raw_input[len(cmd):].strip()
             if cmd in USER_AWARE_COMMANDS:
                 return handler(args, user=user)
@@ -1047,21 +1140,9 @@ def _dispatch(raw_input: str, user: dict) -> str:
         return cmd_status(raw_input[8:])
 
     return (
-        "🤖 Unknown command. Available:\n"
-        "  /wiki-ingest <url>              — write curated Obsidian wiki note, then index it\n"
-        "  /ingest <url> [--user <name>]   — raw URL ingest for semantic search\n"
-        "  /ask <question> [--user <name>] — query the brain\n"
-        "  /note <text>                    — save a note\n"
-        "  /task <text>                    — save a task\n"
-        "  /place <name>, <city> [, notes] — save a place (instant)\n"
-        "  /places [city]                  — list saved places\n"
-        "  /appointment <title>, <date/time> | list — save/list appointments\n"
-        "  /schedule [week]                — show upcoming schedule\n"
-        "  /sport [soccer|football|nba] — sports schedule\n"
-        "  /debrief [today|week|month]     — generate activity debrief\n"
-        "  /status                         — collection + queue stats\n"
-        "  /status service                 — app service + route health\n"
-        "  /status ops                     — smoke test + deploy posture"
+        "🤖 Unknown command.\n"
+        "Use /pghelp for the full PersGraph command guide.\n"
+        "Common commands: /ask, /note, /task, /place, /places, /appointment, /schedule, /status"
     )
 
 

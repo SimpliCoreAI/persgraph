@@ -58,12 +58,12 @@ These are the primary ways to interact with the second brain via Telegram:
 
 | Command | What it does |
 |---------|-------------|
+| `/pghelp` | Show the PersGraph command guide |
 | `/ingest <url>` | Ingest a web URL or YouTube link into the brain |
 | `/ask <question>` | Query the brain and get a synthesized answer |
 | `/note <text>` | Save a quick note or thought |
 | `/task <text>` | Save a task or to-do |
 | `/place <name>, <city>` | Save a place/restaurant/POI |
-| `/remind <text> at <time>` | Set a reminder |
 | `/status` | Show queue stats, collection counts |
 
 ---

@@ -33,6 +33,7 @@ PersGraph turns messy personal data into a clean command interface you can actua
 
 ### Current slash commands
 
+- `/pghelp` — PersGraph-specific command guide for Telegram/chat use
 - `/ingest <url or file>` — raw URL/file ingest into the semantic search layer
 - `/wiki-ingest <url>` — write a curated Obsidian wiki note first, then index it
 - `/ask <question>` — semantic search + answer synthesis
@@ -60,6 +61,9 @@ PersGraph turns messy personal data into a clean command interface you can actua
 ### Example flow
 
 ```
+→ /pghelp
+🧭 PersGraph command guide
+
 → /ask what are my upcoming appointments this week?
 📅 Found 3 appointments in the next 7 days:
    · Dentist — Mon Jun 2, 10:00 AM           [calendar]
