@@ -835,14 +835,16 @@ def cmd_triptoggle(text: str) -> str:
         state = enable_explore(duration=duration, cadence=cadence, intensity=intensity)
         toggle_msg = format_toggle_on(state)
         
-        # Immediately emit the first location-based suggestion
+        # Immediately emit the first suggestion only if it has real location/map backing
         try:
             suggestion = build_suggestion(state=state)
-            suggestion_msg = format_suggestion_message(suggestion, state)
-            return f"{toggle_msg}\n\n{suggestion_msg}"
+            primary = suggestion.primary_poi
+            if getattr(primary, "maps_url", "") or getattr(primary, "id", ""):
+                suggestion_msg = format_suggestion_message(suggestion, state)
+                return f"{toggle_msg}\n\n{suggestion_msg}"
         except Exception:
-            # If suggestion generation fails, fall back to toggle message only
-            return toggle_msg
+            pass
+        return toggle_msg
     if action == "off":
         disable_explore(reason="manual")
         return format_toggle_off()
