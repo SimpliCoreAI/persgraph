@@ -821,7 +821,7 @@ def _parse_triptoggle_args(text: str) -> tuple[str, str | None, int | None, str 
 
 
 def cmd_triptoggle(text: str) -> str:
-    from scripts.explore_mode import disable_explore, enable_explore, format_toggle_off, format_toggle_on, status_text
+    from scripts.explore_mode import disable_explore, enable_explore, format_toggle_off, format_toggle_on, status_text, build_suggestion, format_suggestion_message, check_once
 
     raw = (text or "").strip()
     if not raw:
@@ -833,7 +833,16 @@ def cmd_triptoggle(text: str) -> str:
     action, duration, cadence, intensity = _parse_triptoggle_args(raw)
     if action == "on":
         state = enable_explore(duration=duration, cadence=cadence, intensity=intensity)
-        return format_toggle_on(state)
+        toggle_msg = format_toggle_on(state)
+        
+        # Immediately emit the first location-based suggestion
+        try:
+            suggestion = build_suggestion(state=state)
+            suggestion_msg = format_suggestion_message(suggestion, state)
+            return f"{toggle_msg}\n\n{suggestion_msg}"
+        except Exception:
+            # If suggestion generation fails, fall back to toggle message only
+            return toggle_msg
     if action == "off":
         disable_explore(reason="manual")
         return format_toggle_off()

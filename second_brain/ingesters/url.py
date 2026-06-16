@@ -36,8 +36,17 @@ class URLIngester(BaseIngester):
                 errors=[f"Invalid URL: {source}"],
             )
 
+        # Medium often blocks direct extraction; retry through Freedium at the ingestion layer.
+        fetch_source = source
+        if "medium.com" in source and "freedium" not in source:
+            fetch_source = f"https://freedium-mirror.cfd/{source}"
+            if "medium" not in tags:
+                tags.append("medium")
+
         # Fetch and extract text
-        text, title = self._fetch(source)
+        text, title = self._fetch(fetch_source)
+        if not text and fetch_source != source:
+            text, title = self._fetch(source)
         if not text:
             return IngestResult(
                 source=source,
@@ -45,7 +54,7 @@ class URLIngester(BaseIngester):
                 chunks_new=0,
                 collection=settings.collection_urls,
                 tags=tags,
-                errors=[f"Could not extract content from: {source}"],
+                errors=[f"Could not extract content from: {source}"]
             )
 
         # Chunk conservatively for embedding-model context safety.
