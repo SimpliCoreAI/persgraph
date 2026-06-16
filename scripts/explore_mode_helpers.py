@@ -42,15 +42,16 @@ class Location:
 
 @dataclass
 class POI:
-    """Point of Interest suggestion."""
+    """Point of Interest suggestion with maps link and vibe info."""
     id: str
     name: str
     category: str  # Landmark, Restaurant, Cafe, Park, etc.
     distance_km: float
     open_now: Optional[bool] = None
     rating: Optional[float] = None
-    notes: str = ""
-    maps_url: str = ""
+    notes: str = ""  # Can include vibe notes like "cozy coffeehouse"
+    maps_url: str = ""  # Google Maps search or detail URL
+    address: str = ""  # Full address for maps link generation
     is_saved_place: bool = False
     is_bucket_list: bool = False
     weather_fit: Optional[str] = None  # "indoor", "outdoor", "weather_dependent"
@@ -207,7 +208,7 @@ def enrich_with_saved_places(pois: list[POI], saved_place_ids: Optional[list[str
 def format_suggestion_telegram(suggestion: Suggestion) -> str:
     """
     Format a suggestion for Telegram.
-    Includes emoji, distance, context, and optional secondary suggestion.
+    Includes emoji, distance, rating, maps link, vibe context, and optional secondary suggestion.
     """
     primary = suggestion.primary_poi
     secondary = suggestion.secondary_poi
@@ -234,7 +235,7 @@ def format_suggestion_telegram(suggestion: Suggestion) -> str:
     rating_str = ""
     if primary.rating:
         stars = "⭐" * int(primary.rating)
-        rating_str = f" {stars}"
+        rating_str = f" {stars} ({primary.rating}/5)"
     
     lines.append(f"📍 {primary.name}{rating_str}")
     
@@ -245,6 +246,14 @@ def format_suggestion_telegram(suggestion: Suggestion) -> str:
         desc_parts.append(f"~{primary.suggested_duration_min} min")
     
     lines.append(f"↳ {' • '.join(desc_parts)}")
+    
+    # Maps link
+    if primary.maps_url:
+        lines.append(f"🗺 View on maps: {primary.maps_url}")
+    
+    # Vibe/vibes note from notes field
+    if primary.notes and 'vibe' in primary.notes.lower():
+        lines.append(f"✨ Vibe: {primary.notes}")
     
     # Secondary (meal suggestion)
     if secondary:

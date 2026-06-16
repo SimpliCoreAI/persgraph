@@ -176,6 +176,45 @@ def filter_recent_pois(
 
 
 # ---------------------------------------------------------------------------
+# Saved Places & Bucket List Matching
+# ---------------------------------------------------------------------------
+
+
+def load_saved_places_ids() -> list[str]:
+    """
+    Load IDs of saved places from places_db.
+    Returns empty list if DB unavailable.
+    Safe fallback.
+    """
+    try:
+        from . import places_db
+        places = places_db.list_all(limit=1000)
+        return [p.get("id") for p in places if p.get("id")]
+    except Exception as e:
+        logger.warning(f"Could not load saved places (OK in degraded mode): {e}")
+        return []
+
+
+def load_bucket_list_items() -> list[dict[str, Any]]:
+    """
+    Load bucket-list items from places_db using tags='bucketlist'.
+    Returns empty list if DB unavailable.
+    Safe fallback.
+    
+    Note: places_db schema uses 'tags' column (comma-separated), not 'category'.
+    """
+    try:
+        from . import places_db
+        # Query all places and filter by tags (schema uses tags column)
+        all_places = places_db.list_all(limit=1000)
+        bucket = [p for p in all_places if 'bucketlist' in (p.get('tags', '') or '').lower()]
+        return bucket
+    except Exception as e:
+        logger.warning(f"Could not load bucket list (OK in degraded mode): {e}")
+        return []
+
+
+# ---------------------------------------------------------------------------
 # Config Validation
 # ---------------------------------------------------------------------------
 

@@ -238,33 +238,31 @@ def should_run_suggestion(state: dict[str, Any], now: datetime | None = None) ->
     return True, "ok"
 
 
-def _find_bucketlist_candidate() -> ExploreSuggestion | None:
+def _load_bucket_list_set() -> set[str]:
+    """Load bucket-list item names (lowercase) as a set for fast lookup."""
     try:
         from second_brain.places_db import list_all
-
-        items = list_all(category="BucketList", limit=20)
-        if not items:
-            return None
-        item = items[0]
-        city = item.get("city") or "nearby"
-        notes = item.get("notes") or "Worth a visit"
-        meal_hint = "Pair with a nearby café or local favorite"
-        return ExploreSuggestion(
-            title=f"{item.get('name', 'Saved place')} — {city}",
-            reason=f"You already saved this place. {notes}",
-            meal=meal_hint,
-            tag="bucketlist",
-        )
+        items = list_all(limit=100)  # Load more, filter by tag
+        bucket_items = [i for i in items if 'bucketlist' in (i.get('tags', '') or '').lower()]
+        return {item.get('name', '').lower() for item in bucket_items}
     except Exception:
-        return None
+        return set()
 
 
 def _get_nearby_poi_suggestion(location: dict[str, Any]) -> ExploreSuggestion | None:
-    """Try to find a nearby POI using the POI provider API."""
+    """
+    Find a nearby high-rated POI (restaurant/cafe) with optional bucket-list boost.
+    
+    Location-first approach:
+    1. Search nearby restaurants/cafes with good ratings
+    2. Check if result is in bucket-list (bonus signal)
+    3. Include bucket-list context if matched
+    """
     try:
         from second_brain.poi_provider import Location, nearby_pois
+        import urllib.parse
 
-        # Convert location dict to Location object
+        # Parse location
         poi_location = Location(
             latitude=location.get("lat", 0),
             longitude=location.get("lon", 0),
@@ -272,7 +270,7 @@ def _get_nearby_poi_suggestion(location: dict[str, Any]) -> ExploreSuggestion | 
             source=location.get("source", "manual"),
         )
 
-        # Search for nearby restaurants/cafes
+        # Get location-based POIs (primary signal)
         result = nearby_pois(
             location=poi_location,
             radius_meters=3000,
@@ -284,37 +282,68 @@ def _get_nearby_poi_suggestion(location: dict[str, Any]) -> ExploreSuggestion | 
         if not result.pois:
             return None
 
-        # Pick the best POI
+        # Load bucket-list for optional boost signal
+        bucket_names = _load_bucket_list_set()
+
+        # Filter to high-quality POIs (rating >= 4.0 if available)
+        # This ensures only good-vibe places are suggested
+        quality_pois = [
+            p for p in result.pois
+            if p.rating is None or p.rating >= 4.0
+        ]
+        
+        if not quality_pois:
+            quality_pois = result.pois  # Fallback if no 4+ ratings
+        
+        # Pick the best POI (first in ranked list)
         poi = result.pois[0]
+        
+        # Build Google Maps link (use place_id if available via raw_data)
+        if poi.raw_data and poi.raw_data.get('place_id'):
+            maps_url = f"https://www.google.com/maps/place/?q=place_id:{poi.raw_data['place_id']}"
+        else:
+            # Fallback to search by name + address
+            maps_query = f"{poi.name} {poi.address}".strip()
+            maps_url = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote_plus(maps_query)}"
+        
+        # Format rating
+        rating_str = f"{poi.rating}★" if poi.rating else "popular"
+        
+        # Check if in bucket-list (boost signal, not filter)
+        in_bucket = poi.name.lower() in bucket_names
+        bucket_suffix = " [saved in bucket-list]" if in_bucket else ""
+        
         return ExploreSuggestion(
-            title=f"{poi.name} — {poi.distance_meters / 1000:.1f} km away",
-            reason=f"Found via {result.provider}. {poi.address}",
-            meal=f"Rating: {poi.rating}/5" if poi.rating else "New place to try",
+            title=f"{poi.name}{bucket_suffix}",
+            reason=f"{rating_str} • {poi.distance_meters / 1000:.1f} km • {poi.address} 🗺 {maps_url}",
+            meal=f"📍 {poi.category}",
             tag="poi",
         )
     except Exception as e:
-        # Graceful fallback if POI lookup fails
         import logging
         logging.warning(f"POI lookup error: {e}")
         return None
 
 
 def _fallback_suggestion() -> ExploreSuggestion:
+    """Fallback when no location or POI data available."""
     return ExploreSuggestion(
-        title="Explore nearby",
-        reason="Explore Mode is active, but live location-aware ranking is still being wired up.",
-        meal="When location data is available, PersGraph will pair the stop with a nearby meal suggestion.",
+        title="Explore Nearby",
+        reason="Enable location access for personalized recommendations.",
+        meal="Nearby restaurants, cafés, and spots",
         tag="fallback",
     )
 
 
 def build_suggestion(state: dict[str, Any] | None = None) -> ExploreSuggestion:
-    # Try bucket-list first
-    suggestion = _find_bucketlist_candidate()
-    if suggestion:
-        return suggestion
-
-    # Try nearby POI lookup if location is available
+    """
+    Build suggestion: location-first POIs with optional bucket-list boost.
+    
+    Priority:
+    1. Location-based POIs (primary) with bucket-list as boost signal
+    2. Fallback if location not available
+    """
+    # Try location-based POI lookup (primary)
     if state:
         last_location = state.get("last_location")
         if last_location:
@@ -322,16 +351,17 @@ def build_suggestion(state: dict[str, Any] | None = None) -> ExploreSuggestion:
             if suggestion:
                 return suggestion
 
-    # Fallback to generic suggestion
+    # Fallback when no location or POI results
     return _fallback_suggestion()
 
 
 def format_suggestion_message(suggestion: ExploreSuggestion, state: dict[str, Any]) -> str:
-    cadence = state.get("cadence_minutes", DEFAULT_CADENCE_MIN)
-    lines = ["🗺 Explore Nearby", "", f"📍 {suggestion.title}", f"↳ {suggestion.reason}"]
+    """Format suggestion for Telegram: concise and useful."""
+    lines = ["🗺 Explore Nearby", f"📍 {suggestion.title}", f"{suggestion.reason}"]
     if suggestion.meal:
-        lines.extend(["", f"🍽 {suggestion.meal}"])
-    lines.extend(["", f"💡 Explore Mode is active • next check in ~{cadence} min"])
+        lines.append(f"🍽 {suggestion.meal}")
+    cadence = state.get("cadence_minutes", DEFAULT_CADENCE_MIN)
+    lines.append(f"⏱ Next check ~{cadence}m")
     return "\n".join(lines)
 
 
