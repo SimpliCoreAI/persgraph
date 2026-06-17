@@ -3,6 +3,9 @@ Explore Mode — POI Integration Helper
 
 Bridges Explore Mode state with the POI provider API.
 Handles location parsing, caching, and ranking of suggestions.
+
+NOTE: State management uses scripts/explore_mode.py exclusively.
+Do not import from second_brain.explore_state (deprecated/removed).
 """
 
 from __future__ import annotations
