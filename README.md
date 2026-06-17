@@ -109,6 +109,14 @@ The live Morning Brief runs from an OpenClaw cron job, not a repo script:
 - Delivery: isolated agent turn → Telegram
 - Handoff: the cron prompt first runs `scripts/run_prebrief.py`, then weaves in fresh `data/prebrief_context.json` context if present
 
+### 🗺 Explore Mode
+Explore Mode now sends location-aware nearby suggestions to Telegram when enabled.
+- Telegram toggle: `/TripToggle ON`
+- Cadence: hourly by default
+- Suggestions: nearby POIs with rating/vibe context and Google Maps links when available
+- Learning loop: events and outcomes are recorded in a lightweight SQLite learning DB so the system can improve over time
+- State sync: the live toggle and persisted checker now share the same source of truth, so cron checks and Telegram delivery stay aligned
+
 ### 🕗 Calendar + Email Prebrief
 PersGraph includes a prebrief layer that generates a daily context pack from your calendar and inbox. It now acts as a supporting input to the daily Morning Brief while staying safe to run independently. Run `scripts/run_prebrief.py` to generate:
 
@@ -272,6 +280,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | API cost tracking (cron, 8pm daily) | ✅ Live |
 | Recurring Events manager | ✅ Working |
 | Travel & POI (places graph) | ✅ Working |
+| Explore Mode (Telegram POI suggestions) | ✅ Live |
 | Snippets — semantic search | ✅ Working |
 | Learning Agent (RAG Q&A from UI) | ✅ Working |
 | Fees & Charges (SQLite-powered) | ✅ Working |
@@ -314,6 +323,7 @@ Incoming Telegram images are scanned with a vision model and auto-saved to your 
 | 💼 Portfolio | Financial analysis & charts | 🔲 Phase 2 |
 | 💳 Credit Card Agent | Statement parsing, rewards tracking | 🔲 Phase 2 |
 | 🗺️ Travel & POI | Places graph — search, ratings, map | ✅ |
+| 🧠 Explore Mode | Telegram nearby suggestions + learning loop | ✅ |
 | 📋 Weekly Briefing | Automated Sunday digest | 🔲 Phase 2 |
 | 🔁 Recurring Events | Cron job manager + cost tracker | ✅ |
 | 💸 Fees & Charges | Interest, late fees, annual fees | ✅ |
