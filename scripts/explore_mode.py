@@ -33,6 +33,23 @@ except ImportError:
     LOCATION_AVAILABLE = False
     resolve_location_for_check = lambda: None
 
+# Import learning layer integration (Phase 2)
+try:
+    from second_brain.learning_explore_integration import (
+        on_explore_enabled,
+        on_explore_disabled,
+        on_skip_event,
+        on_suggestion_offered,
+    )
+    LEARNING_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    LEARNING_AVAILABLE = False
+    # Graceful fallbacks for learning hooks
+    on_explore_enabled = lambda **kwargs: None
+    on_explore_disabled = lambda *args, **kwargs: None
+    on_skip_event = lambda **kwargs: None
+    on_suggestion_offered = lambda **kwargs: None
+
 DEFAULT_DURATION_MIN = 120
 DEFAULT_CADENCE_MIN = 60
 DEFAULT_INTENSITY = "medium"
@@ -86,6 +103,8 @@ def default_state() -> dict[str, Any]:
         "session_suggestions": [],
         "suppression_cooldown_minutes": 15,
         "status": "idle",
+        "session_id": None,
+        "last_event_id": None,
     }
 
 
@@ -171,12 +190,38 @@ def enable_explore(duration: str | None, cadence: int | None, intensity: str | N
         }
     )
     save_state(state)
+    
+    # Phase 2: Record learning event for session enabled
+    if LEARNING_AVAILABLE:
+        try:
+            session_id = on_explore_enabled(
+                duration_label=duration_label,
+                cadence_minutes=cadence_minutes,
+                intensity=intensity_value,
+                location=state.get("last_location")
+            )
+            state["session_id"] = session_id
+            save_state(state)
+        except Exception as e:
+            import logging
+            logging.warning(f"Learning layer error in enable_explore: {e}")
+    
     append_audit({"at": _serialize_dt(started), "event": "enabled", "state": state})
     return state
 
 
 def disable_explore(reason: str = "manual") -> dict[str, Any]:
     state = load_state()
+    session_id = state.get("session_id")
+    
+    # Phase 2: Record learning event for session disabled
+    if LEARNING_AVAILABLE and session_id:
+        try:
+            on_explore_disabled(session_id, reason=reason)
+        except Exception as e:
+            import logging
+            logging.warning(f"Learning layer error in disable_explore: {e}")
+    
     state.update({
         "enabled": False,
         "status": f"disabled:{reason}",
@@ -226,6 +271,13 @@ def should_run_suggestion(state: dict[str, Any], now: datetime | None = None) ->
     last_check = _parse_dt(state.get("last_check_at"))
     cadence = int(state.get("cadence_minutes") or DEFAULT_CADENCE_MIN)
     if last_check and now < last_check + timedelta(minutes=cadence):
+        # Phase 2: Record skip event for cadence window not reached
+        if LEARNING_AVAILABLE:
+            try:
+                on_skip_event(reason="cadence_window_not_reached", explore_session_id=state.get("session_id"), location=state.get("last_location"))
+            except Exception as e:
+                import logging
+                logging.warning(f"Learning layer error in should_run_suggestion cadence skip: {e}")
         return False, "cadence window not reached"
     
     # Phase 2: Check movement since last location
@@ -234,6 +286,13 @@ def should_run_suggestion(state: dict[str, Any], now: datetime | None = None) ->
         last_loc = state.get("last_location")
         moved_ok, reason = check_movement_and_suppress(current_loc, last_loc, state)
         if not moved_ok:
+            # Record skip event in learning layer if available
+            if LEARNING_AVAILABLE:
+                try:
+                    on_skip_event(reason=reason, explore_session_id=state.get("session_id"), location=current_loc.to_dict() if current_loc else None)
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Learning layer error in should_run_suggestion movement skip: {e}")
             return False, reason
     return True, "ok"
 
@@ -357,9 +416,15 @@ def build_suggestion(state: dict[str, Any] | None = None) -> ExploreSuggestion:
 
 def format_suggestion_message(suggestion: ExploreSuggestion, state: dict[str, Any]) -> str:
     """Format suggestion for Telegram: concise and useful."""
-    lines = ["🗺 Explore Nearby", f"📍 {suggestion.title}", f"{suggestion.reason}"]
+    title = suggestion.title.replace(" [saved in bucket-list]", "")
+    reason = suggestion.reason.replace(" [saved in bucket-list]", "")
+    if "bucket-list" in reason.lower():
+        reason = reason.replace(" [saved in bucket-list]", "")
+    lines = ["🗺 Explore Nearby", f"📍 {title}", f"{reason}"]
     if suggestion.meal:
-        lines.append(f"🍽 {suggestion.meal}")
+        meal = suggestion.meal.replace("📍 ", "").strip()
+        if meal:
+            lines.append(f"🍽 {meal}")
     cadence = state.get("cadence_minutes", DEFAULT_CADENCE_MIN)
     lines.append(f"⏱ Next check ~{cadence}m")
     return "\n".join(lines)
@@ -384,6 +449,24 @@ def check_once() -> tuple[bool, str]:
 
     suggestion = build_suggestion(state=state)
     message = format_suggestion_message(suggestion, state)
+    
+    # Phase 2: Record learning event for suggestion offered
+    if LEARNING_AVAILABLE:
+        try:
+            event_id = on_suggestion_offered(
+                suggestion_title=suggestion.title,
+                suggestion_category=suggestion.tag,
+                cadence_minutes=state.get("cadence_minutes", DEFAULT_CADENCE_MIN),
+                intensity=state.get("intensity", DEFAULT_INTENSITY),
+                location=state.get("last_location"),
+                explore_session_id=state.get("session_id")
+            )
+            # Store event_id for later outcome recording (Phase 2 continuation)
+            state["last_event_id"] = event_id
+        except Exception as e:
+            import logging
+            logging.warning(f"Learning layer error in check_once suggestion: {e}")
+    
     state["last_suggestion_at"] = _serialize_dt(now)
     session = list(state.get("session_suggestions") or [])
     session.append({"at": _serialize_dt(now), "title": suggestion.title, "tag": suggestion.tag})

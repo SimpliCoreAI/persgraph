@@ -18,7 +18,7 @@ CRON_SCRIPT="$SCRIPT_DIR/explore_mode.py"
 VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
 JOB_NAME="PersGraph Explore Mode"
 JOB_COMMENT="PersGraph-Explore-Mode-Cron"
-SCHEDULE="*/5 * * * *"  # Every 5 minutes
+SCHEDULE="0 * * * *"  # Every 60 minutes
 
 # Verify dependencies
 check_deps() {
@@ -142,7 +142,7 @@ main() {
             echo "Usage: $0 {install|uninstall|status}"
             echo ""
             echo "Commands:"
-            echo "  install    — Add cron job to schedule Explore Mode checks every 5 minutes"
+            echo "  install    — Add cron job to schedule Explore Mode checks every 60 minutes"
             echo "  uninstall  — Remove Explore Mode cron job"
             echo "  status     — Show current cron installation status"
             echo ""

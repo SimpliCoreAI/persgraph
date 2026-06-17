@@ -51,6 +51,8 @@ data/travel_notes.json
 data/shopping_list.md
 data/prebrief_context.json
 data/prebrief_context.md
+data/explore_audit.json
+data/explore_state.json
 
 streamlit_archive/
 
