@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import datetime
+import json
 import os
 import socket
 import sqlite3
@@ -21,6 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
 from second_brain.briefing_state import BriefingStateManager, BriefingStep
+from second_brain import learning_db
 
 STATE_PATH = os.path.join(BASE_DIR, "data", "briefing_state.json")
 DB_PATH = os.path.join(BASE_DIR, "data", "notes.db")
@@ -98,6 +100,25 @@ def collect(state_mgr: BriefingStateManager) -> dict:
 
     collected["tasks"] = tasks
 
+    # --- Explore Mode Feedback ---
+    explore_feedback = {}
+    try:
+        outcomes = learning_db.get_outcome_summary(limit=50)
+        if outcomes:
+            counts = {}
+            for outcome in outcomes:
+                otype = outcome.get("outcome_type", "unknown")
+                counts[otype] = counts.get(otype, 0) + 1
+            explore_feedback["outcome_counts"] = counts
+            explore_feedback["recent_outcomes"] = outcomes[:10]
+        else:
+            explore_feedback["outcome_counts"] = {}
+            explore_feedback["recent_outcomes"] = []
+    except Exception as e:
+        explore_feedback["error"] = str(e)
+    
+    collected["explore_feedback"] = explore_feedback
+
     # --- Appointments ---
     appointments = []
     if os.path.exists(DB_PATH):
@@ -146,6 +167,21 @@ def collect(state_mgr: BriefingStateManager) -> dict:
     # Persist collected data
     state_mgr.transition(BriefingStep.COLLECTING, collected=collected)
     return collected
+
+
+def get_api_cost_summary() -> dict:
+    """Pull recent API cost data for briefing."""
+    cost_file = os.path.join(BASE_DIR, "data", "api_costs.json")
+    try:
+        if not os.path.exists(cost_file):
+            return {"total": {"cost_usd": 0.0}, "daily": {}}
+        with open(cost_file) as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        import logging
+        logging.warning(f"Could not load cost data: {e}")
+        return {"total": {"cost_usd": 0.0}, "daily": {}}
 
 
 def compose(state_mgr: BriefingStateManager, collected: dict, week_number: int) -> str:
@@ -205,6 +241,23 @@ def compose(state_mgr: BriefingStateManager, collected: dict, week_number: int) 
                 lines.append(f"  … and {len(tasks) - 5} more task(s).")
     lines.append("")
 
+    # --- Explore Mode Feedback Summary ---
+    lines.append("🗺️   Explore Mode Feedback")
+    lines.append("-" * 40)
+    explore_feedback = collected.get("explore_feedback") or {}
+    if "error" in explore_feedback:
+        lines.append(f"  ⚠️  Error reading feedback: {explore_feedback['error']}")
+    else:
+        counts = explore_feedback.get("outcome_counts") or {}
+        if counts:
+            lines.append("  Outcomes this week:")
+            for otype, count in sorted(counts.items()):
+                icon = {"accepted": "✅", "skipped": "⏭️", "bookmarked": "⭐", "clicked": "🔗"}.get(otype, "📍")
+                lines.append(f"    {icon} {otype}: {count}")
+        else:
+            lines.append("  No Explore feedback recorded yet.")
+    lines.append("")
+
     # --- System Health ---
     lines.append("🖥️   System Health")
     lines.append("-" * 40)
@@ -212,6 +265,24 @@ def compose(state_mgr: BriefingStateManager, collected: dict, week_number: int) 
     chromadb_status = "🟢 Online" if health.get("chromadb_online") else "🔴 Offline"
     lines.append(f"  ChromaDB ({health.get('chromadb_host', CHROMADB_HOST)}): {chromadb_status}")
     lines.append(f"  Hostname: {health.get('hostname', 'unknown')}")
+    lines.append("")
+
+    # --- API Cost Summary ---
+    lines.append("💰  API Cost Summary")
+    lines.append("-" * 40)
+    cost_data = get_api_cost_summary()
+    total_cost = cost_data.get("total", {}).get("cost_usd", 0.0)
+    daily_costs = cost_data.get("daily", {})
+    if daily_costs:
+        sorted_dates = sorted(daily_costs.keys(), reverse=True)[:7]
+        seven_day_total = sum(daily_costs.get(d, {}).get("cost_usd", 0.0) for d in sorted_dates)
+        lines.append(f"  7-day total: ${seven_day_total:.2f}")
+        if sorted_dates:
+            today_cost = daily_costs.get(sorted_dates[0], {}).get("cost_usd", 0.0)
+            lines.append(f"  Today ({sorted_dates[0]}): ${today_cost:.2f}")
+    else:
+        lines.append("  No cost data available yet.")
+    lines.append(f"  All-time total: ${total_cost:.2f}")
     lines.append("")
 
     # --- Quote ---
@@ -289,7 +360,7 @@ def run_briefing(force: bool = False):
         if current in (BriefingStep.IDLE, BriefingStep.COLLECTING):
             collected = collect(state_mgr)
         else:
-            collected = state.get("collected", {})
+            collected = state.get("collected", {})  # Resume from saved state if available
 
         state = state_mgr.load()
         current = state.get("current_step", BriefingStep.COLLECTING)
