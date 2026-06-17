@@ -23,6 +23,7 @@ sys.path.insert(0, BASE_DIR)
 
 from second_brain.briefing_state import BriefingStateManager, BriefingStep
 from second_brain import learning_db
+from second_brain import learning_learner
 
 STATE_PATH = os.path.join(BASE_DIR, "data", "briefing_state.json")
 DB_PATH = os.path.join(BASE_DIR, "data", "notes.db")
@@ -295,6 +296,28 @@ def compose(state_mgr: BriefingStateManager, collected: dict, week_number: int) 
     lines.append("😄  Dev Joke")
     lines.append("-" * 40)
     lines.append(f"  {joke}")
+    lines.append("")
+    
+    # --- Learner Summary ---
+    lines.append("🧠  Learning Summary")
+    lines.append("-" * 40)
+    try:
+        learner_summary = learning_learner.get_learner_summary()
+        if learner_summary.get("learned_skills_count", 0) > 0:
+            lines.append(f"  Skills learned: {learner_summary['learned_skills_count']}")
+            for skill in learner_summary.get("top_skills", []):
+                name = skill.get("name", "unknown")
+                conf = skill.get("confidence", 0.0)
+                lines.append(f"    • {name} ({conf:.0%} confidence)")
+        else:
+            lines.append("  No learned skills yet. Keep using Explore Mode!")
+        
+        if learner_summary.get("learned_preferences_count", 0) > 0:
+            lines.append(f"  Preferences learned: {learner_summary['learned_preferences_count']}")
+            for pkey, pval in learner_summary.get("learned_prefs", {}).items():
+                lines.append(f"    • {pkey}: {pval}")
+    except Exception as e:
+        lines.append(f"  (learner unavailable: {e})")
     lines.append("")
     lines.append("=" * 60)
 

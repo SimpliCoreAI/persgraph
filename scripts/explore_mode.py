@@ -452,8 +452,13 @@ def format_suggestion_message(suggestion: ExploreSuggestion, state: dict[str, An
             lines.append(f"🍽 {meal}")
     cadence = state.get("cadence_minutes", DEFAULT_CADENCE_MIN)
     lines.append(f"⏱ Next check in ~{cadence}m")
-    lines.append("↩️ Feedback: /explore_accept <event_id> | /explore_skip <event_id> [reason] | /explore_bookmark <event_id> | /explore_click <event_id>")
     return "\n".join(lines)
+
+
+
+
+def format_feedback_message(event_id: str) -> str:
+    return f"🆔 Explore Event ID: `{event_id}`"
 
 
 def check_once() -> tuple[bool, str]:
@@ -477,6 +482,7 @@ def check_once() -> tuple[bool, str]:
     message = format_suggestion_message(suggestion, state)
     
     # Phase 2: Record learning event for suggestion offered
+    event_id = None
     if LEARNING_AVAILABLE:
         try:
             event_id = on_suggestion_offered(
@@ -487,7 +493,6 @@ def check_once() -> tuple[bool, str]:
                 location=state.get("last_location"),
                 explore_session_id=state.get("session_id")
             )
-            # Store event_id for later outcome recording (Phase 2 continuation)
             state["last_event_id"] = event_id
         except Exception as e:
             import logging
@@ -499,6 +504,8 @@ def check_once() -> tuple[bool, str]:
     state["session_suggestions"] = session[-20:]
     save_state(state)
     append_audit({"at": _serialize_dt(now), "event": "suggestion", "title": suggestion.title, "tag": suggestion.tag})
+    if event_id:
+        return True, message + "\n\n" + format_feedback_message(event_id)
     return True, message
 
 
