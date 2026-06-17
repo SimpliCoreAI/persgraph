@@ -1156,6 +1156,13 @@ try:
 except (ImportError, ModuleNotFoundError):
     LEARNING_HANDLERS_AVAILABLE = False
 
+# Import response feedback wrapper
+try:
+    from second_brain.response_feedback import record_response_feedback
+    RESPONSE_FEEDBACK_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    RESPONSE_FEEDBACK_AVAILABLE = False
+
 COMMANDS = {
     "/wiki-ingest": cmd_wiki_ingest,
     "/ingest":      cmd_ingest,
@@ -1225,6 +1232,16 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
     except Exception:
         result = _dispatch(raw_input, user)
     # ─────────────────────────────────────────────────────────────────────────
+
+    # Record response feedback (no-op if learning_db unavailable)
+    if RESPONSE_FEEDBACK_AVAILABLE:
+        cmd_name = raw_input.split()[0] if raw_input else "unknown"
+        record_response_feedback(
+            result,
+            command=cmd_name,
+            user_id=sender_id,
+            metadata={"model_hint": model_hint}
+        )
 
     return f"MODEL_HINT: {model_hint}\n{result}"  # fast | smart → LiteLLM tiers
 
