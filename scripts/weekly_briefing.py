@@ -120,6 +120,17 @@ def collect(state_mgr: BriefingStateManager) -> dict:
     
     collected["explore_feedback"] = explore_feedback
 
+    # --- Learning Digest ---
+    learning_digest = {}
+    try:
+        skills = learning_db.get_skill_summary(limit=5)
+        learned_prefs = learning_db.get_preferences(source="learned")
+        learning_digest["skills"] = skills
+        learning_digest["learned_prefs"] = learned_prefs
+    except Exception as e:
+        learning_digest["error"] = str(e)
+    collected["learning_digest"] = learning_digest
+
     # --- Appointments ---
     appointments = []
     if os.path.exists(DB_PATH):
@@ -318,6 +329,26 @@ def compose(state_mgr: BriefingStateManager, collected: dict, week_number: int) 
                 lines.append(f"    • {pkey}: {pval}")
     except Exception as e:
         lines.append(f"  (learner unavailable: {e})")
+    lines.append("")
+    # --- Learning Digest ---
+    learning_digest = collected.get("learning_digest", {})
+    lines.append("🧠  Learning Digest")
+    lines.append("-" * 40)
+    if "error" in learning_digest:
+        lines.append("  (learning data unavailable)")
+    else:
+        skills = learning_digest.get("skills", [])
+        learned_prefs = learning_digest.get("learned_prefs", {})
+        if skills:
+            skill_strs = [f"{s['skill_name']} ({s['confidence']:.2f})" for s in skills[:3]]
+            lines.append(f"  Top skills: {', '.join(skill_strs)}")
+        else:
+            lines.append("  No learned skills yet.")
+        if learned_prefs:
+            for k, v in list(learned_prefs.items())[:3]:
+                lines.append(f"  {k} → {v}")
+        else:
+            lines.append("  No learned preferences yet.")
     lines.append("")
     lines.append("=" * 60)
 

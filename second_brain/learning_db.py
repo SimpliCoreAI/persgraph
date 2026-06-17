@@ -566,6 +566,93 @@ def _audit_action(
 # Testing & Debug
 # ---------------------------------------------------------------------------
 
+
+def get_meta(key: str) -> str | None:
+    """Read a value from the _meta table."""
+    try:
+        conn = _conn()
+        row = conn.execute("SELECT value FROM _meta WHERE key = ?", (key,)).fetchone()
+        conn.close()
+        return row["value"] if row else None
+    except Exception as e:
+        logger.error(f"Failed to get meta {key}: {e}")
+        return None
+
+
+def set_meta(key: str, value: str) -> None:
+    """Write a value to the _meta table."""
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        conn = _conn()
+        conn.execute(
+            "INSERT OR REPLACE INTO _meta (key, value) VALUES (?, ?)",
+            (key, value)
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Failed to set meta {key}: {e}")
+
+
+def get_events_since(cursor_ts: str, limit: int = 1000) -> list[dict[str, Any]]:
+    """Get events with timestamp_utc > cursor_ts, ordered ASC."""
+    try:
+        conn = _conn()
+        rows = conn.execute("""
+            SELECT id, timestamp_utc, event_type, explore_session_id, metadata
+            FROM events
+            WHERE timestamp_utc > ?
+            ORDER BY timestamp_utc ASC
+            LIMIT ?
+        """, (cursor_ts, limit)).fetchall()
+        conn.close()
+        result = []
+        for row in rows:
+            meta = json.loads(row["metadata"] or "{}")
+            result.append({
+                "id": row["id"],
+                "timestamp_utc": row["timestamp_utc"],
+                "event_type": row["event_type"],
+                "session_id": row["explore_session_id"],
+                "metadata": meta,
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Failed to get events since {cursor_ts}: {e}")
+        return []
+
+
+def get_outcomes_since(cursor_ts: str, limit: int = 1000) -> list[dict[str, Any]]:
+    """Get outcomes with timestamp_utc > cursor_ts, ordered ASC."""
+    try:
+        conn = _conn()
+        rows = conn.execute("""
+            SELECT id, event_id, timestamp_utc, outcome_type,
+                   suggestion_title, suggestion_category, engagement_seconds, feedback
+            FROM outcomes
+            WHERE timestamp_utc > ?
+            ORDER BY timestamp_utc ASC
+            LIMIT ?
+        """, (cursor_ts, limit)).fetchall()
+        conn.close()
+        result = []
+        for row in rows:
+            result.append({
+                "id": row["id"],
+                "event_id": row["event_id"],
+                "timestamp_utc": row["timestamp_utc"],
+                "outcome_type": row["outcome_type"],
+                "suggestion_title": row["suggestion_title"],
+                "suggestion_category": row["suggestion_category"],
+                "engagement_seconds": row["engagement_seconds"],
+                "feedback": row["feedback"],
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Failed to get outcomes since {cursor_ts}: {e}")
+        return []
+
+
 def debug_summary() -> dict[str, Any]:
     """Get a quick summary of all tables (for testing)."""
     try:

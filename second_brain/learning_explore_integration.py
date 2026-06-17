@@ -224,6 +224,7 @@ def on_suggestion_accepted(
             feedback=feedback,
         )
         logger.info(f"Outcome recorded: accepted {suggestion_title}")
+        _maybe_update_immediate_preferences("accepted", suggestion_category)
         return outcome_id
     except Exception as e:
         logger.error(f"Failed to record acceptance: {e}")
@@ -311,6 +312,7 @@ def on_suggestion_skipped(
             feedback=reason,
         )
         logger.info(f"Outcome recorded: skipped suggestion")
+        _maybe_update_immediate_preferences("skipped", None)
         return outcome_id
     except Exception as e:
         logger.error(f"Failed to record skip: {e}")
@@ -320,6 +322,26 @@ def on_suggestion_skipped(
 # ---------------------------------------------------------------------------
 # Session Management
 # ---------------------------------------------------------------------------
+
+
+
+def _maybe_update_immediate_preferences(outcome_type: str, category: str | None) -> None:
+    """
+    Lightweight immediate preference bump on outcome.
+    Increments accepted_count or skipped_count for this category.
+    Called synchronously from outcome hooks before returning.
+    """
+    if not LEARNING_AVAILABLE:
+        return
+    try:
+        cat = (category or "unknown").lower().replace(" ", "_")
+        key = f"immediate_count_{cat}_{outcome_type}"
+        from second_brain import learning_db as _ldb
+        prefs = _ldb.get_preferences()
+        current = int(prefs.get(key, 0))
+        _ldb.set_preference(key, current + 1, source="learned", confidence=0.5)
+    except Exception as e:
+        logger.debug(f"Immediate preference update skipped: {e}")
 
 def on_explore_disabled(
     session_id: str,
