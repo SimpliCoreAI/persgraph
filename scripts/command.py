@@ -163,7 +163,7 @@ def _parse_user_flag(args: str) -> tuple[str, str | None]:
 
 def cmd_pghelp(args: str = "") -> str:
     return (
-        "🧭 PersGraph command guide\n"
+        "🧭 PersGraph command guide (full command list)\n"
         "\n"
         "QUICK CAPTURE\n"
         "• /note <text> — save a quick note\n"
@@ -1085,6 +1085,18 @@ def cmd_email(text: str) -> str:
         return f"❌ Email error: {e}"
 
 
+# Import learning layer outcome handlers
+try:
+    from second_brain.explore_outcome_handlers import (
+        cmd_explore_accept,
+        cmd_explore_click,
+        cmd_explore_bookmark,
+        cmd_explore_skip,
+    )
+    LEARNING_HANDLERS_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    LEARNING_HANDLERS_AVAILABLE = False
+
 COMMANDS = {
     "/wiki-ingest": cmd_wiki_ingest,
     "/ingest":      cmd_ingest,
@@ -1103,6 +1115,15 @@ COMMANDS = {
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
 }
+
+# Learning layer outcome handlers (registered if available)
+if LEARNING_HANDLERS_AVAILABLE:
+    COMMANDS.update({
+        "/explore_accept":   cmd_explore_accept,
+        "/explore_click":    cmd_explore_click,
+        "/explore_bookmark": cmd_explore_bookmark,
+        "/explore_skip":     cmd_explore_skip,
+    })
 
 # Commands that accept a user context
 USER_AWARE_COMMANDS = {"/ingest", "/ask"}

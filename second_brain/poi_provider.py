@@ -16,9 +16,13 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional
+from pathlib import Path
 import logging
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+load_dotenv(Path(__file__).resolve().parents[1] / ".env.local")
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 # ---------------------------------------------------------------------------
 # Data Classes
@@ -511,6 +515,7 @@ def nearby_pois(
     category_filter: Optional[str] = None,
     limit: int = 10,
     fallback_to_all: bool = True,
+    bucket_reference_only: bool = True,
 ) -> SearchResult:
     """
     Search for nearby POIs using the best available provider.
@@ -547,18 +552,11 @@ def nearby_pois(
         limit=limit,
     )
 
-    # If primary provider failed and fallback is enabled, try local DB
-    if result.is_fallback() and fallback_to_all and provider.name != "local_db":
-        logger.info(f"Primary provider ({provider.name}) failed; trying local DB fallback")
-        local_provider = registry.get("local_db")
-        if local_provider and local_provider.is_available:
-            result = local_provider.nearby(
-                location,
-                radius_meters=radius_meters,
-                query=query,
-                category_filter=category_filter,
-                limit=limit,
-            )
+    # Bucket-list / saved places are reference-only. They must not replace live nearby results.
+    # If the primary provider returns a fallback/error, degrade gracefully to empty rather than
+    # substituting a saved place from the wrong geographic area.
+    if result.is_fallback() and not fallback_to_all:
+        return result
 
     return result
 

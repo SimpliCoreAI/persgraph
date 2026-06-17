@@ -13,12 +13,15 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 from typing import Any
 from zoneinfo import ZoneInfo
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+load_dotenv(ROOT / ".env.local")
+load_dotenv(ROOT / ".env")
 STATE_PATH = DATA_DIR / "explore_state.json"
 AUDIT_PATH = DATA_DIR / "explore_audit.json"
 
@@ -233,14 +236,21 @@ def disable_explore(reason: str = "manual") -> dict[str, Any]:
 
 
 def describe_duration(state: dict[str, Any]) -> str:
-    label = state.get("duration_label", "2h")
-    return {
-        "2h": "2 hours",
-        "4h": "4 hours",
-        "8h": "8 hours",
-        "eod": "until end of day",
-        "trip": "for this trip",
-    }.get(label, "2 hours")
+    minutes = state.get("duration_minutes")
+    if minutes == 120:
+        return "2 hours"
+    if minutes == 240:
+        return "4 hours"
+    if minutes == 480:
+        return "8 hours"
+    if minutes is None and state.get("duration_label") == "eod":
+        return "until end of day"
+    if minutes is None and state.get("duration_label") == "trip":
+        return "for this trip"
+    if isinstance(minutes, (int, float)) and minutes > 0:
+        hours = minutes / 60
+        return f"{hours:g} hours"
+    return "2 hours"
 
 
 def format_toggle_on(state: dict[str, Any]) -> str:
@@ -268,9 +278,9 @@ def should_run_suggestion(state: dict[str, Any], now: datetime | None = None) ->
         disable_explore(reason="expired")
         return False, "explore mode expired"
 
-    last_check = _parse_dt(state.get("last_check_at"))
+    last_suggestion = _parse_dt(state.get("last_suggestion_at"))
     cadence = int(state.get("cadence_minutes") or DEFAULT_CADENCE_MIN)
-    if last_check and now < last_check + timedelta(minutes=cadence):
+    if last_suggestion and now < last_suggestion + timedelta(minutes=cadence):
         # Phase 2: Record skip event for cadence window not reached
         if LEARNING_AVAILABLE:
             try:
@@ -329,53 +339,64 @@ def _get_nearby_poi_suggestion(location: dict[str, Any]) -> ExploreSuggestion | 
             source=location.get("source", "manual"),
         )
 
-        # Get location-based POIs (primary signal)
-        result = nearby_pois(
+        # Build two result sets so the message always balances food + places-to-see.
+        food_result = nearby_pois(
             location=poi_location,
-            radius_meters=3000,
-            query="restaurant cafe",
-            limit=3,
-            fallback_to_all=True,
+            radius_meters=5000,
+            query="restaurant cafe bakery coffee",
+            limit=5,
+            fallback_to_all=False,
+        )
+        scenic_result = nearby_pois(
+            location=poi_location,
+            radius_meters=7000,
+            query="park landmark attraction museum viewpoint scenic trail garden",
+            limit=5,
+            fallback_to_all=False,
         )
 
-        if not result.pois:
+        if not food_result.pois and not scenic_result.pois:
             return None
 
-        # Load bucket-list for optional boost signal
+        # Load bucket-list for optional boost signal (reference only)
         bucket_names = _load_bucket_list_set()
 
-        # Filter to high-quality POIs (rating >= 4.0 if available)
-        # This ensures only good-vibe places are suggested
-        quality_pois = [
-            p for p in result.pois
-            if p.rating is None or p.rating >= 4.0
-        ]
-        
-        if not quality_pois:
-            quality_pois = result.pois  # Fallback if no 4+ ratings
-        
-        # Pick the best POI (first in ranked list)
-        poi = result.pois[0]
-        
-        # Build Google Maps link (use place_id if available via raw_data)
-        if poi.raw_data and poi.raw_data.get('place_id'):
-            maps_url = f"https://www.google.com/maps/place/?q=place_id:{poi.raw_data['place_id']}"
-        else:
-            # Fallback to search by name + address
-            maps_query = f"{poi.name} {poi.address}".strip()
-            maps_url = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote_plus(maps_query)}"
-        
-        # Format rating
-        rating_str = f"{poi.rating}★" if poi.rating else "popular"
-        
-        # Check if in bucket-list (boost signal, not filter)
-        in_bucket = poi.name.lower() in bucket_names
-        bucket_suffix = " [saved in bucket-list]" if in_bucket else ""
-        
+        def quality_pick(items):
+            filtered = [p for p in items if p.rating is None or p.rating >= 3.8]
+            return filtered[:3] if filtered else items[:3]
+
+        food_pois = quality_pick(food_result.pois)
+        scenic_pois = quality_pick(scenic_result.pois)
+        lines: list[str] = []
+
+        def format_line(poi):
+            if poi.raw_data and poi.raw_data.get('place_id'):
+                maps_url = f"https://www.google.com/maps/place/?q=place_id:{poi.raw_data['place_id']}"
+            else:
+                maps_query = f"{poi.name} {poi.address}".strip()
+                maps_url = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote_plus(maps_query)}"
+            rating_str = f"{poi.rating}★" if poi.rating else "popular"
+            in_bucket = poi.name.lower() in bucket_names
+            bucket_suffix = " [saved in bucket-list]" if in_bucket else ""
+            return f"• {poi.name}{bucket_suffix} — {rating_str} • {poi.distance_meters / 1000:.1f} km • {poi.address} 🗺 {maps_url}"
+
+        if food_pois:
+            lines.append("🍽 Food options nearby")
+            for poi in food_pois[:2]:
+                lines.append(format_line(poi))
+
+        if scenic_pois:
+            lines.append("🗺 Places to see nearby")
+            for poi in scenic_pois[:2]:
+                lines.append(format_line(poi))
+
+        combined = food_pois[:1] + scenic_pois[:1]
+        title = combined[0].name if combined else (food_pois[0].name if food_pois else scenic_pois[0].name)
+        meal = f"📍 {combined[0].category if combined else (food_pois[0].category if food_pois else scenic_pois[0].category)}"
         return ExploreSuggestion(
-            title=f"{poi.name}{bucket_suffix}",
-            reason=f"{rating_str} • {poi.distance_meters / 1000:.1f} km • {poi.address} 🗺 {maps_url}",
-            meal=f"📍 {poi.category}",
+            title=title,
+            reason="\n".join(lines),
+            meal=meal,
             tag="poi",
         )
     except Exception as e:
@@ -420,13 +441,18 @@ def format_suggestion_message(suggestion: ExploreSuggestion, state: dict[str, An
     reason = suggestion.reason.replace(" [saved in bucket-list]", "")
     if "bucket-list" in reason.lower():
         reason = reason.replace(" [saved in bucket-list]", "")
-    lines = ["🗺 Explore Nearby", f"📍 {title}", f"{reason}"]
+    lines = ["🗺 Explore Nearby", f"📍 {title}"]
+    event_id = state.get("last_event_id")
+    if event_id:
+        lines.append(f"🆔 Event ID: `{event_id}`")
+    lines.append(f"{reason}")
     if suggestion.meal:
         meal = suggestion.meal.replace("📍 ", "").strip()
         if meal:
             lines.append(f"🍽 {meal}")
     cadence = state.get("cadence_minutes", DEFAULT_CADENCE_MIN)
-    lines.append(f"⏱ Next check ~{cadence}m")
+    lines.append(f"⏱ Next check in ~{cadence}m")
+    lines.append("↩️ Feedback: /explore_accept <event_id> | /explore_skip <event_id> [reason] | /explore_bookmark <event_id> | /explore_click <event_id>")
     return "\n".join(lines)
 
 
