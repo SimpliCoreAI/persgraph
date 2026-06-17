@@ -38,6 +38,29 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env.local")
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
+# ---------------------------------------------------------------------------
+# Feedback wrapper — request type mapping and exclusions
+# ---------------------------------------------------------------------------
+_REQUEST_TYPE_MAP: dict[str, str] = {
+    "/ask":          "developer_query",
+    "/ingest":       "knowledge_ingest",
+    "/wiki_ingest":  "knowledge_ingest",
+    "/note":         "personal_note",
+    "/task":         "personal_note",
+    "/place":        "places_management",
+    "/places":       "places_management",
+    "/bucketlist":   "places_management",
+    "/appointment":  "calendar_management",
+    "/schedule":     "calendar_management",
+    "/triptoggle":   "explore_control",
+    "/digest":       "summary_request",
+    "/debrief":      "summary_request",
+    "/sport":        "sports_query",
+}
+_EXCLUDED_FROM_FEEDBACK: set[str] = {"/pghelp", "/status"}
+
+
+
 
 def _now_local() -> datetime:
     return datetime.now(LOCAL_TZ)
@@ -1195,6 +1218,59 @@ if LEARNING_HANDLERS_AVAILABLE:
 USER_AWARE_COMMANDS = {"/ingest", "/ask"}
 
 
+
+def _attach_feedback_id(
+    response: str,
+    cmd_name: str,
+    raw_input: str,
+    user: dict,
+) -> str:
+    """
+    Universal feedback wrapper.
+    Appends a visible 🆔 Event ID to any meaningful command response
+    so the user can provide feedback against that interaction.
+
+    Exclusions:
+      - /pghelp, /status (not actionable)
+      - responses shorter than 20 chars (errors/empty)
+      - responses that already contain an event ID (dedup)
+    """
+    try:
+        cmd_lower = cmd_name.lower()
+        if cmd_lower in _EXCLUDED_FROM_FEEDBACK:
+            return response
+        if len(response.strip()) < 20:
+            return response
+        if "🆔 Event ID" in response:
+            return response  # already emitted by cmd handler
+
+        request_type = _REQUEST_TYPE_MAP.get(cmd_lower, "general_command")
+        sender_id = (user or {}).get("id", "unknown")
+        user_tier = (user or {}).get("tier", "unknown")
+
+        try:
+            from second_brain import learning_db
+            event_id = learning_db.record_event(
+                event_type="command_usage",
+                metadata={
+                    "command": cmd_lower,
+                    "request_type": request_type,
+                    "raw_input_length": len(raw_input),
+                    "sender_id": str(sender_id),
+                    "user_tier": user_tier,
+                    "response_length": len(response),
+                },
+            )
+            if event_id:
+                return response + f"\n\n🆔 Event ID: `{event_id}`"
+        except Exception:
+            pass  # learning DB not critical
+
+    except Exception:
+        pass  # never break response delivery
+
+    return response
+
 def run(raw_input: str, sender_id: str | None = None) -> str:
     raw_input = raw_input.strip()
     user = resolve_user(sender_id)
@@ -1254,8 +1330,10 @@ def _dispatch(raw_input: str, user: dict) -> str:
         if raw_lower.startswith(cmd_lower):
             args = raw_input[len(cmd):].strip()
             if cmd in USER_AWARE_COMMANDS:
-                return handler(args, user=user)
-            return handler(args)
+                result = handler(args, user=user)
+            else:
+                result = handler(args)
+            return _attach_feedback_id(result, cmd, raw_input, user)
 
     if raw_input.lower() == "/status":
         return cmd_status()
