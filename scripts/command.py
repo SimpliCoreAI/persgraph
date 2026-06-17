@@ -211,6 +211,9 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
     url = args.strip()
     if not url:
         return "❌ Usage: /ingest <url> [--user <name>]"
+    
+    # Prepare optional learning metadata
+    ingest_event_id = None
 
     # Auto-apply Freedium for Medium URLs
     original_url = url
@@ -253,6 +256,15 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
         return f"❌ Ingestion failed: {err}"
 
     if result.success:
+        # Record ingest as learning event for feedback loop
+        try:
+            from second_brain import learning_db
+            ingest_event_id = learning_db.record_event(
+                event_type="command_usage",
+                metadata={"command": "/ingest", "url": url, "collection": result.collection, "chunks": result.chunks_new}
+            )
+        except Exception:
+            pass  # Learning layer not critical
         return (
             "✅ Ingested!\n"
             f"📦 Collection: {result.collection}\n"
@@ -274,6 +286,9 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
 
     if not question.strip():
         return "❌ Usage: /ask <question> [--user <name>]"
+    
+    # Prepare optional learning metadata
+    ask_event_id = None
 
     from second_brain.connectivity import chromadb_reachable
     if not chromadb_reachable():
@@ -313,6 +328,16 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
         output_lines.append(f"[{i}] {title} ({source_type}, score={score})")
         output_lines.append(r['text'].strip())
         output_lines.append("")
+
+    # Record ask as learning event for feedback loop
+    try:
+        from second_brain import learning_db
+        ask_event_id = learning_db.record_event(
+            event_type="command_usage",
+            metadata={"command": "/ask", "question": question[:100], "result_count": len(results)}
+        )
+    except Exception:
+        pass  # Learning layer not critical
 
     return "\n".join(output_lines)
 
@@ -482,6 +507,15 @@ def cmd_note(text: str) -> str:
         return "❌ Usage: /note <text>"
     from second_brain.queue import enqueue
     item = enqueue("note", {"title": text[:80], "body": text, "type": "Note", "tags": ["note", "quick-capture"]})
+    # Record command usage as learning event (optional feedback)
+    try:
+        from second_brain import learning_db
+        learning_db.record_event(
+            event_type="command_usage",
+            metadata={"command": "/note", "item_id": item['id'], "title": text[:80]}
+        )
+    except Exception:
+        pass  # Learning layer not critical for note capture
     return f"✅ Note queued! Will be saved shortly.\nID: {item['id'][:8]}…"
 
 
@@ -709,6 +743,9 @@ def cmd_appointment(text: str) -> str:
     raw = text.strip()
     if not raw:
         return "❌ Usage: /appointment <title>, <date/time> or /appointment list"
+    
+    # Prepare optional learning metadata
+    appt_event_id = None
 
     if raw.lower() == 'list':
         rows = list_all(item_type='Appointment', limit=50)
@@ -739,6 +776,15 @@ def cmd_appointment(text: str) -> str:
         return "❌ Usage: /appointment <title>, <date/time> (e.g. /appointment Dentist, Jun 20, 2pm)"
 
     item = save(title=title, item_type='Appointment', date=dt.isoformat(), tags=['appointment'])
+    # Record appointment as learning event for feedback loop
+    try:
+        from second_brain import learning_db
+        appt_event_id = learning_db.record_event(
+            event_type="command_usage",
+            metadata={"command": "/appointment", "title": title, "date": dt.isoformat(), "item_id": item.get('id')}
+        )
+    except Exception:
+        pass  # Learning layer not critical
     return f"✅ Appointment saved!\n📅 {title} — {_fmt_local(dt)}"
 
 
