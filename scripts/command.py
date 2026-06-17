@@ -833,6 +833,16 @@ def cmd_triptoggle(text: str) -> str:
     action, duration, cadence, intensity = _parse_triptoggle_args(raw)
     if action == "on":
         state = enable_explore(duration=duration, cadence=cadence, intensity=intensity)
+        # Keep the persisted explore-state file aligned with the live toggle path.
+        try:
+            from second_brain import explore_state as legacy_explore_state
+            legacy_explore_state.enable_explore(
+                duration_str=duration or "2h",
+                cadence_str=f"{cadence or 60}m",
+                intensity=intensity or "medium",
+            )
+        except Exception:
+            pass
         toggle_msg = format_toggle_on(state)
         
         # Immediately emit the first suggestion only if it has real location/map backing
@@ -847,6 +857,11 @@ def cmd_triptoggle(text: str) -> str:
         return toggle_msg
     if action == "off":
         disable_explore(reason="manual")
+        try:
+            from second_brain import explore_state as legacy_explore_state
+            legacy_explore_state.disable_explore()
+        except Exception:
+            pass
         return format_toggle_off()
     if action == "status":
         return status_text()
