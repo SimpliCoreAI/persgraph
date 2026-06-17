@@ -265,12 +265,15 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
             )
         except Exception:
             pass  # Learning layer not critical
-        return (
+        response = (
             "✅ Ingested!\n"
             f"📦 Collection: {result.collection}\n"
             f"✂️ Chunks: {result.chunks_new} new / {result.chunks_total} total\n"
             f"🏷️ Tags: {', '.join(result.tags) or 'none'}"
         )
+        if ingest_event_id:
+            response += f"\n\n🆔 Event ID: `{ingest_event_id}`"
+        return response
 
     errors = '; '.join(result.errors)
     errors_l = errors.lower()
@@ -339,7 +342,10 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
     except Exception:
         pass  # Learning layer not critical
 
-    return "\n".join(output_lines)
+    response = "\n".join(output_lines)
+    if ask_event_id:
+        response += f"\n\n🆔 Event ID: `{ask_event_id}`"
+    return response
 
 def cmd_wiki_ingest(text: str) -> str:
     raw = text.strip()
@@ -508,15 +514,19 @@ def cmd_note(text: str) -> str:
     from second_brain.queue import enqueue
     item = enqueue("note", {"title": text[:80], "body": text, "type": "Note", "tags": ["note", "quick-capture"]})
     # Record command usage as learning event (optional feedback)
+    note_event_id = None
     try:
         from second_brain import learning_db
-        learning_db.record_event(
+        note_event_id = learning_db.record_event(
             event_type="command_usage",
             metadata={"command": "/note", "item_id": item['id'], "title": text[:80]}
         )
     except Exception:
         pass  # Learning layer not critical for note capture
-    return f"✅ Note queued! Will be saved shortly.\nID: {item['id'][:8]}…"
+    response = f"✅ Note queued! Will be saved shortly.\nID: {item['id'][:8]}…"
+    if note_event_id:
+        response += f"\n\n🆔 Event ID: `{note_event_id}`"
+    return response
 
 
 def cmd_task(text: str) -> str:
@@ -785,7 +795,10 @@ def cmd_appointment(text: str) -> str:
         )
     except Exception:
         pass  # Learning layer not critical
-    return f"✅ Appointment saved!\n📅 {title} — {_fmt_local(dt)}"
+    response = f"✅ Appointment saved!\n📅 {title} — {_fmt_local(dt)}"
+    if appt_event_id:
+        response += f"\n\n🆔 Event ID: `{appt_event_id}`"
+    return response
 
 
 def cmd_schedule(text: str) -> str:

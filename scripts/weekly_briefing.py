@@ -314,6 +314,20 @@ def deliver(state_mgr: BriefingStateManager, briefing: str, today_str: str):
 
     print(briefing)
 
+    # Record briefing delivery as a learning event
+    briefing_event_id = None
+    try:
+        from second_brain import learning_db
+        briefing_event_id = learning_db.record_event(
+            event_type="command_usage",
+            metadata={"command": "/briefing", "date": today_str, "lines": len(briefing.splitlines())}
+        )
+    except Exception:
+        pass  # Learning layer not critical for briefing
+
+    if briefing_event_id:
+        print(f"\n🆔 Briefing Event ID: `{briefing_event_id}`")
+
     state_mgr.transition(
         BriefingStep.DONE,
         last_run_date=today_str,
