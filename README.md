@@ -61,6 +61,21 @@ It is built on OpenClaw, an open-source self-hosted agent runtime, with custom c
 - Protected app routes redirect to `/login` when not authenticated
 - PersGraph runs behind **Caddy** and the app service `persgraph-web.service` on port `8766`
 
+### Screenshots
+
+Add your screenshots here when ready:
+
+- Hero / landing page
+- Dashboard / hub
+- Command flow / `/ask` or `/appointment`
+- Explore Mode / briefing example
+
+Suggested naming:
+- `screenshots/persgraph-hero.png`
+- `screenshots/persgraph-dashboard.png`
+- `screenshots/persgraph-command-flow.png`
+- `screenshots/persgraph-explore.png`
+
 ### Example flow
 
 ```
