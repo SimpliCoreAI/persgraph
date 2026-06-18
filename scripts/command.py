@@ -312,15 +312,68 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
 
     if not question.strip():
         return "❌ Usage: /ask <question> [--user <name>]"
-    
-    # Prepare optional learning metadata
+
+    def _learningai_scoped_query(raw: str) -> tuple[str | None, str]:
+        parts = raw.strip().split(maxsplit=1)
+        if not parts:
+            return None, raw
+        prefix = parts[0].lower()
+        if prefix in {"learningai", "prep", "interview"}:
+            return prefix, parts[1].strip() if len(parts) > 1 else ""
+        return None, raw
+
+    def _learningai_prep_answer(topic: str) -> str:
+        topic = topic.strip() or "AI engineering"
+        t = topic.lower()
+        focus = "Sr. TPM" if any(k in t for k in ["tpm", "program", "delivery", "stakeholder"]) else "AI architect"
+        bullets = [
+            f"• Anchor the answer in {focus} tradeoffs: scope, risk, rollout, and stakeholder alignment.",
+            "• Tie the topic back to system design: inputs, outputs, failure modes, observability, and iteration loops.",
+            "• Call out how you would explain the decision to non-specialists and measure success after launch.",
+            "• For interview follow-ups, be ready to compare approaches, justify constraints, and name practical next steps.",
+        ]
+        lines = [
+            f"🎯 LearningAI prep mode for: {topic}",
+            "",
+            *bullets,
+            "",
+            "Suggested interview framing:",
+            f"- What problem are we solving with {topic}?",
+            "- How would you ship it safely?",
+            "- What would you instrument and review after launch?",
+            "- What would you simplify if the interviewer asked for a leaner version?",
+        ]
+        return "\n".join(lines)
+
+    scoped_mode, scoped_question = _learningai_scoped_query(question)
+    if scoped_mode:
+        answer = _learningai_prep_answer(scoped_question)
+        ask_event_id = None
+        try:
+            from second_brain import learning_db
+            ask_event_id = learning_db.record_event(
+                event_type="command_usage",
+                metadata={
+                    "command": "/ask",
+                    "mode": f"{scoped_mode}_prep",
+                    "question": scoped_question[:100],
+                    "result_count": 1,
+                    "audience": "sr_tpm_ai_architect",
+                },
+            )
+        except Exception:
+            pass
+        if ask_event_id:
+            answer += f"\n\n🆔 Event ID: `{ask_event_id}`"
+        return answer
+
     ask_event_id = None
 
     from second_brain.connectivity import chromadb_reachable
     if not chromadb_reachable():
         return (
             "📶 Can't reach the knowledge base right now — Windows machine is offline.\n"
-            "Try again when it's back, or save this as a note: /note \"<your question>\""
+            "Try again when it's back, or save this as a note: /note <your question>"
         )
 
     from second_brain.embeddings import embedder
@@ -355,7 +408,6 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
         output_lines.append(r['text'].strip())
         output_lines.append("")
 
-    # Record ask as learning event for feedback loop
     try:
         from second_brain import learning_db
         ask_event_id = learning_db.record_event(
@@ -363,7 +415,7 @@ def cmd_ask(question: str, user: dict | None = None) -> str:
             metadata={"command": "/ask", "question": question[:100], "result_count": len(results)}
         )
     except Exception:
-        pass  # Learning layer not critical
+        pass
 
     response = "\n".join(output_lines)
     if ask_event_id:

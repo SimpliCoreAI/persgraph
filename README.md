@@ -40,6 +40,7 @@ It is built on OpenClaw, an open-source self-hosted agent runtime, with custom c
 - `/ingest <url or file>` — raw URL/file ingest into the semantic search layer
 - `/wiki-ingest <url>` — write a curated Obsidian wiki note first, then index it
 - `/ask <question>` — semantic search + answer synthesis
+- `/ask learningai|prep|interview <topic>` — interview-prep synthesis for LearningAI topics
 - `/note <text>` — quick SQLite note capture
 - `/task <text>` — quick task capture
 - `/place <name>` — save a place
