@@ -9,6 +9,7 @@
 [![ChromaDB](https://img.shields.io/badge/Vector-ChromaDB-orange?style=flat-square)](https://trychroma.com)
 [![Claude](https://img.shields.io/badge/Reasoning-Claude%20Sonnet-violet?style=flat-square)](https://anthropic.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![Landing Page](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](https://persgraph.simplicore.ai)
 
 ---
 
@@ -29,9 +30,9 @@ Claude Sonnet is used only for agent reasoning (orchestration decisions, synthes
 
 ## What It Does
 
-PersGraph turns messy personal data into a clean command interface you can actually use every day.
+PersGraph turns scattered personal data into an everyday operating system — one place to ask, ingest, save, plan, debrief, and act without digging through ten apps. 
 
-It is built on OpenClaw, an open-source self-hosted agent runtime, with custom skills for personal data orchestration, RAG, and life automation.
+It is built on OpenClaw, an open-source self-hosted agent runtime, with custom commands/skills for personal data orchestration, RAG, and life automation.
 
 ### Current slash commands
 
