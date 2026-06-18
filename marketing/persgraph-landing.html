@@ -1071,21 +1071,35 @@
   setTimeout(typeNext, 1500);
 </script>
 
-</body>
-</html>
   <section class="section" id="screenshots">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">Screenshots</span>
         <h2>Show the product in action</h2>
-        <p class="section-sub">Drop your screenshots here when ready. Hero, dashboard, command flow, and Explore Mode are the best first candidates.</p>
+        <p class="section-sub">A few real surfaces to make the story concrete — chat, setup, explainer, and product framing.</p>
       </div>
-      <div class="screenshot-placeholder-grid">
-        <div class="screenshot-placeholder"><div class="placeholder-label">Hero / landing page</div><div class="placeholder-note">Add screenshot here</div></div>
-        <div class="screenshot-placeholder"><div class="placeholder-label">Dashboard / hub</div><div class="placeholder-note">Add screenshot here</div></div>
-        <div class="screenshot-placeholder"><div class="placeholder-label">Command flow</div><div class="placeholder-note">Add screenshot here</div></div>
-        <div class="screenshot-placeholder"><div class="placeholder-label">Explore Mode</div><div class="placeholder-note">Add screenshot here</div></div>
+      <style>
+        .screenshot-shell{padding:1rem;background:linear-gradient(180deg, rgba(99,179,237,0.05), rgba(159,122,234,0.03));border:1px solid rgba(99,179,237,0.18);border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,0.25)}
+        .screenshot-placeholder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+        .screenshot-placeholder{background:rgba(13,17,32,0.92);border:1px solid rgba(99,179,237,0.12);border-radius:18px;overflow:hidden;position:relative;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+        .screenshot-placeholder:hover{transform:translateY(-3px);border-color:rgba(99,179,237,0.28);box-shadow:0 18px 38px rgba(0,0,0,0.28)}
+        .screenshot-placeholder::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,0.06), transparent 22%);pointer-events:none}
+        .screenshot-placeholder img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:#050814}
+        .placeholder-label{padding:0.95rem 1rem 0.2rem;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+        .placeholder-note{padding:0 1rem 1rem;color:var(--text2);font-size:0.875rem;line-height:1.55}
+        .shot-badge{position:absolute;top:12px;left:12px;z-index:1;padding:0.3rem 0.55rem;border-radius:999px;background:rgba(8,11,20,0.72);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);font-size:0.7rem;color:var(--text);text-transform:uppercase;letter-spacing:0.08em}
+      </style>
+      <div class="screenshot-shell">
+        <div class="screenshot-placeholder-grid">
+          <div class="screenshot-placeholder"><span class="shot-badge">01</span><img src="assets/shot-1.jpg" alt="Telegram-style AI chat screenshot"><div class="placeholder-label">Telegram chat</div><div class="placeholder-note">Conversational assistant feel with structured output.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">02</span><img src="assets/shot-2.jpg" alt="Langfuse setup screenshot"><div class="placeholder-label">Langfuse setup</div><div class="placeholder-note">Developer onboarding and tracing flow.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">03</span><img src="assets/shot-3.jpg" alt="Telegram bot setup screenshot"><div class="placeholder-label">Bot setup</div><div class="placeholder-note">Mobile chat flow with auth/pairing interaction.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">04</span><img src="assets/shot-4.jpg" alt="Watch article screenshot"><div class="placeholder-label">Editorial page</div><div class="placeholder-note">Magazine-like layout with hero image and article focus.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">05</span><img src="assets/shot-5.jpg" alt="Agentic AI infographic screenshot"><div class="placeholder-label">Agentic AI diagram</div><div class="placeholder-note">Dark schematic explainer with flowchart structure.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">06</span><img src="assets/shot-6.jpg" alt="Langfuse tracing screenshot"><div class="placeholder-label">Tracing instructions</div><div class="placeholder-note">Documentation-style setup with code blocks and steps.</div></div>
+        </div>
       </div>
     </div>
   </section>
-
+</body>
+</html>

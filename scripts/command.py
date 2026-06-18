@@ -185,47 +185,52 @@ def _parse_user_flag(args: str) -> tuple[str, str | None]:
 
 
 def cmd_pghelp(args: str = "") -> str:
-    return (
-        "🧭 PersGraph command guide (full command list)\n"
-        "\n"
-        "QUICK CAPTURE\n"
-        "• /note <text> — save a quick note\n"
-        "• /task <text> — save a task or to-do\n"
-        "• /place <name>, <city> [, notes] — save a place\n"
-        "• /places [query] — list or search saved places\n"
-        "\n"
-        "KNOWLEDGE\n"
-        "• /wiki-ingest <url> — create a curated Obsidian wiki note, then index it\n"
-        "• /ingest <url> [--user <name>] — raw URL ingest into semantic search\n"
-        "• /ask <question> [--user <name>] — ask PersGraph what it knows\n"
-        "\n"
-        "PLANNING\n"
-        "• /appointment <title>, <date/time> — save an appointment\n"
-        "• /appointment list — list appointments\n"
-        "• /schedule [week] — show upcoming schedule\n"
-        "\n"
-        "REPORTS & UTILITIES\n"
-        "• /digest [today|week] — generate a summary\n"
-        "• /debrief [today|week|month] — generate an activity debrief\n"
-        "• /bucketlist ... — save/list bucket list places\n"
-        "• /TripToggle On|Off [opts] — enable/disable Explore Mode\n"
-        "• /sport [soccer|football|nba] — sports schedule\n"
-        "• /status — collection + queue stats\n"
-        "• /status service — app service + route health\n"
-        "• /status ops — smoke test + deploy posture\n"
-        "\n"
-        "EXAMPLES\n"
-        "• /note Call dentist tomorrow\n"
-        "• /place Blue Bottle Coffee, San Francisco, good espresso\n"
-        "• /appointment Dentist, Jun 20, 2pm\n"
-        "• /schedule week\n"
-        "• /bucketlist add Kurama Onsen, Kyoto, scenic day trip\n"
-        "• /ask what do I know about Japan trip plans\n"
-        "• /ingest https://example.com/article\n"
-        "\n"
-        "Tip: use /pghelp anytime for this guide."
-    )
+    return """🧭 PersGraph command guide (full command list)
 
+QUICK CAPTURE
+• /note <text> — save a quick note
+• /task <text> — save a task or to-do
+• /place <name>, <city> [, notes] — save a place
+• /places [query] — list or search saved places
+
+KNOWLEDGE
+• /wiki-ingest <url> — create a curated Obsidian wiki note, then index it
+• /ingest <url> [--user <name>] — raw URL ingest into semantic search
+• /ask <question> [--user <name>] — ask PersGraph what it knows
+
+PLANNING
+• /appointment <title>, <date/time> — save an appointment
+• /appointment list — list appointments
+• /schedule [week] — show upcoming schedule
+
+REPORTS & UTILITIES
+• /digest [today|week] — generate a summary
+• /debrief [today|week|month] — generate an activity debrief
+• /bucketlist ... — save/list bucket list places
+• /TripToggle On|Off [opts] — enable/disable Explore Mode
+• /sport [soccer|football|nba] — sports schedule
+• /email ... — send or manage email workflow
+• /status — collection + queue stats
+• /status service — app service + route health
+• /status ops — smoke test + deploy posture
+
+EXPLORE FEEDBACK
+• /explore_accept <event_id> — accept a suggestion
+• /explore_click <event_id> — mark a suggestion as clicked/opened
+• /explore_skip <event_id> [reason] — dismiss a suggestion
+• /explore_bookmark <event_id> — save a suggestion to places
+
+EXAMPLES
+• /note Call dentist tomorrow
+• /place Blue Bottle Coffee, San Francisco, good espresso
+• /appointment Dentist, Jun 20, 2pm
+• /schedule week
+• /bucketlist add Kurama Onsen, Kyoto, scenic day trip
+• /ask what do I know about Japan trip plans
+• /ingest https://example.com/article
+• /explore_accept 3596a575-84f5-4077-a97b-6606d985c9ed
+
+Tip: use /pghelp anytime for this guide."""
 
 def cmd_ingest(args: str, user: dict | None = None) -> str:
     # Parse --user flag

@@ -112,6 +112,36 @@ body{
   border:1px solid rgba(104,211,145,0.3);
 }
 
+
+/* ─── Screenshot Gallery ────────────────────────────────── */
+.shot-section{margin:18px 0 10px}
+.shot-hdr{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:18px 0 12px;
+}
+.shot-hdr h3{font-size:14px;font-weight:700;color:var(--txt)}
+.shot-hdr .shot-sub{font-size:12px;color:var(--mut)}
+.shot-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.shot-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,0.18);
+}
+.shot-card img{
+  display:block;width:100%;height:220px;object-fit:cover;
+  background:#050814;
+}
+.shot-cap{
+  padding:12px 14px 14px;
+  border-top:1px solid var(--border);
+}
+.shot-cap strong{display:block;font-size:13px;color:var(--txt);margin-bottom:3px}
+.shot-cap span{font-size:12px;color:var(--mut);line-height:1.5}
+
 /* ─── Inner Tabs ─────────────────────────────────────────── */
 .inner-nav{
   display:flex;gap:3px;padding:4px;
@@ -441,7 +471,26 @@ body{
     <h1>✈️ Travel <span>Planner 2026</span></h1>
     <div class="sub">Japan · Lake Tahoe · Riverside · Explore Mode + learning loop live</div>
   </div>
+
 </header>
+
+<!-- Screenshot Gallery -->
+<section class="shot-section">
+  <div class="shot-hdr">
+    <div>
+      <h3>🖼️ Screenshot references</h3>
+      <div class="shot-sub">Imported from Telegram — for layout inspiration and UI direction</div>
+    </div>
+  </div>
+  <div class="shot-grid">
+    <figure class="shot-card"><img src="assets/shot-1.jpg" alt="Telegram-style AI chat screenshot"><figcaption class="shot-cap"><strong>Telegram chat</strong><span>Conversational assistant feel with long-form, structured output.</span></figcaption></figure>
+    <figure class="shot-card"><img src="assets/shot-2.jpg" alt="Langfuse setup screenshot"><figcaption class="shot-cap"><strong>Langfuse setup</strong><span>Clean developer onboarding and tracing flow.</span></figcaption></figure>
+    <figure class="shot-card"><img src="assets/shot-3.jpg" alt="Telegram bot setup screenshot"><figcaption class="shot-cap"><strong>Bot setup</strong><span>Mobile chat flow with auth/pairing-style interaction.</span></figcaption></figure>
+    <figure class="shot-card"><img src="assets/shot-4.jpg" alt="Watch article screenshot"><figcaption class="shot-cap"><strong>Editorial page</strong><span>Magazine-like layout with hero image and article focus.</span></figcaption></figure>
+    <figure class="shot-card"><img src="assets/shot-5.jpg" alt="Agentic AI infographic screenshot"><figcaption class="shot-cap"><strong>Agentic AI diagram</strong><span>Dark, schematic explainer with flowchart structure.</span></figcaption></figure>
+    <figure class="shot-card"><img src="assets/shot-6.jpg" alt="Langfuse tracing screenshot"><figcaption class="shot-cap"><strong>Tracing instructions</strong><span>Documentation-style setup with code blocks and steps.</span></figcaption></figure>
+  </div>
+</section>
 
 <!-- Trip Nav -->
 <nav class="trip-nav">
