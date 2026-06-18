@@ -20,12 +20,15 @@ venv/
 # macOS
 .DS_Store
 
-# CC data — all sensitive files live in Google Drive (never in git)
-data/cc_rewards/*.pdf
-data/cc_statements/*.pdf
-data/cc_statements/*.csv
-data/portfolio/*.pdf
-data/portfolio/*.csv
+# Data — runtime, caches, and personal state should stay out of git
+data/*
+!data/.gitkeep
+!data/cc_rewards/
+!data/cc_rewards/.gitkeep
+!data/cc_statements/
+!data/cc_statements/.gitkeep
+!data/portfolio/
+!data/portfolio/.gitkeep
 
 # IDE
 .vscode/
