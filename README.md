@@ -340,8 +340,9 @@ bash setup.sh
 
 `setup.sh` handles everything: venv, dependencies, `.env` creation, Ollama model pull, ChromaDB check, and OpenClaw verification.
 
-**Full step-by-step:** → [`INSTALL.md`](INSTALL.md)  
-**OpenClaw agent setup:** → [`OPENCLAW_SETUP.md`](OPENCLAW_SETUP.md)
+Step 1: **OpenClaw agent setup:** → [`OPENCLAW_SETUP.md`](OPENCLAW_SETUP.md)
+
+Step 2: **Install Persgraph step-by-step:** → [`INSTALL.md`](INSTALL.md)  
 
 ### Langfuse Observability
 
