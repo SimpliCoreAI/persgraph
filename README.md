@@ -9,7 +9,7 @@
 [![ChromaDB](https://img.shields.io/badge/Vector-ChromaDB-orange?style=flat-square)](https://trychroma.com)
 [![Claude](https://img.shields.io/badge/Reasoning-Claude%20Sonnet-violet?style=flat-square)](https://anthropic.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Landing Page](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](https://persgraph.simplicore.ai)
+[![Landing Page](https://img.shields.io/badge/LLM-Ollama%20local-green?style=flat-square)](https://persgraph.simplicore.ai)
 
 ---
 
