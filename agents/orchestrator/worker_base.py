@@ -67,10 +67,37 @@ class BaseWorker(ABC):
 
             # Execute the worker
             result = self.execute(routed_task.payload)
+            
+            # Log outcome (if audit logger available)
+            try:
+                from agents.orchestrator.audit_logger import log_outcome
+                log_outcome(
+                    routed_task.payload.get("event_id"),
+                    "completed",
+                    result,
+                    worker_type=self.worker_type.value,
+                )
+            except (ImportError, KeyError):
+                pass  # Audit logging is optional
+            
             return result
 
         except Exception as e:
-            return f"❌ Worker error: {str(e)}"
+            error_msg = f"❌ Worker error: {str(e)}"
+            # Log failure (if audit logger available)
+            try:
+                from agents.orchestrator.audit_logger import log_outcome
+                log_outcome(
+                    routed_task.payload.get("event_id"),
+                    "failed",
+                    error_msg,
+                    worker_type=self.worker_type.value,
+                    error=str(e),
+                )
+            except (ImportError, KeyError):
+                pass  # Audit logging is optional
+            
+            return error_msg
 
     def can_use(self, tool: str) -> bool:
         """Check if this worker can use a tool."""
@@ -83,3 +110,19 @@ class BaseWorker(ABC):
         if not self.capabilities:
             return False
         return self.capabilities.can_access(service)
+
+    def attach_event_id(self, payload: dict, event_id: str) -> dict:
+        """
+        Attach or update the event_id in the payload.
+        
+        Workers should call this before logging outcomes.
+
+        Args:
+            payload: The task payload
+            event_id: Event ID to attach
+
+        Returns:
+            Updated payload with event_id set
+        """
+        payload["event_id"] = event_id
+        return payload

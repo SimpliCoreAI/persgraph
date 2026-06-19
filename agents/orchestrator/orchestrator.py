@@ -6,8 +6,14 @@ This is the entry point for commands when using the routing layer.
 
 Backward Compatibility:
   - Direct command_handler.run() still works (existing entrypoints)
-  - orchestrator.run() uses the new routing layer (opt-in)
+  - orchestrator.run_with_routing() uses the new routing layer (opt-in)
   - Both paths end at the same command handlers
+
+Routing Layer Features:
+  - Event ID generation for all actions
+  - Approval gates for high-impact actions
+  - Audit trail tracking
+  - Feedback loop correlation
 
 Usage:
     from agents.orchestrator.orchestrator import run_with_routing
@@ -19,18 +25,20 @@ Usage:
 import os
 import sys
 
-from agents.orchestrator.router import route_command, summarize_routing
-from agents.orchestrator.worker_registry import get_worker_for_command
+from agents.orchestrator.router import route_command_with_gates, summarize_routing
+from agents.orchestrator.audit_logger import log_execution, log_outcome
 
 
 def run_with_routing(raw_input: str, sender_id: str | None = None) -> str:
     """
-    Dispatch a command using the routing layer.
+    Dispatch a command using the routing layer with event tracking and approval gates.
 
     For now, this is a thin wrapper that:
-      1. Routes the command via route_command()
-      2. Logs the routing decision (if DEBUG enabled)
-      3. Falls back to existing command_handler for actual execution
+      1. Routes the command via route_command_with_gates()
+      2. Checks approval gates
+      3. Logs execution
+      4. Falls back to existing command_handler for actual execution
+      5. Logs outcome
 
     In future iterations, will actually spawn worker processes.
 
@@ -47,19 +55,85 @@ def run_with_routing(raw_input: str, sender_id: str | None = None) -> str:
     # Resolve user context
     user = command_handler.resolve_user(sender_id)
 
-    # Route the command
-    routed_task = route_command(raw_input, user_context=user)
+    # Route the command with approval gates
+    routed_task = route_command_with_gates(raw_input, user_context=user)
 
     # Log routing if DEBUG is enabled
     if os.environ.get("ROUTING_DEBUG"):
         routing_info = summarize_routing(routed_task)
         print(f"[ROUTING] {routing_info}", file=sys.stderr)
 
+    # Check approval gates
+    if routed_task.requires_approval:
+        return f"⏸️ Action pending approval (event_id: {routed_task.event_id})"
+
+    # Log execution start
+    log_execution(
+        routed_task.event_id,
+        routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+        status="executing",
+    )
+
     # For MVP, still dispatch to existing command_handler
     # Future: actually invoke the routed worker
-    result = command_handler.run(raw_input, sender_id)
-
-    return result
+    try:
+        import time
+        start_ms = int(time.time() * 1000)
+        result = command_handler.run(raw_input, sender_id)
+        duration_ms = int(time.time() * 1000) - start_ms
+        
+        # Log outcome (success)
+        log_outcome(
+            routed_task.event_id,
+            "completed",
+            result,
+            worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+        )
+        
+        # Emit outcome signal for learning layer
+        try:
+            from agents.orchestrator.learning_signals import emit_outcome_signal
+            result_preview = result[:100] if result else ""
+            emit_outcome_signal(
+                event_id=routed_task.event_id,
+                command=routed_task.command,
+                worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+                status="completed",
+                success=True,
+                duration_ms=duration_ms,
+                result_preview=result_preview,
+            )
+        except Exception:
+            pass  # Learning signals not critical
+        
+        return result
+    except Exception as e:
+        # Log outcome (failure)
+        error_msg = str(e)
+        log_outcome(
+            routed_task.event_id,
+            "failed",
+            error_msg,
+            worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+            error=error_msg,
+        )
+        
+        # Emit outcome signal for learning layer (failure)
+        try:
+            from agents.orchestrator.learning_signals import emit_outcome_signal
+            emit_outcome_signal(
+                event_id=routed_task.event_id,
+                command=routed_task.command,
+                worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+                status="failed",
+                success=False,
+                duration_ms=0,
+                error=error_msg,
+            )
+        except Exception:
+            pass  # Learning signals not critical
+        
+        raise
 
 
 def describe_routing() -> dict:
@@ -70,6 +144,7 @@ def describe_routing() -> dict:
         Dict with command→worker mappings and worker capabilities.
     """
     from agents.orchestrator.worker_registry import list_workers, describe_worker
+    from agents.orchestrator.worker_registry import get_worker_for_command
 
     routing_map = {}
     for cmd in [
@@ -94,4 +169,21 @@ def describe_routing() -> dict:
     return {
         "routing_table": routing_map,
         "workers": workers_info,
+    }
+
+
+def get_event_registry_snapshot() -> dict:
+    """
+    Return a snapshot of the event registry (for debugging/introspection).
+
+    Returns:
+        Dict with current event state.
+    """
+    from agents.orchestrator.event_manager import list_events
+    from agents.orchestrator.approval_gate import list_pending_approvals
+
+    return {
+        "total_events": len(list_events(limit=10000)),
+        "pending_approvals": list_pending_approvals(limit=50),
+        "recent_events": list_events(limit=10),
     }
