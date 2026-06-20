@@ -23,15 +23,22 @@ Design:
 See: IMPLEMENTATION_PLAN.md for detailed scope and acceptance criteria.
 """
 
-__version__ = "0.2.0"  # Added: Langfuse API integration, trace tags, validation
+__version__ = "0.3.0"  # Added: Phase 3 reporting, summaries, event ID tracking, alerting
 __all__ = [
+    # Phase 1: Core
     "run_poller",
     "calculate_cost",
     "extract_user_id",
     "extract_operation",
+    # Phase 2: Tagging
     "build_trace_tags",
     "extract_operation_from_command",
     "run_validator_smoke_test",
+    # Phase 3: Reporting & Alerts
+    "get_cost_summary",
+    "export_summary",
+    "check_budget_increase_alert",
+    "CostSummaryBuilder",
 ]
 
 # Lazy imports to avoid circular dependencies
@@ -98,3 +105,109 @@ async def run_validator_smoke_test() -> dict:
     """Run comprehensive smoke test for cost agent integration. Returns test results."""
     from agents.cost_agent.core.validator import run_validator_smoke_test as _validate
     return await _validate()
+
+
+# Phase 3: Reporting & Summaries
+
+def get_cost_summary(
+    group_by: str = "command",
+    start_date: str | None = None,
+    end_date: str | None = None,
+    include_event_ids: bool = True,
+    data_dir: str | None = None,
+) -> dict:
+    """
+    Get flexible cost summaries with event ID association.
+    
+    Groups by: command, worker, layer, trigger, model, or date.
+    Includes event_ids for feedback loop integration.
+    
+    Args:
+        group_by: Grouping dimension
+        start_date: Start date (YYYY-MM-DD) or None
+        end_date: End date (YYYY-MM-DD) or None
+        include_event_ids: Include event IDs (default True)
+        data_dir: Path to cost data directory
+    
+    Returns:
+        Dict with groups and event_ids
+    """
+    from agents.cost_agent.reporters import get_cost_summary as _get_summary
+    return _get_summary(
+        group_by=group_by,
+        start_date=start_date,
+        end_date=end_date,
+        include_event_ids=include_event_ids,
+        data_dir=data_dir,
+    )
+
+
+def export_summary(
+    summary: dict,
+    format: str = "text",
+    output_path: str | None = None,
+) -> str:
+    """
+    Export cost summary in multiple formats (markdown, json, csv, text).
+    
+    Args:
+        summary: Cost summary dict from get_cost_summary()
+        format: Output format (markdown, json, csv, text)
+        output_path: Optional file path to write output
+    
+    Returns:
+        Formatted string
+    """
+    from agents.cost_agent.reporters import export_summary as _export
+    return _export(summary=summary, format=format, output_path=output_path)
+
+
+def check_budget_increase_alert(
+    alert_type: str = "summary",
+    lookback_days: int = 7,
+    data_dir: str | None = None,
+) -> dict:
+    """
+    Check for budget increases using anomaly detection (not thresholds).
+    
+    Anomaly-based alerting without configuration:
+    - Detects cost spikes > 2σ above baseline (standard deviation method)
+    - Identifies new operations
+    - Provides spending summary
+    
+    Args:
+        alert_type: "anomaly" (spike detection), "new_ops" (new commands), "summary" (info)
+        lookback_days: Days of history for baseline (default 7)
+        data_dir: Path to cost data directory
+    
+    Returns:
+        Alert dict with detected issues
+    """
+    from agents.cost_agent.reporters import check_budget_increase_alert as _check_alert
+    return _check_alert(alert_type=alert_type, lookback_days=lookback_days, data_dir=data_dir)
+
+
+class CostSummaryBuilder:
+    """
+    Flexible summary builder for advanced use cases.
+    
+    Supports multiple grouping dimensions and date range filtering.
+    Each summary includes event_ids for feedback loop integration.
+    """
+    
+    def __init__(self, data_dir: str | None = None):
+        """Initialize builder."""
+        from agents.cost_agent.reporters.summaries import CostSummaryBuilder as _Builder
+        self._builder = _Builder(data_dir)
+    
+    def filter_by_date_range(self, start_date: str | None = None, end_date: str | None = None):
+        """Filter records by date range."""
+        return self._builder.filter_by_date_range(start_date, end_date)
+    
+    def summarize_by(self, group_by: str, records=None):
+        """Summarize records by dimension."""
+        return self._builder.summarize_by(group_by, records)
+    
+    def summary_hierarchy(self, start_date: str | None = None, end_date: str | None = None):
+        """Generate hierarchical summary (date → command → worker → model)."""
+        return self._builder.summary_hierarchy(start_date, end_date)
