@@ -1349,15 +1349,30 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
         _ensure_env()
 
         from langfuse import observe as lf_observe, Langfuse
+        from agents.cost_agent.core.tagging import build_trace_tags, extract_operation_from_command
 
         cmd_name = raw_input.split()[0] if raw_input else "unknown"
         start_ms = time.perf_counter()
+        
+        # Build cost-tracking tags for user attribution
+        operation = extract_operation_from_command(raw_input)
+        cost_tags = build_trace_tags(
+            user_id=str(sender_id),
+            operation=operation,
+            model=model_hint,
+        )
 
-        @lf_observe(name=cmd_name)
+        @lf_observe(name=cmd_name, tags=cost_tags)
         def _traced_dispatch():
             res = _dispatch(raw_input, user)
             lf = Langfuse()
             lf.set_current_trace_io(input=raw_input, output=res[:800])
+            # Set trace metadata for better attribution
+            lf.score_current_trace(
+                name="user_id",
+                value=float(sender_id) if str(sender_id).isdigit() else 0,
+                comment=str(sender_id),
+            )
             return res
 
         result = _traced_dispatch()
