@@ -53,6 +53,7 @@ It is built on OpenClaw, an open-source self-hosted agent runtime, with custom c
 - `/appointment <title>, <date/time>` — save or list appointments
 - `/schedule [range]` — show your agenda
 - `/debrief` — run the debrief flow
+- `/Curr <source> <target> <amount>` — convert currency using a live exchange rate
 - `/status` — collection + queue stats
 - `/status service` — PersGraph service/runtime health, route checks, recent logs
 - `/status ops` — smoke test, Caddy validity, git/deploy posture
@@ -110,6 +111,9 @@ A quick taste of the loop:
 ## Features
 
 ### A few things that make it worth opening
+
+### 💱 Live currency conversion
+Use `/Curr <source> <target> <amount>` to get a current exchange-rate conversion without leaving the chat. It’s a small utility, but it fits the broader pattern: useful commands, low friction, live context.
 
 ### 🔍 Semantic Search Across Everything
 Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you half-remember, an email you can't find, or a decision you made months ago — PersGraph finds it.

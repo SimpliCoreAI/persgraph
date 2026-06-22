@@ -208,6 +208,7 @@ REPORTS & UTILITIES
 • /debrief [today|week|month] — generate an activity debrief
 • /bucketlist ... — save/list bucket list places
 • /TripToggle On|Off [opts] — enable/disable Explore Mode
+• /Curr <source> <target> <amount> — convert currency using a live exchange rate
 • /sport [soccer|football|nba] — sports schedule
 • /email ... — send or manage email workflow
 • /status — collection + queue stats
