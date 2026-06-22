@@ -2,7 +2,9 @@
 
 **Your personal data, graphed & queryable — local-first, private, AI-powered.**
 
-> PersGraph ingests everything about you — emails, notes, tasks, finance, travel — and makes it all semantically searchable with AI. Your data, your graph, your machine.
+> PersGraph is a personal data operating system for people who want their notes, tasks, travel, finance, and email to stay searchable, useful, and under their control.
+
+It is built for people who want the power of AI without turning their life into somebody else’s SaaS dataset.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?style=flat-square)](https://python.org)
 [![Ollama](https://img.shields.io/badge/LLM-Ollama%20local-green?style=flat-square)](https://ollama.ai)
@@ -19,22 +21,22 @@ Most "personal AI" tools ship your data to a cloud. Your emails, your notes, you
 
 PersGraph takes the opposite position:
 
-- **LLMs run locally** via Ollama — your data never touches an external embedding API
-- **Vector search is self-hosted** — ChromaDB runs on your machine or homelab
-- **You own the code** — MIT licensed, inspect every line, no black boxes
-- **Air-gap ready** — works fully offline once models are pulled
+- **Local-first** — keep your personal data on your machine or homelab
+- **Search by meaning** — ask about a trip, note, or email and find it without hunting keywords
+- **Action-oriented** — capture notes, tasks, places, appointments, and briefs from one place
+- **Private by default** — MIT licensed, inspectable, and designed to work offline once models are pulled
 
-Claude Sonnet is used only for agent reasoning (orchestration decisions, synthesis) — not for embedding or storing your personal data.
+Claude Sonnet is used only for agent reasoning and synthesis — not for embedding or storing your personal data.
 
 ---
 
 ## What It Does
 
-PersGraph turns scattered personal data into an everyday operating system — one place to ask, ingest, save, plan, debrief, and act without digging through ten apps. 
+PersGraph turns scattered personal data into an everyday operating system — one place to ask, ingest, save, plan, debrief, and act without digging through ten apps.
 
 It is built on OpenClaw, an open-source self-hosted agent runtime, with custom commands/skills for personal data orchestration, RAG, and life automation.
 
-### Current slash commands
+### What you can do here
 
 - `/pghelp` — PersGraph-specific command guide for Telegram/chat use
 - `/ingest <url or file>` — raw URL/file ingest into the semantic search layer
@@ -79,6 +81,8 @@ Suggested naming:
 
 ### Example flow
 
+A quick taste of the loop:
+
 ```
 → /pghelp
 🧭 PersGraph command guide
@@ -104,6 +108,8 @@ Suggested naming:
 ---
 
 ## Features
+
+### A few things that make it worth opening
 
 ### 🔍 Semantic Search Across Everything
 Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you half-remember, an email you can't find, or a decision you made months ago — PersGraph finds it.
@@ -199,6 +205,9 @@ PersGraph is also **OpenTelemetry-friendly** at the architecture level: command 
 
 ### 🧠 Scratchpad Workflow
 Use `scratchpad/` for transient shared thinking between models. It is the working-memory layer for active topics, handoffs, and drafts. It is intentionally separate from `MEMORY.md`. Start with `scratchpad/prompts.md` and `scratchpad/template.md`.
+
+### 🧭 Morning Briefing, Travel, and Explore Mode
+This repo is not just storage. It has a rhythm: daily briefs, travel planning, saved places, and explore suggestions that can surface useful context before you need to ask for it.
 
 **Stable invocation phrase:**
 - `Start a scratchpad for <topic>`
