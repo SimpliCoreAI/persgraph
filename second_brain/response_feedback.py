@@ -55,6 +55,7 @@ def record_response_feedback(
                 "command": command or "unknown",
                 "user_id": user_id,
                 "response_length": len(response_text) if response_text else 0,
+                "response_text": response_text,
                 **(metadata or {}),
             }
         )

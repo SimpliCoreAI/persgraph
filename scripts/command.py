@@ -1449,12 +1449,14 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
     # Record response feedback (no-op if learning_db unavailable)
     if RESPONSE_FEEDBACK_AVAILABLE:
         cmd_name = raw_input.split()[0] if raw_input else "unknown"
-        record_response_feedback(
+        result, feedback_event_id = record_response_feedback(
             result,
             command=cmd_name,
             user_id=sender_id,
             metadata={"model_hint": model_hint}
         )
+        if feedback_event_id:
+            result = f"{result}\n\n🆔 Response ID: `{feedback_event_id}`"
 
     return f"MODEL_HINT: {model_hint}\n{result}"  # fast | smart → LiteLLM tiers
 
