@@ -11,6 +11,7 @@ import os
 import socket
 import time
 from urllib.parse import urlparse
+from urllib.request import urlopen
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -48,9 +49,21 @@ def _cached_probe(key: str, host: str, port: int, timeout: float = 2.0) -> bool:
     return result
 
 
+def _http_probe(url: str, timeout: float = 3.0) -> bool:
+    try:
+        with urlopen(url, timeout=timeout) as resp:
+            return 200 <= getattr(resp, 'status', 200) < 300
+    except Exception:
+        return False
+
+
 def chromadb_reachable() -> bool:
     """Check if ChromaDB on the Windows machine is reachable."""
-    return _cached_probe("chroma", WINDOWS_HOST, CHROMA_PORT)
+    if _cached_probe("chroma-tcp", WINDOWS_HOST, CHROMA_PORT):
+        if _http_probe(f"http://{WINDOWS_HOST}:{CHROMA_PORT}/api/v2/heartbeat"):
+            return True
+        # TCP is open but HTTP heartbeat failed; treat as unavailable.
+    return False
 
 
 def ollama_reachable() -> bool:

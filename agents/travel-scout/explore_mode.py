@@ -108,6 +108,10 @@ def default_state() -> dict[str, Any]:
         "status": "idle",
         "session_id": None,
         "last_event_id": None,
+        "notice_dispatched": {
+            "disabled": False,
+            "expired": False,
+        },
     }
 
 
@@ -190,6 +194,10 @@ def enable_explore(duration: str | None, cadence: int | None, intensity: str | N
             "last_check_at": None,
             "session_suggestions": [],
             "status": "active",
+            "notice_dispatched": {
+                "disabled": False,
+                "expired": False,
+            },
         }
     )
     save_state(state)
@@ -473,10 +481,28 @@ def check_once() -> tuple[bool, str]:
         if current_loc:
             state["last_location"] = current_loc.to_dict()
     
-    save_state(state)
     if not ok:
+        notice = state.get("notice_dispatched") or {"disabled": False, "expired": False}
+        if reason == "explore mode disabled":
+            if notice.get("disabled"):
+                save_state(state)
+                return False, reason
+            notice["disabled"] = True
+            state["notice_dispatched"] = notice
+            save_state(state)
+        elif reason == "explore mode expired":
+            if notice.get("expired"):
+                save_state(state)
+                return False, reason
+            notice["expired"] = True
+            state["notice_dispatched"] = notice
+            save_state(state)
+        else:
+            save_state(state)
         append_audit({"at": _serialize_dt(now), "event": "skip", "reason": reason})
         return False, reason
+    
+    save_state(state)
 
     suggestion = build_suggestion(state=state)
     message = format_suggestion_message(suggestion, state)
