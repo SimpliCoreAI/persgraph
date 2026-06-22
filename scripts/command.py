@@ -233,6 +233,84 @@ EXAMPLES
 
 Tip: use /pghelp anytime for this guide."""
 
+
+def _normalize_currency_code(value: str) -> str | None:
+    raw = (value or "").strip().lower()
+    aliases = {
+        "yen": "JPY",
+        "jpy": "JPY",
+        "¥": "JPY",
+        "dollar": "USD",
+        "dollars": "USD",
+        "usd": "USD",
+        "$": "USD",
+        "euro": "EUR",
+        "euros": "EUR",
+        "eur": "EUR",
+        "pound": "GBP",
+        "pounds": "GBP",
+        "gbp": "GBP",
+        "£": "GBP",
+        "won": "KRW",
+        "krw": "KRW",
+        "rupee": "INR",
+        "rupees": "INR",
+        "inr": "INR",
+        "aud": "AUD",
+        "cad": "CAD",
+    }
+    if raw in aliases:
+        return aliases[raw]
+    cleaned = re.sub(r"[^a-zA-Z]", "", raw).upper()
+    return cleaned if len(cleaned) == 3 else None
+
+
+def parse_currency_args(args: str) -> tuple[str | None, str | None, float | None]:
+    parts = [p for p in re.split(r"\s+", (args or "").strip()) if p]
+    if len(parts) < 3:
+        return None, None, None
+
+    amount = None
+    for idx in range(len(parts) - 1, -1, -1):
+        try:
+            amount = float(parts[idx].replace(",", ""))
+            amount_idx = idx
+            break
+        except ValueError:
+            continue
+    if amount is None:
+        return None, None, None
+
+    source_tokens = parts[:amount_idx]
+    target_tokens = parts[amount_idx + 1:]
+    if not source_tokens or not target_tokens:
+        return None, None, None
+
+    source = _normalize_currency_code(" ".join(source_tokens))
+    target = _normalize_currency_code(" ".join(target_tokens))
+    return source, target, amount
+
+def cmd_curr(args: str) -> str:
+    source, target, amount = parse_currency_args(args)
+    if not source or not target or amount is None:
+        return "❌ Usage: /Curr <source> <target> <amount> — examples: /Curr JPY USD 2000 | /Curr yen dollar 2000"
+
+    try:
+        import urllib.parse
+        import urllib.request
+        url = f"https://api.frankfurter.app/latest?from={urllib.parse.quote(source)}&to={urllib.parse.quote(target)}"
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        rate = float(data["rates"][target])
+        converted = amount * rate
+        return (
+            f"1 {source} = {rate:.6f} {target}\n"
+            f"{amount:g} {source} ≈ {converted:,.2f} {target}"
+        )
+    except Exception as e:
+        return f"❌ Currency lookup failed: {e}"
+
+
 def cmd_ingest(args: str, user: dict | None = None) -> str:
     # Parse --user flag
     args, flag_user = _parse_user_flag(args)
@@ -1259,6 +1337,7 @@ COMMANDS = {
     "/appointment": cmd_appointment,
     "/schedule":    cmd_schedule,
     "/TripToggle":  cmd_triptoggle,
+    "/Curr":        cmd_curr,
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
 }
