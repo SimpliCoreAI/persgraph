@@ -12,8 +12,8 @@ Usage:
         print(token, end="", flush=True)
 
 Tiers:
-    "smart"  → litellm/smart  (LiteLLM :4000, falls back to qwen3:32b → gpt-4o → claude-sonnet)
-    "fast"   → litellm/fast   (LiteLLM :4000, falls back to qwen3:8b → gpt-4o-mini → claude-haiku)
+    "smart"  → litellm/smart  (LiteLLM :4000, Sonnet fallback)
+    "fast"   → litellm/fast   (LiteLLM :4000, Haiku fallback)
 
 If LiteLLM is unreachable the wrapper falls back to direct Ollama.
 """
@@ -43,7 +43,8 @@ TIER_MAP: dict[str, str] = {
     "fast":  "fast",
 }
 
-# Tier → Ollama fallback model
+# Tier → direct fallback model when LiteLLM is unavailable.
+# Keep these on Anthropic-style models so we don't depend on Qwen availability.
 OLLAMA_FALLBACK: dict[str, str] = {
     "smart": settings.llm_heavy_model,
     "fast":  settings.llm_fast_model,
@@ -148,7 +149,7 @@ def _litellm_available() -> bool:
 
 
 def complete(prompt: str, tier: str = "smart", max_tokens: int = 2048) -> str:
-    """Non-streaming LLM completion via LiteLLM smart/fast, Ollama fallback."""
+    """Non-streaming LLM completion via LiteLLM smart/fast with Sonnet/Haiku fallback."""
     _maybe_inline_condense(tier, prompt)
     if _litellm_available():
         try:
@@ -178,7 +179,7 @@ def complete(prompt: str, tier: str = "smart", max_tokens: int = 2048) -> str:
 def complete_stream(
     prompt: str, tier: str = "smart"
 ) -> Generator[str, None, None]:
-    """Streaming LLM completion via LiteLLM smart/fast, Ollama fallback."""
+    """Streaming LLM completion via LiteLLM smart/fast with Sonnet/Haiku fallback."""
     _maybe_inline_condense(tier, prompt)
     if _litellm_available():
         try:

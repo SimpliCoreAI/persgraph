@@ -339,10 +339,12 @@ def _get_nearby_poi_suggestion(location: dict[str, Any]) -> ExploreSuggestion | 
         from second_brain.poi_provider import Location, nearby_pois
         import urllib.parse
 
-        # Parse location
+        # Parse location (support both legacy lat/lon and provider latitude/longitude keys)
+        lat = location.get("lat", location.get("latitude", 0))
+        lon = location.get("lon", location.get("longitude", 0))
         poi_location = Location(
-            latitude=location.get("lat", 0),
-            longitude=location.get("lon", 0),
+            latitude=float(lat),
+            longitude=float(lon),
             accuracy_m=location.get("accuracy_m"),
             source=location.get("source", "manual"),
         )
@@ -432,12 +434,38 @@ def build_suggestion(state: dict[str, Any] | None = None) -> ExploreSuggestion:
     2. Fallback if location not available
     """
     # Try location-based POI lookup (primary)
+    pref_cadence = None
+    try:
+        from second_brain import learning_db
+        prefs = learning_db.get_preferences(source="learned")
+        pref_cadence = prefs.get("explore_cadence_minutes")
+        skill_summary = learning_db.get_skill_summary(limit=20)
+        skill_map = {s.get("skill_name"): s for s in skill_summary}
+    except Exception:
+        prefs = {}
+        skill_map = {}
+
+    if state and pref_cadence:
+        try:
+            state["cadence_minutes"] = int(pref_cadence)
+        except Exception:
+            pass
+
     if state:
         last_location = state.get("last_location")
         if last_location:
             suggestion = _get_nearby_poi_suggestion(last_location)
             if suggestion:
                 return suggestion
+
+    if skill_map.get("prefers_poi", {}).get("confidence", 0) >= 0.7:
+        try:
+            if state and state.get("last_location"):
+                suggestion = _get_nearby_poi_suggestion(state["last_location"])
+                if suggestion:
+                    return suggestion
+        except Exception:
+            pass
 
     # Fallback when no location or POI results
     return _fallback_suggestion()
@@ -467,6 +495,19 @@ def format_suggestion_message(suggestion: ExploreSuggestion, state: dict[str, An
 
 def format_feedback_message(event_id: str) -> str:
     return f"🆔 Explore Event ID: `{event_id}`"
+
+
+def format_suggestion_buttons(state: dict[str, Any]) -> dict[str, Any] | None:
+    event_id = state.get("last_event_id")
+    if not event_id:
+        return None
+    return {
+        "buttons": [
+            {"label": "✅ Accept", "value": f"fb:accept:{event_id}"},
+            {"label": "⏭ Skip", "value": f"fb:skip:{event_id}"},
+            {"label": "🔖 Save", "value": f"fb:bookmark:{event_id}"},
+        ]
+    }
 
 
 def check_once() -> tuple[bool, str]:

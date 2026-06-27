@@ -170,6 +170,66 @@ def extract_command_patterns(
     return actions
 
 
+def extract_judged_quality(
+    outcomes: list[dict], dry_run: bool = False
+) -> list[str]:
+    """
+    Learn from judged response outcomes.
+
+    Produces lightweight skills/preferences from eval_responses.py output so
+    judged response quality actually feeds back into the learning loop.
+    """
+    judged = [o for o in outcomes if o.get("outcome_type") == "judged"]
+    if not judged:
+        return []
+
+    by_command: dict[str, list[float]] = defaultdict(list)
+    by_command_usefulness: dict[str, list[float]] = defaultdict(list)
+
+    for o in judged:
+        meta = o.get("metadata", {}) or {}
+        scores = meta.get("scores", {}) or {}
+        cmd = (meta.get("command") or meta.get("source_command") or "unknown").strip() or "unknown"
+        overall = scores.get("overall_score")
+        usefulness = scores.get("usefulness")
+        if isinstance(overall, (int, float)):
+            by_command[cmd].append(float(overall))
+        if isinstance(usefulness, (int, float)):
+            by_command_usefulness[cmd].append(float(usefulness))
+
+    actions: list[str] = []
+    for cmd, scores in by_command.items():
+        avg_overall = sum(scores) / len(scores)
+        skill_name = f"high_quality_command_{cmd.strip('/').lower().replace(' ', '_')}"
+        action = f"skill: {skill_name} confidence={avg_overall/5.0:.2f} signals={len(scores)}"
+        actions.append(action)
+        if not dry_run:
+            learning_db.create_skill(
+                skill_name=skill_name,
+                skill_category="ranker",
+                confidence=round(min(avg_overall / 5.0, 1.0), 3),
+                signal_strength=len(scores),
+                skill_data={"command": cmd, "avg_overall_score": avg_overall},
+            )
+
+    for cmd, scores in by_command_usefulness.items():
+        avg_usefulness = sum(scores) / len(scores)
+        if avg_usefulness >= 2.5:
+            continue
+        pref_key = f"response_usefulness_alert_{cmd.strip('/').lower().replace(' ', '_')}"
+        action = f"pref: {pref_key}=low usefulness={avg_usefulness:.2f} signals={len(scores)}"
+        actions.append(action)
+        if not dry_run:
+            learning_db.set_preference(
+                pref_key,
+                "low",
+                source="learned",
+                confidence=0.7,
+            )
+
+    return actions
+
+
 # ---------------------------------------------------------------------------
 # Main runner
 # ---------------------------------------------------------------------------

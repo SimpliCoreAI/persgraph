@@ -168,18 +168,18 @@ def try_saved_location() -> Optional[Location]:
 def get_current_location() -> Optional[Location]:
     """
     Resolve current location via preference chain:
-      1. OpenClaw device GPS
+      1. OpenClaw device GPS / live lookup
       2. Manual override (env var)
-      3. Saved/cached location
+      3. Saved/cached location only if recently refreshed
       4. None (degrade gracefully)
     """
-    # Try device first
+    # Try live/device location first
     device_loc = try_openclaw_location()
     if device_loc:
         save_location_cache(device_loc)
         return device_loc
-    
-    # Fall back to saved
+
+    # Fall back to saved only if there is fresh cached data
     saved_loc = try_saved_location()
     return saved_loc
 

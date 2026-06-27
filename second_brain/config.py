@@ -17,9 +17,10 @@ class Settings(BaseSettings):
     # Ollama / LiteLLM routing
     ollama_base_url: str = "http://localhost:11434"
     embed_model: str = "nomic-embed-text"
-    llm_model: str = "qwen2.5:72b"
-    llm_fast_model: str = "qwen2.5:7b"
-    llm_heavy_model: str = "qwen2.5:72b"
+    # Default to Android-side models when LiteLLM routing is unavailable.
+    llm_model: str = "claude-sonnet-4-6"
+    llm_fast_model: str = "claude-haiku-4-5"
+    llm_heavy_model: str = "claude-sonnet-4-6"
     llm_router_default: str = "smart"  # smart | fast
 
     # ChromaDB

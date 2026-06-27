@@ -652,7 +652,9 @@ def cmd_places(text: str) -> str:
     if not results:
         return f"No places found{' in ' + city_filter if city_filter else ''}. Save one with /place <name>, <city>"
 
+    # Deterministic fallback (also what we feed the LLM as structured source).
     lines = [header, ""]
+    base_rows = []
     for p in results:
         name = p.get("name", "?")
         city = p.get("city", "")
@@ -668,8 +670,28 @@ def cmd_places(text: str) -> str:
         maps = p.get("maps_url", "")
         maps_str = f"\n  🗺 {maps}" if maps else ""
         lines.append(f"• {name}, {city} [{cat}]{stars}{desc_str}{maps_str}")
+        base_rows.append(
+            f"- name={name} | city={city} | category={cat}"
+            f" | rating={rating or ''} | notes={notes or ''} | maps={maps or ''}"
+        )
 
-    return "\n".join(lines)
+    fallback = "\n".join(lines)
+
+    # Prefer an LLM-formatted, bullet-style view (consistent with /bucketlist).
+    base = f"{header}\nSaved places:\n" + "\n".join(base_rows)
+    prompt = f"""Format this list of saved places as a visually pleasing Telegram message.
+Rules:
+- Start with the title line exactly as given: {header}
+- One bullet per place: • Name, City [Category] with optional ⭐ rating
+- Add a short description after an em dash if notes exist (keep under ~80 chars)
+- If a maps URL exists, put it on an indented second line as: 🗺 <url>
+- Preserve every maps URL exactly; do not invent, drop, or alter any link
+- Do not invent places, ratings, or details not present in the source
+- Keep it compact and readable
+
+{base}
+"""
+    return _llm_format(prompt, fallback, tier="fast")
 
 
 def _llm_format(prompt: str, fallback: str, tier: str = "fast") -> str:
@@ -940,7 +962,10 @@ def _parse_triptoggle_args(text: str) -> tuple[str, str | None, int | None, str 
     if not tokens:
         return "", None, None, None
 
-    action = tokens[0].lower()
+    action = tokens[0].lower().lstrip("/")
+    if action == "triptoggle" and len(tokens) > 1:
+        action = tokens[1].lower()
+        tokens = [tokens[0]] + tokens[1:]
     duration = None
     cadence = None
     intensity = None
@@ -959,10 +984,32 @@ def _parse_triptoggle_args(text: str) -> tuple[str, str | None, int | None, str 
     return action, duration, cadence, intensity
 
 
+def _handle_feedback_callback(text: str) -> str | None:
+    raw = (text or "").strip()
+    if not raw.startswith("fb:"):
+        return None
+    try:
+        _, action, event_id = raw.split(":", 2)
+    except ValueError:
+        return "❌ Invalid feedback callback"
+
+    if action == "accept":
+        return cmd_explore_accept(event_id)
+    if action == "skip":
+        return cmd_explore_skip(event_id)
+    if action == "bookmark":
+        return cmd_explore_bookmark(event_id)
+    return "❌ Unknown feedback action"
+
+
 def cmd_triptoggle(text: str) -> str:
     from scripts.explore_mode import disable_explore, enable_explore, format_toggle_off, format_toggle_on, status_text, build_suggestion, format_suggestion_message, check_once
 
     raw = (text or "").strip()
+    feedback = _handle_feedback_callback(raw)
+    if feedback is not None:
+        return feedback
+
     if not raw:
         return (
             "❌ Usage: /TripToggle On [duration] [cadence] [intensity] | /TripToggle Off\n"
@@ -970,7 +1017,9 @@ def cmd_triptoggle(text: str) -> str:
         )
 
     action, duration, cadence, intensity = _parse_triptoggle_args(raw)
-    if action == "on":
+    if raw.lower() in {"/triptoggle on", "triptoggle on"}:
+        action = "on"
+    if action in {"on", "triptoggle"}:
         state = enable_explore(duration=duration, cadence=cadence, intensity=intensity)
         # Keep the persisted explore-state file aligned with the live toggle path.
         try:

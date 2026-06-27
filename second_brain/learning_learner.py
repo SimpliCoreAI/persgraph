@@ -113,6 +113,48 @@ def process_outcomes_into_skills(outcomes: list[dict[str, Any]]) -> dict[str, st
         if skill_id:
             skills_created["skip"] = skill_id
             logger.info(f"Created skill: user_skip_pattern ({skill_id})")
+
+    # Pattern 3: Judged responses influence response-quality skills
+    judged = [o for o in outcomes if o.get("outcome_type") == "judged"]
+    if judged:
+        overall_scores = []
+        usefulness_scores = []
+        for o in judged:
+            meta = o.get("metadata", {}) or {}
+            scores = meta.get("scores", {}) or {}
+            if isinstance(scores.get("overall_score"), (int, float)):
+                overall_scores.append(float(scores["overall_score"]))
+            if isinstance(scores.get("usefulness"), (int, float)):
+                usefulness_scores.append(float(scores["usefulness"]))
+
+        if overall_scores:
+            avg_overall = sum(overall_scores) / len(overall_scores)
+            skill_id = learning_db.create_skill(
+                skill_name="response_quality_pattern",
+                skill_category="quality",
+                confidence=min(avg_overall / 5.0, 0.95),
+                signal_strength=len(overall_scores),
+                skill_data={
+                    "avg_overall_score": avg_overall,
+                    "judged_count": len(overall_scores),
+                },
+            )
+            if skill_id:
+                skills_created["judged_quality"] = skill_id
+                logger.info(f"Created skill: response_quality_pattern ({skill_id})")
+
+        if usefulness_scores:
+            avg_usefulness = sum(usefulness_scores) / len(usefulness_scores)
+            if avg_usefulness < 2.5:
+                pref_id = learning_db.set_preference(
+                    "response_usefulness_alert",
+                    "low",
+                    source="learned",
+                    confidence=0.7,
+                )
+                if pref_id:
+                    prefs_set["response_usefulness_alert"] = pref_id
+                    logger.info(f"Updated preference: response_usefulness_alert=low ({pref_id})")
     
     return skills_created
 

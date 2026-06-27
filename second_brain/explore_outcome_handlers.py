@@ -16,7 +16,7 @@ from __future__ import annotations
 import sys
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,13 @@ try:
 except (ImportError, ModuleNotFoundError):
     LEARNING_AVAILABLE = False
     logger.warning("Learning layer not available; outcome handlers will be no-ops")
+
+
+def _extract_event_id_and_title(event_id: str, suggestion_title: str = "suggestion") -> tuple[str, str]:
+    parts = (event_id or "").split("|", 1)
+    if len(parts) == 2 and parts[0].strip():
+        return parts[0].strip(), parts[1].strip() or suggestion_title
+    return (event_id or "").strip(), suggestion_title
 
 
 def cmd_explore_accept(event_id: str, suggestion_title: str = "suggestion", engagement_seconds: Optional[int] = None) -> str:
@@ -58,9 +65,10 @@ def cmd_explore_accept(event_id: str, suggestion_title: str = "suggestion", enga
     if not event_id or event_id.strip() == "":
         return "❌ Usage: /explore_accept <event_id>"
     
+    event_id, suggestion_title = _extract_event_id_and_title(event_id, suggestion_title)
     try:
         outcome_id = on_suggestion_accepted(
-            event_id=event_id.strip(),
+            event_id=event_id,
             suggestion_title=suggestion_title,
             suggestion_category="poi",
             engagement_seconds=engagement_seconds,
@@ -92,9 +100,10 @@ def cmd_explore_click(event_id: str, suggestion_title: str = "suggestion", engag
     if not event_id or event_id.strip() == "":
         return "❌ Usage: /explore_click <event_id>"
     
+    event_id, suggestion_title = _extract_event_id_and_title(event_id, suggestion_title)
     try:
         outcome_id = on_suggestion_clicked(
-            event_id=event_id.strip(),
+            event_id=event_id,
             suggestion_title=suggestion_title,
             suggestion_category="poi",
             engagement_seconds=engagement_seconds,
@@ -126,9 +135,10 @@ def cmd_explore_bookmark(event_id: str, suggestion_title: str = "suggestion", en
     if not event_id or event_id.strip() == "":
         return "❌ Usage: /explore_bookmark <event_id>"
     
+    event_id, suggestion_title = _extract_event_id_and_title(event_id, suggestion_title)
     try:
         outcome_id = on_suggestion_bookmarked(
-            event_id=event_id.strip(),
+            event_id=event_id,
             suggestion_title=suggestion_title,
             suggestion_category="poi",
             engagement_seconds=engagement_seconds,
@@ -159,9 +169,10 @@ def cmd_explore_skip(event_id: str, reason: str = "user_dismissed") -> str:
     if not event_id or event_id.strip() == "":
         return "❌ Usage: /explore_skip <event_id> [reason]"
     
+    event_id, _ = _extract_event_id_and_title(event_id)
     try:
         outcome_id = on_suggestion_skipped(
-            event_id=event_id.strip(),
+            event_id=event_id,
             reason=reason,
             engagement_seconds=None,
         )

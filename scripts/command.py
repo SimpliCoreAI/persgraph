@@ -57,7 +57,7 @@ _REQUEST_TYPE_MAP: dict[str, str] = {
     "/debrief":      "summary_request",
     "/sport":        "sports_query",
 }
-_EXCLUDED_FROM_FEEDBACK: set[str] = {"/pghelp", "/status"}
+_EXCLUDED_FROM_FEEDBACK: set[str] = {"/pghelp", "/status", "/eval"}
 
 
 
@@ -211,6 +211,7 @@ REPORTS & UTILITIES
 • /Curr <source> <target> <amount> — convert currency using a live exchange rate
 • /sport [soccer|football|nba] — sports schedule
 • /email ... — send or manage email workflow
+• /eval [n|dry|id <event_id>] — judge recent responses & persist learning outcomes
 • /status — collection + queue stats
 • /status service — app service + route health
 • /status ops — smoke test + deploy posture
@@ -731,7 +732,9 @@ def cmd_places(text: str) -> str:
     if not results:
         return f"No places found{' in ' + city_filter if city_filter else ''}. Save one with /place <name>, <city>"
 
+    # Deterministic fallback (also what we feed the LLM as structured source).
     lines = [header, ""]
+    base_rows = []
     for p in results:
         name = p.get("name", "?")
         city = p.get("city", "")
@@ -747,8 +750,28 @@ def cmd_places(text: str) -> str:
         maps = p.get("maps_url", "")
         maps_str = f"\n  🗺 {maps}" if maps else ""
         lines.append(f"• {name}, {city} [{cat}]{stars}{desc_str}{maps_str}")
+        base_rows.append(
+            f"- name={name} | city={city} | category={cat}"
+            f" | rating={rating or ''} | notes={notes or ''} | maps={maps or ''}"
+        )
 
-    return "\n".join(lines)
+    fallback = "\n".join(lines)
+
+    # Prefer an LLM-formatted, bullet-style view (consistent with /bucketlist).
+    base = f"{header}\nSaved places:\n" + "\n".join(base_rows)
+    prompt = f"""Format this list of saved places as a visually pleasing Telegram message.
+Rules:
+- Start with the title line exactly as given: {header}
+- One bullet per place: • Name, City [Category] with optional ⭐ rating
+- Add a short description after an em dash if notes exist (keep under ~80 chars)
+- If a maps URL exists, put it on an indented second line as: 🗺 <url>
+- Preserve every maps URL exactly; do not invent, drop, or alter any link
+- Do not invent places, ratings, or details not present in the source
+- Keep it compact and readable
+
+{base}
+"""
+    return _llm_format(prompt, fallback, tier="fast")
 
 
 def _llm_format(prompt: str, fallback: str, tier: str = "fast") -> str:
@@ -1303,6 +1326,72 @@ def cmd_email(text: str) -> str:
         return f"❌ Email error: {e}"
 
 
+def cmd_eval(args: str = "") -> str:
+    """Run the response-learning judge over recent responses and persist outcomes.
+
+    Usage:
+      /eval                 judge recent responses (default limit 10), persist outcomes
+      /eval <n>             judge the most recent <n> response events
+      /eval id <event_id>   judge one specific response event by ID
+      /eval dry [<n>]       judge but do NOT persist (dry run)
+    """
+    try:
+        from scripts.eval_responses import evaluate
+    except (ImportError, ModuleNotFoundError):
+        try:
+            from eval_responses import evaluate  # when run from scripts/ dir
+        except (ImportError, ModuleNotFoundError) as e:
+            return f"❌ Eval unavailable: {e}"
+
+    tokens = args.split()
+    limit = 10
+    response_id = ""
+    persist = True
+
+    try:
+        if tokens:
+            head = tokens[0].lower()
+            if head == "id" and len(tokens) >= 2:
+                response_id = tokens[1]
+            elif head == "dry":
+                persist = False
+                if len(tokens) >= 2 and tokens[1].isdigit():
+                    limit = int(tokens[1])
+            elif head.isdigit():
+                limit = int(head)
+    except Exception:
+        pass
+
+    try:
+        results = evaluate(limit=limit, response_id=response_id, persist=persist)
+    except Exception as e:
+        return f"❌ Eval run failed: {e}"
+
+    if response_id and not results:
+        return f"❌ Response ID not found: {response_id}"
+    if not results:
+        return "🔍 No response events to evaluate yet."
+
+    judged = [r for r in results if not r.skipped_reason]
+    skipped = [r for r in results if r.skipped_reason]
+    persisted = [r for r in judged if r.persisted]
+    scores = [
+        float(r.judge.get("overall_score", 0) or 0)
+        for r in judged if r.judge
+    ]
+    avg = (sum(scores) / len(scores)) if scores else 0.0
+
+    lines = ["🧪 Response eval complete"]
+    lines.append(f"• Evaluated: {len(judged)}  |  Skipped (already judged): {len(skipped)}")
+    if persist:
+        lines.append(f"• Outcomes persisted: {len(persisted)}")
+    else:
+        lines.append("• Dry run (no outcomes persisted)")
+    if scores:
+        lines.append(f"• Avg overall score: {avg:.2f}/5")
+    return "\n".join(lines)
+
+
 # Import learning layer outcome handlers
 try:
     from second_brain.explore_outcome_handlers import (
@@ -1340,6 +1429,7 @@ COMMANDS = {
     "/Curr":        cmd_curr,
     "/sport":       cmd_sport,
     "/debrief":     cmd_debrief,
+    "/eval":        cmd_eval,
 }
 
 # Learning layer outcome handlers (registered if available)
@@ -1447,8 +1537,8 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
     # ─────────────────────────────────────────────────────────────────────────
 
     # Record response feedback (no-op if learning_db unavailable)
-    if RESPONSE_FEEDBACK_AVAILABLE:
-        cmd_name = raw_input.split()[0] if raw_input else "unknown"
+    cmd_name = raw_input.split()[0] if raw_input else "unknown"
+    if RESPONSE_FEEDBACK_AVAILABLE and cmd_name.lower() not in _EXCLUDED_FROM_FEEDBACK:
         result, feedback_event_id = record_response_feedback(
             result,
             command=cmd_name,
