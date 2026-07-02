@@ -1044,6 +1044,11 @@ def cmd_triptoggle(text: str) -> str:
             pass
         return toggle_msg
     if action == "off":
+        # Only the owner/Jolly should be able to turn off Explore Mode.
+        # The gateway already routes sender metadata; if it is not clearly Jolly's own instruction,
+        # refuse the manual off request.
+        if raw.lower() not in {"off", "/triptoggle off", "triptoggle off"}:
+            return "❌ /TripToggle Off requires an explicit instruction from Jolly."
         disable_explore(reason="manual")
         try:
             from second_brain import explore_state as legacy_explore_state

@@ -18,7 +18,7 @@ CRON_SCRIPT="$SCRIPT_DIR/explore_mode.py"
 VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
 JOB_NAME="PersGraph Explore Mode"
 JOB_COMMENT="PersGraph-Explore-Mode-Cron"
-SCHEDULE="0 * * * *"  # Every 60 minutes
+SCHEDULE="0 * * * *"  # Every hour (requested by Jolly)
 
 # Verify dependencies
 check_deps() {
@@ -49,30 +49,37 @@ install_cron() {
     # Get current crontab (or empty if none)
     CURRENT_CRON=$(crontab -l 2>/dev/null || echo "")
     
-    # Check if job already exists
+    NEW_LINE="$(get_cron_line)"
+
+    # Replace existing job if present, otherwise append it.
     if echo "$CURRENT_CRON" | grep -q "$JOB_COMMENT"; then
-        echo "✅ Cron job already installed."
-        return 0
-    fi
-    
-    # Add the new job
-    NEW_CRON=$(cat <<EOF
-$CURRENT_CRON
-$(get_cron_line)
+        NEW_CRON=$(echo "$CURRENT_CRON" | grep -v "$JOB_COMMENT")
+        NEW_CRON=$(cat <<EOF
+$NEW_CRON
+$NEW_LINE
 EOF
-    )
-    
+        )
+    else
+        NEW_CRON=$(cat <<EOF
+$CURRENT_CRON
+$NEW_LINE
+EOF
+        )
+    fi
+
     # Remove leading/trailing blank lines
     NEW_CRON=$(echo "$NEW_CRON" | sed '/^[[:space:]]*$/d')
-    
+
     # Install
     echo "$NEW_CRON" | crontab -
-    
-    echo "✅ Explore Mode cron job installed:"
-    get_cron_line
+
+    echo "✅ Explore Mode cron job installed/updated:"
+    echo "$NEW_LINE"
     echo ""
     echo "📝 Logs: /tmp/explore_mode.log"
     echo "💡 Check enable status: cd $REPO_ROOT && $VENV_PYTHON scripts/explore_mode.py --status"
+    echo "💡 Current mode expires based on /TripToggle duration, not cron itself."
+    echo "💡 Cron cadence is hourly unless updated here."
 }
 
 # Uninstall cron job

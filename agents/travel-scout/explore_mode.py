@@ -572,7 +572,11 @@ def check_once() -> tuple[bool, str]:
     save_state(state)
     append_audit({"at": _serialize_dt(now), "event": "suggestion", "title": suggestion.title, "tag": suggestion.tag})
     if event_id:
-        return True, message + "\n\n" + format_feedback_message(event_id)
+        full_message = message + "\n\n" + format_feedback_message(event_id)
+        buttons = format_suggestion_buttons(state)
+        if buttons:
+            full_message = full_message + "\n\nCLARIFY_JSON:" + json.dumps(buttons)
+        return True, full_message
     return True, message
 
 
