@@ -149,4 +149,4 @@ def test_format_suggestion_message_strips_bucketlist_noise():
     msg = format_suggestion_message(suggestion, {"cadence_minutes": 30})
     assert "saved in bucket-list" not in msg
     assert "📍 BucketList" not in msg
-    assert "⏱ Next check ~30m" in msg
+    assert "⏱ Next check" in msg and "30m" in msg

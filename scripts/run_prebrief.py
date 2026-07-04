@@ -62,6 +62,9 @@ from second_brain.connectors.fixture_loader import (
 class PrebriefConfig:
     """Load and manage prebrief configuration."""
 
+    # Set to True in tests to prevent .env file loading from overriding env vars
+    _testing: bool = False
+
     def __init__(self, dry_run: bool = False):
         """
         Initialize prebrief config.
@@ -77,7 +80,14 @@ class PrebriefConfig:
         self._load_env()
 
     def _load_env(self) -> None:
-        """Load environment variables from .env and .env.local."""
+        """Load environment variables from .env and .env.local.
+
+        Skipped when PrebriefConfig._testing is True or when the
+        PERSGRAPH_SKIP_DOTENV environment variable is set.
+        (Used in tests to prevent .env files from overriding mocked environments.)
+        """
+        if PrebriefConfig._testing or os.environ.get("PERSGRAPH_SKIP_DOTENV"):
+            return
         env_files = [".env", ".env.local"]
         for env_file in env_files:
             if Path(env_file).exists():

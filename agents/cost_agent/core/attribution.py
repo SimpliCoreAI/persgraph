@@ -93,8 +93,8 @@ class AttributionExtractor:
             if "operation_type" in metadata:
                 return str(metadata["operation_type"])
         
-        # Default fallback
-        return OperationType.OTHER.value if name else None
+        # Default fallback — always return "other" rather than None
+        return OperationType.OTHER.value
     
     def extract_model_info(self, observation: dict) -> dict:
         """

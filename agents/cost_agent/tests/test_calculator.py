@@ -95,7 +95,9 @@ class TestCostCalculator(unittest.TestCase):
         self.assertEqual(len(results), 3)
         self.assertAlmostEqual(results[0][0], 0.0028, places=5)  # Haiku
         self.assertEqual(results[1][0], 0.0)  # Ollama (free)
-        self.assertAlmostEqual(results[2][0], 0.0018, places=5)  # Sonnet
+        # Sonnet: $3.00/1M input, $15.00/1M output
+        # (100/1M * 3.00) + (50/1M * 15.00) = 0.0003 + 0.00075 = 0.00105
+        self.assertAlmostEqual(results[2][0], 0.00105, places=5)  # Sonnet
 
 
 class TestCostCalculatorPrecision(unittest.TestCase):

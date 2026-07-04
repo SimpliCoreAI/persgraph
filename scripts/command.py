@@ -39,6 +39,15 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env.local")
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
 # ---------------------------------------------------------------------------
+# Module-level learning_db import — kept at top level so tests can patch via
+# `scripts.command.learning_db`.  Import is soft: None if unavailable.
+# ---------------------------------------------------------------------------
+try:
+    from second_brain import learning_db  # type: ignore[assignment]
+except Exception:
+    learning_db = None  # type: ignore[assignment]
+
+# ---------------------------------------------------------------------------
 # Feedback wrapper — request type mapping and exclusions
 # ---------------------------------------------------------------------------
 _REQUEST_TYPE_MAP: dict[str, str] = {
@@ -133,6 +142,22 @@ def _parse_datetime_loose(text: str) -> tuple[datetime | None, str | None]:
                 if ampm == 'am' and hour == 12:
                     hour = 0
             dt = dt.replace(hour=hour, minute=minute)
+        return dt, title.strip()
+
+    # "title, tomorrow [HH[am/pm]]" pattern
+    m = re.match(r'^(.+?),\s+tomorrow\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$', s, re.I)
+    if m:
+        title, hour_s, minute_s, ampm = m.groups()
+        hour = int(hour_s)
+        minute = int(minute_s or 0)
+        if ampm:
+            ampm = ampm.lower()
+            if ampm == 'pm' and hour != 12:
+                hour += 12
+            if ampm == 'am' and hour == 12:
+                hour = 0
+        base = now + timedelta(days=1)
+        dt = base.replace(hour=hour, minute=minute, second=0, microsecond=0)
         return dt, title.strip()
 
     return None, None
@@ -1466,7 +1491,7 @@ def _attach_feedback_id(
         cmd_lower = cmd_name.lower()
         if cmd_lower in _EXCLUDED_FROM_FEEDBACK:
             return response
-        if len(response.strip()) < 20:
+        if len(response.strip()) < 5:
             return response
         if "🆔 Event ID" in response:
             return response  # already emitted by cmd handler
@@ -1476,8 +1501,9 @@ def _attach_feedback_id(
         user_tier = (user or {}).get("tier", "unknown")
 
         try:
-            from second_brain import learning_db
-            event_id = learning_db.record_event(
+            # Use module-level learning_db so tests can patch via scripts.command.learning_db
+            if learning_db is not None:
+                event_id = learning_db.record_event(
                 event_type="command_usage",
                 metadata={
                     "command": cmd_lower,
@@ -1487,9 +1513,9 @@ def _attach_feedback_id(
                     "user_tier": user_tier,
                     "response_length": len(response),
                 },
-            )
-            if event_id:
-                return response + f"\n\n🆔 Event ID: `{event_id}`"
+                )
+                if event_id:
+                    return response + f"\n\n🆔 Event ID: `{event_id}`"
         except Exception:
             pass  # learning DB not critical
 

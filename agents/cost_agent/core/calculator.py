@@ -37,16 +37,17 @@ class CostCalculator:
             logger.warning(f"Negative token counts: input={input_tokens}, output={output_tokens}")
             return 0.0, "unknown"
         
-        # Handle zero tokens case
-        if input_tokens == 0 and output_tokens == 0:
-            return 0.0, "unknown"
-        
         pricing = get_pricing(model)
         provider = pricing["provider"]
+
+        # Handle zero tokens case — still return the correct provider
+        if input_tokens == 0 and output_tokens == 0:
+            return 0.0, provider
         
-        # Calculate cost: (tokens / 1M) * (price per 1M)
-        input_cost = (input_tokens / 1_000_000) * pricing["input"]
-        output_cost = (output_tokens / 1_000_000) * pricing["output"]
+        # Calculate cost: (tokens / 1M) * (price per 1M in USD)
+        # Pricing table stores values in cents per 1M, so divide by 100 to get USD
+        input_cost = (input_tokens / 1_000_000) * (pricing["input"] / 100)
+        output_cost = (output_tokens / 1_000_000) * (pricing["output"] / 100)
         total_cost = input_cost + output_cost
         
         # Round to 6 decimal places (USD precision)
