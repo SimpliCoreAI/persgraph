@@ -1501,6 +1501,12 @@ def _attach_feedback_id(
 def run(raw_input: str, sender_id: str | None = None) -> str:
     raw_input = raw_input.strip()
     user = resolve_user(sender_id)
+
+    # Semantic routing opt-in for free-text requests
+    if os.environ.get("PERSGRAPH_SEMANTIC_ROUTING") and not raw_input.startswith("/"):
+        from agents.orchestrator.orchestrator import run_with_semantic_routing
+        return run_with_semantic_routing(raw_input, sender_id)
+
     # Map legacy model hints → LiteLLM virtual model tiers
     _model_raw = user.get("model", "haiku")
     _hint_map = {

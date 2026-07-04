@@ -251,5 +251,53 @@ class TestBackwardCompatibility(unittest.TestCase):
             self.assertIn(cmd, command_handler.COMMANDS)
 
 
+class TestSemanticRoutingFlag(unittest.TestCase):
+    def test_run_with_semantic_routing_exists(self):
+        from agents.orchestrator.orchestrator import run_with_semantic_routing
+        self.assertTrue(callable(run_with_semantic_routing))
+
+    def test_command_run_semantic_flag_present(self):
+        from pathlib import Path
+        command_py = Path('/root/AgenticHub/Persgraph/scripts/command.py').read_text()
+        self.assertIn('PERSGRAPH_SEMANTIC_ROUTING', command_py)
+        self.assertIn('run_with_semantic_routing', command_py)
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSemanticRouter(unittest.TestCase):
+    def test_capture_intent_from_free_text(self):
+        from agents.orchestrator.semantic_router import classify_request
+        result = classify_request("remind me to buy milk and save it")
+        self.assertEqual(result.intent, "capture")
+        self.assertEqual(result.workflow, "capture_workflow")
+        self.assertEqual(result.model_preference, "haiku")
+
+    def test_calendar_intent_from_free_text(self):
+        from agents.orchestrator.semantic_router import classify_request
+        result = classify_request("schedule a meeting with Sam next Tuesday")
+        self.assertEqual(result.intent, "calendar")
+        self.assertEqual(result.workflow, "calendar_workflow")
+        self.assertEqual(result.model_preference, "gemini")
+
+    def test_reasoning_over_command_hint_when_ask(self):
+        from agents.orchestrator.semantic_router import classify_request
+        result = classify_request(
+            "compare these two plans and explain tradeoffs", command_hint="/ask"
+        )
+        self.assertEqual(result.intent, "reasoning")
+        self.assertEqual(result.model_preference, "sonnet")
+
+    def test_command_hint_still_guides_capture(self):
+        from agents.orchestrator.semantic_router import classify_request
+        result = classify_request("something vague", command_hint="/note")
+        self.assertEqual(result.intent, "capture")
+
+    def test_route_semantically_returns_expected_shape(self):
+        from agents.orchestrator.semantic_router import route_semantically
+        routed = route_semantically("find the best sushi near downtown")
+        self.assertIn("intent", routed)
+        self.assertIn("workflow", routed)
+        self.assertEqual(routed["route_kind"], "semantic-first")

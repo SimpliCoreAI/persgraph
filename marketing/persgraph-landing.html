@@ -462,24 +462,24 @@
   <div class="hero-content">
     <div class="hero-badge">
       <span></span>
-      Built on OpenClaw · Open-source · Self-hosted agent runtime
+      Your private AI · Always on · Self-hosted
     </div>
     <h1>
-      Your personal data,<br/>
-      <span class="gradient">graphed & queryable</span>
+      Your private AI that runs 24/7,<br/>
+      <span class="gradient">knows your life and delivers what matters</span>
     </h1>
     <p class="hero-sub">
-      PersGraph is a self-hosted agent layer for the messy work around people, projects, and operations — one place to capture context, retrieve truth, and take approved action without bouncing across tabs, tools, and chat threads.
+      PersGraph is a self-hosted personal AI built on the OpenClaw runtime that connects your real life — emails, calendar, notes, travel plans, tasks, and saved places — into one system you can talk to. It runs on your own server, costs pennies a day to operate, and keeps your data under your control. Every morning it briefs you. Every command it remembers. Nothing leaves your machine.
     </p>
     <div class="hero-actions">
-      <a href="#features" class="btn-primary">Explore features</a>
+      <a href="#features" class="btn-primary">Explore workflows</a>
       <a href="#how" class="btn-secondary">See how it works</a>
     </div>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Data Sources</div></div>
-      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Local & Private</div></div>
-      <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Queryable Memory</div></div>
-      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Cloud Deps</div></div>
+      <div class="stat"><div class="stat-num">Always On</div><div class="stat-label">Runs 24/7</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Private</div></div>
+      <div class="stat"><div class="stat-num">Pennies/Day</div><div class="stat-label">Low cost to run</div></div>
+      <div class="stat"><div class="stat-num">Zero</div><div class="stat-label">Subscriptions</div></div>
     </div>
   </div>
 </section>
@@ -487,23 +487,22 @@
 <!-- Terminal demo -->
 <section class="demo-section" id="demo">
   <div class="section-label">Everyday Commands</div>
-  <h2 class="section-title">The personal AI command layer for your life</h2>
-  <p class="section-sub">From ingesting links and notes to saving places, bucket-list ideas, appointments, reminders, agenda checks, and on-demand digests, PersGraph gives you a clean command surface over the chaos of daily life.</p>
+  <h2 class="section-title">Everything you want to remember, find, or act on — in one place, from Telegram</h2>
+  <p class="section-sub">From links and notes to places, travel, tasks, appointments, reminders, agenda checks, and on-demand digests, PersGraph gives you one place to talk to your life.</p>
   <div class="terminal">
     <div class="terminal-bar">
       <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
       <div class="terminal-title">persgraph — personal data shell</div>
     </div>
     <div class="terminal-body">
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/ingest https://example.com/article</span></div>
-      <div class="t-out">🌐 Indexed raw source:<br/>
-        &nbsp;· Article chunked for semantic search <span class="t-tag">ingest</span>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">Semantic plan a trip to Tahoe next weekend</span></div>
+      <div class="t-out">🌐 Understands intent and routes to travel workflow <span class="t-tag">semantic</span>
       </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/note book Japan trip ideas</span></div>
       <div class="t-out">📝 Quick note captured:<br/>
         &nbsp;· Japan trip ideas <span class="t-tag">sqlite</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/place Fujiya Camera, Tokyo</span></div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">Semantic: find a good camera shop in Tokyo</span></div>
       <div class="t-out">✅ Saved place:<br/>
         &nbsp;· Fujiya Camera — Tokyo <span class="t-tag">shop</span><span class="t-tag">travel</span>
       </div>
@@ -511,7 +510,7 @@
       <div class="t-out">🧭 Bucket list saved:<br/>
         &nbsp;· Kurama Onsen — Kyoto <span class="t-tag">bucketlist</span><span class="t-tag">travel</span>
       </div>
-      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/appointment Dentist, Jun 20, 2pm</span></div>
+      <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">Semantic: remind me about dentist on Jun 20 at 2pm</span></div>
       <div class="t-out">📅 Appointment saved:<br/>
         &nbsp;· Dentist — Jun 20, 2:00 PM PDT <span class="t-tag">calendar</span>
       </div>
@@ -521,7 +520,7 @@
       </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/debrief</span></div>
       <div class="t-out">🧭 Debrief flow ready:<br/>
-        &nbsp;· Capture what happened, what matters, and what to do next <span class="t-tag">workflow</span>
+        &nbsp;· Understand what happened, what matters, and what to do next <span class="t-tag">workflow</span>
       </div>
       <div class="t-line"><span class="t-prompt">→</span><span class="t-cmd">/schedule week</span></div>
       <div class="t-out">🗓 This week:<br/>
@@ -536,19 +535,35 @@
   </div>
 </section>
 
+<!-- Who this is for -->
+<section class="who-section" id="who">
+  <div style="text-align:center; margin-bottom:3rem;">
+    <div class="section-label">Who This Is For</div>
+    <h2 class="section-title">PersGraph is for you if you want your life organized without building the system yourself</h2>
+    <p class="section-sub">A private assistant that works across your notes, tasks, calendar, inbox, places, and family context, so you spend less time hunting and more time acting.</p>
+  </div>
+  <div class="bento">
+    <div class="card card-wide"><div class="card-icon">🧭</div><h3>Stop hunting across five apps</h3><p>You are tired of searching across notes, inboxes, and calendars to find something you saved weeks ago.</p></div>
+    <div class="card"><div class="card-icon">🌅</div><h3>Get a briefing that knows your real day</h3><p>You want a daily briefing based on your actual calendar and inbox, not generic news.</p></div>
+    <div class="card"><div class="card-icon">🔒</div><h3>Keep personal data private</h3><p>You do not want your personal context training someone else’s model or living in a cloud you do not control.</p></div>
+    <div class="card"><div class="card-icon">👨‍👩‍👧‍👦</div><h3>Use it with the whole family</h3><p>You want one system that works across family members instead of one isolated account.</p></div>
+    <div class="card card-wide"><div class="card-icon">🛠️</div><h3>Use it without building it yourself</h3><p>You are technical enough to appreciate self-hosting, but you do not want to assemble the whole assistant stack from scratch.</p></div>
+  </div>
+</section>
+
 <!-- Features Bento -->
 <section class="features-section" id="features">
   <div style="text-align:center; margin-bottom:3rem;">
     <div class="section-label">Features</div>
     <h2 class="section-title">One system for your notes, tasks, inbox, travel, and decisions</h2>
-    <p class="section-sub">PersGraph connects the fragments of your life into a private personal operating system that helps you know what matters before opening five apps.</p>
+    <p class="section-sub">PersGraph connects the fragments of your life into a private personal system that helps you know what matters before opening five apps.</p>
   </div>
   <div class="bento">
 
-    <!-- Semantic Search - wide -->
+    <!-- Semantic Route - wide -->
     <div class="card card-wide" style="--card-glow:rgba(99,179,237,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">🔍</div>
-      <h3>Semantic Search Across Everything</h3>
+      <h3>Semantic Route Across Everything</h3>
       <p>Vector embeddings on all your data mean you query by meaning, not keywords. Ask about a trip you half-remember, an email you can&rsquo;t find, or a decision you made months ago.</p>
       <div class="card-tags">
         <span class="tag">ChromaDB</span><span class="tag">Ollama</span><span class="tag">nomic-embed</span>
@@ -559,7 +574,7 @@
     <div class="card" style="--card-glow:rgba(104,211,145,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.1)">✅</div>
       <h3>Tasks &amp; Notes</h3>
-      <p>Capture with <code>/note</code> and <code>/task</code> from Telegram, email, or directly. Reminded before it&rsquo;s too late via daily cron + Telegram alert.</p>
+      <p>Understand with <code>/note</code> and <code>/task</code> from chat, email, or directly. Reminders arrive before it&rsquo;s too late via daily cron alerts.</p>
       <div class="card-tags"><span class="tag">SQLite</span><span class="tag">Telegram</span></div>
     </div>
 
@@ -567,7 +582,7 @@
     <div class="card card-wide" style="--card-glow:rgba(159,122,234,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">🔭</div>
       <h3>Built for observability from day one</h3>
-      <p>PersGraph already traces command activity with Langfuse and is designed to plug cleanly into OpenTelemetry-style monitoring as the product scales from personal system to serious platform.</p>
+      <p>PersGraph already traces activity with Langfuse and is designed to plug cleanly into OpenTelemetry-style monitoring as the product scales.</p>
       <div class="card-tags"><span class="tag">Langfuse v4</span><span class="tag">OpenTelemetry-friendly</span><span class="tag">Best-effort tracing</span></div>
     </div>
 
@@ -591,7 +606,7 @@
     <div class="card" style="--card-glow:rgba(104,211,145,0.04)">
       <div class="card-icon" style="--icon-bg:rgba(104,211,145,0.08)">👨‍👩‍👧‍👦</div>
       <h3>Family Knowledge Base</h3>
-      <p>Multi-user from day one. Kids ingest textbooks and PDFs via Telegram. Each user&rsquo;s content is auto-tagged and cost-routed.</p>
+      <p>Multi-user from day one. Kids ingest textbooks and PDFs through chat or direct commands. Each user&rsquo;s content is auto-tagged and cost-routed.</p>
       <div class="card-tags"><span class="tag">Multi-user</span><span class="tag">Telegram</span></div>
     </div>
 
@@ -599,7 +614,7 @@
     <div class="card" style="--card-glow:rgba(252,193,77,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(252,193,77,0.1)">🌅</div>
       <h3>Morning Briefing</h3>
-      <p>Every day at 8am, get a personalized digest — top headlines, tasks due today, upcoming appointments, and the best fresh signals from your inbox/calendar prebrief — delivered straight to Telegram. This stays the flagship daily ritual.</p>
+      <p>Every day at 8am, get a personalized digest — top headlines, tasks due today, upcoming appointments, and the best fresh signals from your inbox/calendar prebrief — delivered straight to you.</p>
       <div class="card-tags"><span class="tag">Cron</span><span class="tag">Telegram</span><span class="tag">Always-on</span></div>
     </div>
 
@@ -607,7 +622,7 @@
     <div class="card card-wide" style="--card-glow:rgba(99,179,237,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(99,179,237,0.1)">🕗</div>
       <h3>Calendar + Email Prebrief</h3>
-      <p>Before Morning Brief runs, PersGraph now assembles a read-only prebrief from calendar and inbox context: bills due soon, follow-ups that need a reply, worth-checking updates, and the appointments that shape your day. Morning Brief quietly uses this context when it is fresh, and falls back cleanly when it is not.</p>
+      <p>Before Morning Brief runs, PersGraph assembles a read-only prebrief from calendar and inbox context: bills due soon, follow-ups that need a reply, worth-checking updates, and the appointments that shape your day. Morning Brief uses this context when it is fresh, and falls back cleanly when it is not.</p>
       <div class="card-tags"><span class="tag">Gmail</span><span class="tag">Yahoo</span><span class="tag">Read-only</span><span class="tag">Prebrief</span></div>
     </div>
 
@@ -615,7 +630,7 @@
     <div class="card card-wide" style="--card-glow:rgba(56,189,248,0.08)">
       <div class="card-icon" style="--icon-bg:rgba(56,189,248,0.12)">🗺️</div>
       <h3>Explore Mode</h3>
-      <p>Turn on <code>/TripToggle</code> and PersGraph becomes a location-aware discovery companion. Instead of just storing places, it can watch for meaningful nearby opportunities — bucket-list stops, scenic detours, indoor rainy-day ideas, and a good meal to pair with the outing — then send compact suggestions directly to Telegram.</p>
+      <p>Turn on <code>/TripToggle</code> and PersGraph becomes a location-aware discovery companion. Instead of just storing places, it can watch for meaningful nearby opportunities — bucket-list stops, scenic detours, indoor rainy-day ideas, and a good meal to pair with the outing — then send compact suggestions.</p>
       <div class="card-tags"><span class="tag">/TripToggle</span><span class="tag">Nearby POI</span><span class="tag">Bucket List</span><span class="tag">Travel</span></div>
       <div class="terminal" style="margin-top:1.25rem; background:rgba(5,10,20,0.72)">
         <div class="terminal-body" style="padding-top:1.1rem">
@@ -638,7 +653,7 @@
     <div class="card" style="--card-glow:rgba(159,122,234,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(159,122,234,0.1)">🧠</div>
       <h3>Transient Scratchpad</h3>
-      <p>A temporary working memory for active topics, model handoffs, and drafts. Keep Claude/Sonnet advisory, GPT drafting, and Haiku executing — without polluting long-term memory.</p>
+      <p>A temporary working memory for active topics, model handoffs, and drafts. Keep Claude/Sonnet advisory, GPT drafting, and Haiku executing without polluting long-term memory.</p>
       <div class="card-tags"><span class="tag">Scratchpad</span><span class="tag">Handoffs</span><span class="tag">No MEMORY.md</span></div>
     </div>
 
@@ -649,13 +664,13 @@
 <section class="howitworks" id="how">
   <div style="text-align:center">
     <div class="section-label">How It Works</div>
-    <h2 class="section-title">From scattered signals to usable daily intelligence</h2>
+    <h2 class="section-title">From semantic request to the right workflow</h2>
     <p class="section-sub">Ingest once, organize automatically, and turn calendar, inbox, notes, and tasks into one operating view you can actually use.</p>
   </div>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <h3>Capture</h3>
+      <h3>Understand</h3>
       <p>Feed PersGraph emails, calendar events, links, notes, travel plans, and tasks. Your always-on AI agent keeps collecting useful context so nothing important slips through the cracks.</p>
     </div>
     <div class="step">
@@ -766,7 +781,7 @@
     <div class="cost-card" style="--card-glow:rgba(252,211,77,0.06)">
       <div class="card-icon" style="--icon-bg:rgba(252,211,77,0.08); font-size:1.5rem; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:rgba(252,211,77,0.08); border-radius:12px; margin-bottom:1rem">📊</div>
       <h3>Built-in Cost Visibility</h3>
-      <p>A daily cost summary fires every evening — token usage, model breakdown, cumulative spend — delivered to Telegram. No dashboard login, no surprises.</p>
+      <p>A daily cost summary fires every evening — token usage, model breakdown, cumulative spend — delivered automatically. No dashboard login, no surprises.</p>
       <div style="margin-top:1.25rem; background:#0a0e1a; border:1px solid var(--border); border-radius:10px; padding:1rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.78rem">
         <div style="color:var(--accent3); margin-bottom:0.35rem">📈 Daily API Cost Summary — May 27</div>
         <div style="color:var(--text2)">claude-sonnet-4-6 &nbsp;·&nbsp; <span style="color:var(--text)">4,210 in / 1,840 out</span></div>
@@ -822,7 +837,7 @@
         <span class="tech-name">ChromaDB</span>
       </div>
       <div class="tech-card">
-        <img src="https://cdn.simpleicons.org/telegram/94a3b8" width="40" height="40" alt="Telegram" />
+        <img src="https://cdn.simpleicons.org/chat/94a3b8" width="40" height="40" alt="Telegram" />
         <span class="tech-name">Telegram</span>
       </div>
       <div class="tech-card">
@@ -893,7 +908,7 @@
         <span class="tech-name">ChromaDB</span>
       </div>
       <div class="tech-card">
-        <img src="https://cdn.simpleicons.org/telegram/94a3b8" width="40" height="40" alt="Telegram" />
+        <img src="https://cdn.simpleicons.org/chat/94a3b8" width="40" height="40" alt="Telegram" />
         <span class="tech-name">Telegram</span>
       </div>
       <div class="tech-card">
@@ -946,19 +961,20 @@
   <div class="privacy-card">
     <div>
       <div class="section-label" style="text-align:left">Privacy First</div>
-      <div class="privacy-title">Your data never<br/>leaves your machine</div>
+      <div class="privacy-title">Your data. Your server.
+Your rules.</div>
       <p class="privacy-body">
-        PersGraph runs on infrastructure you own and control. Gru, the AI agent, runs 24/7 on your private VPS — no Mac required. LLMs and vector search run on your Windows machine via Tailscale, and sensitive local files stay on your Mac. No shared cloud, no subscription SaaS sending your data anywhere. You own everything, always.
+        PersGraph runs entirely on infrastructure you own. Your personal AI agent lives on your private VPS — not on our servers. Vector search, LLM inference, and memory all run locally. The Anthropic API is used only for reasoning tasks, and only text you explicitly send is ever processed. No training on your data. No vendor lock-in. No subscription to cancel.
       </p>
     </div>
     <div class="privacy-features">
       <div class="pf">
         <div class="pf-icon">🔒</div>
-        <div><div class="pf-title">Always-on, Always Private</div><div class="pf-desc">AI agent runs 24/7 on your VPS. Ollama runs on your own Windows machine via Tailscale. No third-party cloud ever touches your data.</div></div>
+        <div><div class="pf-title">Always-on, Always Private</div><div class="pf-desc">AI agent runs 24/7 on your VPS. No third-party cloud ever touches your data.</div></div>
       </div>
       <div class="pf">
         <div class="pf-icon">🏠</div>
-        <div><div class="pf-title">Self-hosted Vector DB</div><div class="pf-desc">ChromaDB runs on your own Windows machine, connected via Tailscale VPN. Your vectors never leave hardware you control.</div></div>
+        <div><div class="pf-title">Self-hosted Memory</div><div class="pf-desc">Vector search and memory stay on infrastructure you control.</div></div>
       </div>
       <div class="pf">
         <div class="pf-icon">🔑</div>
@@ -966,9 +982,31 @@
       </div>
       <div class="pf">
         <div class="pf-icon">📡</div>
-        <div><div class="pf-title">Air-gap Ready</div><div class="pf-desc">Works offline. Your knowledge graph doesn't need the internet.</div></div>
+        <div><div class="pf-title">No subscription to cancel</div><div class="pf-desc">You own the system outright.</div></div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="features-section" id="comparison">
+  <div style="text-align:center; margin-bottom:3rem;">
+    <div class="section-label">Comparison</div>
+    <h2 class="section-title">PersGraph vs tools people already know</h2>
+    <p class="section-sub">A quick way to see why PersGraph feels different: it is private, proactive, and built around your actual life context.</p>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="routing-table" style="width:100%; max-width:900px; margin:0 auto;">
+      <thead>
+        <tr><th>Capability</th><th>PersGraph</th><th>ChatGPT / Copilot</th><th>Notion AI</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Runs on your server</td><td>Yes</td><td>No</td><td>No</td></tr>
+        <tr><td>Real inbox + calendar</td><td>Yes</td><td>Partial</td><td>No</td></tr>
+        <tr><td>Proactive daily briefing</td><td>Yes</td><td>No</td><td>No</td></tr>
+        <tr><td>Family / multi-user</td><td>Yes</td><td>Limited</td><td>Limited</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -993,7 +1031,7 @@
     <div class="card">
       <div class="card-icon">🎯</div>
       <h3>Built for outcomes, not demos</h3>
-      <p>Captures what matters, surfaces what changed, and keeps the next move visible so work doesn’t stall in the cracks between systems.</p>
+      <p>Understands what matters, surfaces what changed, and keeps the next move visible so work doesn’t stall in the cracks between systems.</p>
     </div>
     <div class="card card-wide">
       <div class="card-icon">💼</div>
@@ -1013,8 +1051,8 @@
   <h2 class="cta-title">Build the personal operating system you actually want to use</h2>
   <p class="cta-sub">Private by default, command-first, and useful from day one — PersGraph turns your data into leverage.</p>
   <div class="cta-actions">
-    <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-primary">⭐ Star on GitHub</a>
-    <a href="https://github.com/SimpliCoreAI/persgraph" class="btn-secondary">View on GitHub</a>
+    <a href="https://simlicore.ai" class="btn-primary" target="_blank" rel="noreferrer">⭐ Visit SimpliCore.ai</a>
+    <a href="https://simlicore.ai" class="btn-secondary" target="_blank" rel="noreferrer">View SimpliCore.ai</a>
   </div>
   <p class="cta-note">Open source · Self-hosted · No cloud required</p>
 </section>
@@ -1024,7 +1062,7 @@
   <div class="footer-logo">PersGraph</div>
   <div class="footer-text">© 2026 PersGraph. Your data, your graph.</div>
   <div class="footer-links">
-    <a href="https://github.com/SimpliCoreAI/persgraph">GitHub</a>
+    <a href="https://simlicore.ai" target="_blank" rel="noreferrer">SimpliCore.ai</a>
     <a href="#">Docs</a>
     <a href="#">Privacy</a>
   </div>
@@ -1127,7 +1165,7 @@
       </style>
       <div class="screenshot-shell">
         <div class="screenshot-placeholder-grid">
-          <div class="screenshot-placeholder"><span class="shot-badge">01</span><img src="/assets/image-1.jpg?v=2" alt="Telegram chat screenshot"><div class="placeholder-label">Chat view</div><div class="placeholder-note">Telegram-style assistant conversation layout.</div></div>
+          <div class="screenshot-placeholder"><span class="shot-badge">01</span><img src="/assets/image-1.jpg?v=2" alt="Assistant chat screenshot"><div class="placeholder-label">Chat view</div><div class="placeholder-note">Assistant conversation layout.</div></div>
           <div class="screenshot-placeholder"><span class="shot-badge">02</span><img src="/assets/image-2.jpg?v=2" alt="Langfuse setup screenshot"><div class="placeholder-label">Tracing setup</div><div class="placeholder-note">Developer onboarding and observability flow.</div></div>
           <div class="screenshot-placeholder"><span class="shot-badge">03</span><img src="/assets/image-3.jpg?v=2" alt="Bot pairing screenshot"><div class="placeholder-label">Bot pairing</div><div class="placeholder-note">Chat-driven pairing and auth interaction.</div></div>
           <div class="screenshot-placeholder"><span class="shot-badge">04</span><img src="/assets/image-4.jpg?v=2" alt="Article layout screenshot"><div class="placeholder-label">Editorial layout</div><div class="placeholder-note">Magazine-like page with article-first focus.</div></div>

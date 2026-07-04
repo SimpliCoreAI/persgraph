@@ -187,3 +187,100 @@ def get_event_registry_snapshot() -> dict:
         "pending_approvals": list_pending_approvals(limit=50),
         "recent_events": list_events(limit=10),
     }
+
+
+def run_with_semantic_routing(raw_input: str, sender_id: str | None = None) -> str:
+    """Semantic-first dispatcher (Phase 2).
+
+    Decision flow:
+    1. Classify intent via semantic_router.
+    2. Resolve a DispatchDecision (workflow, worker, model_tier, fallback).
+    3a. confidence >= threshold AND a canonical fallback command exists:
+        rewrite input as ``/<cmd> <args>`` and route via route_command_with_gates().
+    3b. confidence < threshold OR no fallback:
+        route the raw input unchanged via route_command_with_gates().
+    4. In all cases, the resolved model_tier is injected into the user context
+       so command_handler picks up the right model hint.
+    """
+    from agents.orchestrator.semantic_router import dispatch_intent
+    from agents.orchestrator import command_handler
+
+    user = command_handler.resolve_user(sender_id)
+    command_hint = raw_input.split()[0] if raw_input.strip().startswith("/") else None
+    decision = dispatch_intent(raw_input, context={"command": command_hint} if command_hint else {})
+
+    if os.environ.get("ROUTING_DEBUG"):
+        print(
+            f"[SEMANTIC_P2] intent={decision.workflow} worker={decision.worker_type_value} "
+            f"tier={decision.model_tier} confidence={decision.confidence:.2f} "
+            f"dispatched={decision.dispatched_semantically} reason={decision.reason}",
+            file=sys.stderr,
+        )
+
+    # Inject model tier so command_handler honours the semantic model policy.
+    # We patch model in the user dict; command_handler reads user['model'].
+    user_with_model = {**user, "model": decision.model_tier}
+
+    # Choose what to actually dispatch:
+    # - High confidence + known fallback command: rewrite as explicit command.
+    # - Otherwise: forward raw_input unchanged (orchestrator catches unknown free-text).
+    if decision.dispatched_semantically and decision.fallback_command:
+        # Strip a leading slash-command from raw_input if already present to avoid doubling.
+        text_body = raw_input
+        if command_hint:
+            text_body = raw_input[len(command_hint):].strip()
+        dispatch_input = f"{decision.fallback_command} {text_body}".strip()
+    else:
+        dispatch_input = raw_input
+
+    # Route through the standard gate (event ID, approval, audit).
+    routed_task = route_command_with_gates(dispatch_input, user_context=user_with_model)
+
+    if routed_task.requires_approval:
+        return f"⏸️ Action pending approval (event_id: {routed_task.event_id})"
+
+    log_execution(
+        routed_task.event_id,
+        routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+        status="executing",
+    )
+
+    try:
+        import time
+        start_ms = int(time.time() * 1000)
+        # Pass the rewritten input directly to command_handler so it sees the command.
+        result = command_handler.run(dispatch_input, sender_id)
+        duration_ms = int(time.time() * 1000) - start_ms
+
+        log_outcome(
+            routed_task.event_id,
+            "completed",
+            result,
+            worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+        )
+
+        try:
+            from agents.orchestrator.learning_signals import emit_outcome_signal
+            emit_outcome_signal(
+                event_id=routed_task.event_id,
+                command=routed_task.command,
+                worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+                status="completed",
+                success=True,
+                duration_ms=duration_ms,
+                result_preview=(result or "")[:100],
+            )
+        except Exception:
+            pass
+
+        return result
+    except Exception as e:
+        error_msg = str(e)
+        log_outcome(
+            routed_task.event_id,
+            "failed",
+            error_msg,
+            worker_type=routed_task.worker_type.value if routed_task.worker_type else "orchestrator",
+            error=error_msg,
+        )
+        raise

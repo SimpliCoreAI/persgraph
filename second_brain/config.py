@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # Anthropic (for email classification + calendar extraction)
     anthropic_api_key: str = ""
 
+    # LiteLLM proxy auth (optional; required only if the proxy enforces auth)
+    litellm_api_key: str = ""
+
     # Email ingestion (openclaw Gmail inbox)
     openclaw_email: str = ""  # Set via OPENCLAW_EMAIL in .env
     openclaw_email_password: str = ""  # Gmail App Password
