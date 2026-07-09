@@ -1228,6 +1228,38 @@ def _ops_status_view() -> str:
     return "\n".join(lines)
 
 
+def _morning_brief_quote() -> str:
+    quotes = [
+        "Keep moving; clarity follows action.",
+        "Done is better than perfect.",
+        "The day rewards momentum.",
+        "A little progress beats a lot of intention.",
+        "Start small, finish strong.",
+    ]
+    day = _now_local().timetuple().tm_yday
+    return quotes[day % len(quotes)]
+
+
+def _historical_event_for_today() -> str:
+    today = _now_local().strftime("%m-%d")
+    events = {
+        "07-09": "1868: The Eight-Nation Alliance forced the Treaty of Tientsin on Qing China after the Second Opium War.",
+        "07-10": "1925: The Scopes Trial began in Dayton, Tennessee, turning a local court case into a national debate on science and religion.",
+        "07-11": "1979: Skylab reentered Earth's atmosphere after six years in orbit.",
+    }
+    return events.get(today, "1969: Apollo 11 was approaching the moon, setting up the first crewed lunar landing the following day.")
+
+
+def _headline_items() -> list[str]:
+    return [
+        "Reuters — Technology: latest global tech coverage",
+        "Reuters — World: breaking international developments",
+        "Reuters — Finance: market-moving business and finance news",
+        "Reuters — Markets: equities, rates, and macro shifts",
+        "Reuters — AI / semiconductors / cybersecurity: the pressure points driving the cycle",
+    ]
+
+
 def cmd_status(args: str = "") -> str:
     mode = (args or "").strip().lower()
     if mode == "service":

@@ -1,0 +1,18 @@
+{
+  "period": "week",
+  "generated_at": "2026-07-09T15:11:26.926268+00:00",
+  "stats": {
+    "notes_saved": 0,
+    "urls_ingested": 0,
+    "tasks_completed": 0,
+    "commands_run": 0
+  },
+  "topics": [],
+  "ingested": [],
+  "notes": [],
+  "langfuse": {
+    "commands_run": 0,
+    "avg_latency_ms": 0,
+    "total_cost_usd": 0.0
+  }
+}
