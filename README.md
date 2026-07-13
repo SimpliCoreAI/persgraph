@@ -39,7 +39,7 @@ It is built on OpenClaw, an open-source self-hosted agent runtime, with custom c
 ### What you can do here
 
 - `/pghelp` — PersGraph-specific command guide for Telegram/chat use
-- `/ingest <url or file>` — raw URL/file ingest into the semantic search layer
+- `/ingest <url or file>` — raw URL/file ingest into the semantic search layer with auto-tags + slide/PDF/screenshot summaries
 - `/wiki-ingest <url>` — write a curated Obsidian wiki note first, then index it
 - `/ask <question>` — semantic search + answer synthesis
 - `/ask learningai|prep|interview <topic>` — interview-prep synthesis for LearningAI topics
@@ -191,13 +191,13 @@ See `second_brain/connectors/PREBRIEF_FOUNDATION.md` for full architecture and t
 - If prebrief generation fails or no fresh context exists, Morning Brief continues normally without surfacing any failure noise.
 
 ### 🌐 URL & Web Ingestion
-Send a link, get it chunked and embedded. No more "I saved that article somewhere" moments.
+Send a link, get it chunked, auto-tagged, and embedded. No more "I saved that article somewhere" moments.
 
 ### ✈️ Travel & Places Graph
 Log places you've been, want to go, or want to remember. Searchable by city, category, country — with ratings and auto-tagging via local AI.
 
 ### 📓 Obsidian Sync
-Watches your vault, incrementally ingests notes with frontmatter tags. Your curated markdown stays human-readable first, searchable second.
+Watches your vault, incrementally ingests notes with frontmatter tags and auto-tags likely college/orientation material. Your curated markdown stays human-readable first, searchable second.
 
 ### 🧠 Wiki Ingestion
 Create curated wiki-style notes in Obsidian from URLs. The markdown note is the source of truth; semantic indexing happens after.
@@ -225,7 +225,7 @@ This repo is not just storage. It has a rhythm: daily briefs, travel planning, s
 - Haiku = execution / edits / checks
 
 ### 👨‍👩‍👧‍👦 Family Knowledge Base
-Multi-user from day one. Kids ingest textbooks, PDFs, and screenshots via Telegram. Each user's content is auto-tagged — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
+Multi-user from day one. Kids ingest textbooks, PDFs, screenshots, and slides via Telegram. Each user's content is auto-tagged and summarized when useful — search shared knowledge or scope to your own notes. Owner routes through a powerful model; family members route cost-efficiently.
 
 ```
 /ingest      → Raw URL/file ingest into semantic search
