@@ -62,3 +62,4 @@ streamlit_archive/
 # Langfuse credentials and runtime state
 .langfuse*
 .tracing_state.json
+data/raw_uploads/
