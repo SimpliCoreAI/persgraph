@@ -12,6 +12,8 @@ class IngestResult:
     chunks_new: int
     collection: str
     tags: list[str] = field(default_factory=list)
+    doc_kind: str = "content"
+    summary_note: str | None = None
     errors: list[str] = field(default_factory=list)
 
     @property
@@ -41,9 +43,10 @@ class BaseIngester(ABC):
         words = text.split()
         chunks = []
         i = 0
+        step = max(1, size - overlap)
         while i < len(words):
             chunk = " ".join(words[i : i + size])
             if chunk.strip():
                 chunks.append(chunk)
-            i += size - overlap
+            i += step
         return chunks

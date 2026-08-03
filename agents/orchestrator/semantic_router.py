@@ -74,7 +74,7 @@ def classify_request(text: str, command_hint: str | None = None) -> IntentResult
         "ingest": "haiku",
         "debrief": "sonnet",
         "reasoning": "sonnet",
-        "browse": "perplexity",
+        "browse": "smart",
     }
 
     confidence = 0.9 if top_score >= 2 else 0.55 if top_score == 1 else 0.35

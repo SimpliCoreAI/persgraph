@@ -416,6 +416,85 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
 
     return f"❌ Ingestion failed: {errors}"
 
+def _compiled_note_dir() -> Path:
+    try:
+        from second_brain.app_config import app_config
+        vault_path = str(app_config._get("obsidian", "vault_path", default="~/AgenticHub/InsightsData"))
+    except Exception:
+        from second_brain.config import settings
+        vault_path = settings.obsidian_vault_path
+    return Path(os.path.expanduser(vault_path)) / "wiki" / "compiled"
+
+
+def _compiled_note_slug(text: str, max_len: int = 80) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return (slug[:max_len].strip("-") or "note")
+
+
+def _create_compiled_note(source_url: str, tags: list[str], user_name: str | None = None) -> Path:
+    from second_brain.llm import complete
+    note_dir = _compiled_note_dir()
+    note_dir.mkdir(parents=True, exist_ok=True)
+    date_str = _now_local().strftime("%Y-%m-%d")
+    title_guess = source_url.rstrip("/").split("/")[-1] or "ingest"
+    title_guess = title_guess.replace("-", " ").replace("_", " ").strip().title() or "Compiled Note"
+    out_path = note_dir / f"{date_str}-{_compiled_note_slug(title_guess)}.md"
+    prompt = f"""Create a concise compiled-note markdown file from this ingested source URL.
+
+Return plain markdown only with this exact structure:
+---
+title: "..."
+source: "..."
+date: {date_str}
+tags: [compiled, ...]
+---
+
+# ...
+
+## Summary
+- 3-5 bullets
+
+## Related
+- 1-5 bullets with topic ideas or obvious related concepts
+
+## Source
+- URL: ...
+
+Rules:
+- Keep it short and durable.
+- If the article title is not known, use a neutral title based on the URL.
+- Include the source URL exactly.
+
+Source URL: {source_url}
+Tags: {', '.join(tags)}
+User: {user_name or ''}
+"""
+    try:
+        note_text = complete(prompt, tier="fast", max_tokens=700).strip()
+        if not note_text.startswith("---"):
+            raise ValueError("LLM returned non-markdown content")
+    except Exception:
+        tag_str = ", ".join(["compiled"] + tags[:4])
+        note_text = (
+            "---\n"
+            f'title: "{title_guess}"\n'
+            f'source: "{source_url}"\n'
+            f'date: {date_str}\n'
+            f'tags: [{tag_str}]\n'
+            "---\n\n"
+            f"# {title_guess}\n\n"
+            "## Summary\n"
+            "- Compiled note generated from a source ingest.\n"
+            "- Fill in key takeaways from the article here.\n\n"
+            "## Related\n"
+            "- Add a few related topic links here.\n\n"
+            "## Source\n"
+            f"- URL: {source_url}\n"
+        )
+    out_path.write_text(note_text, encoding="utf-8")
+    return out_path
+
+
 def cmd_ask(question: str, user: dict | None = None) -> str:
     """Retrieve relevant chunks from the brain. Claude synthesizes the answer."""
     question, flag_user = _parse_user_flag(question)

@@ -4,7 +4,7 @@ Financial Dashboard Server
 Run: python3 serve.py
 Open: http://localhost:8765
 """
-import http.server, subprocess, os, json, urllib.parse, shutil
+import http.server, subprocess, os, json, urllib.parse, shutil, sys
 from pathlib import Path
 
 PORT = 8765
@@ -46,7 +46,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 if script and script.exists():
                     extra_args = SCRIPT_ARGS.get(name, [])
                     result = subprocess.run(
-                        ["python3", str(script)] + extra_args,
+                        [sys.executable, str(script)] + extra_args,
                         capture_output=True, text=True, cwd=str(FINANCE_DIR)
                     )
                     results[name] = {

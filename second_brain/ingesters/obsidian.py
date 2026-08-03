@@ -82,7 +82,7 @@ class ObsidianIngester(BaseIngester):
                 notebook = md_path.parent.name if md_path.parent != self.vault else ""
 
                 # Extract frontmatter tags if present
-                note_tags = list(tags)
+                note_tags = self._auto_tags(md_path, list(tags), text)
                 fm_tags = self._extract_frontmatter_tags(text)
                 note_tags += fm_tags
                 if notebook:
@@ -117,6 +117,7 @@ class ObsidianIngester(BaseIngester):
                         "chunk_index": i,
                         "total_chunks": len(chunks),
                         "tags": ",".join(note_tags),
+                        "doc_kind": "obsidian",
                         "ingested_at": datetime.now(timezone.utc).isoformat(),
                     })
 
@@ -161,6 +162,23 @@ class ObsidianIngester(BaseIngester):
         result = self.ingest(tags=tags or ["obsidian"])
         self.vault = old_vault
         return result
+
+
+    def _auto_tags(self, path: Path, tags: list[str], text: str) -> list[str]:
+        inferred = set(tags)
+        blob = f"{path.name} {text[:5000]}".lower()
+        for tag, needles in {
+            "college": ["college", "orientation", "admissions", "campus", "enrollment", "riverside"],
+            "riverside": ["riverside"],
+            "school": ["school", "student", "parent", "teacher", "class", "district"],
+            "slides": ["slide", "slides", "deck", "presentation"],
+            "pdf": [".pdf", "pdf"],
+            "screenshot": ["screenshot", "screen shot"],
+            "orientation": ["orientation", "orientation session"],
+        }.items():
+            if any(n in blob for n in needles):
+                inferred.add(tag)
+        return sorted(inferred)
 
     def _find_notes(self) -> list[Path]:
         """Find all markdown files, skipping ignored folders."""

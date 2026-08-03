@@ -166,7 +166,7 @@ if [ -f "serve.py" ]; then
   sleep 1
 else
   echo "   ⚠️  serve.py not found — skipping server start"
-  echo "      Run 'python3 serve.py' manually when ready"
+  echo "      Run '$PYTHON serve.py' (or ./setup.sh) manually when ready"
 fi
 
 # ── 8. Open browser ───────────────────────────────────────────────────────────

@@ -23,6 +23,49 @@ EMBED_MIN_WORDS = 40
 class URLIngester(BaseIngester):
     """Ingest web pages into the vector store."""
 
+    def _auto_tags(self, source: str, tags: list[str], title: str, text: str) -> list[str]:
+        inferred = set(tags)
+        blob = " ".join([source, title, text[:5000]]).lower()
+        rules = {
+            "college": ["college", "orientation", "admissions", "campus", "enrollment", "riverside"],
+            "riverside": ["riverside"],
+            "school": ["school", "student", "parent", "teacher", "class", "district"],
+            "slides": ["slide", "slides", "deck", "presentation"],
+            "pdf": [".pdf", "pdf"],
+            "screenshot": ["screenshot", "screen shot", "photo of slide", "image"],
+        }
+        for tag, needles in rules.items():
+            if any(n in blob for n in needles):
+                inferred.add(tag)
+        return sorted(inferred)
+
+    def _summary_note(self, source: str, title: str, text: str, tags: list[str]) -> str:
+        lines = [
+            f"# Ingest summary: {title or Path(source).name}",
+            "",
+            f"Source: {source}",
+            f"Tags: {', '.join(tags) if tags else 'none'}",
+            "",
+            "## Key takeaways",
+        ]
+        for sentence in self._extract_key_sentences(text):
+            lines.append(f"- {sentence}")
+        return "\n".join(lines)
+
+    def _extract_key_sentences(self, text: str) -> list[str]:
+        import re
+        cleaned = re.sub(r"\s+", " ", text).strip()
+        if not cleaned:
+            return ["No extractable text found."]
+        parts = re.split(r"(?<=[.!?])\s+", cleaned)
+        picked = []
+        for part in parts:
+            if any(k in part.lower() for k in ["date", "deadline", "contact", "email", "phone", "register", "signup", "orientation", "riverside", "college"]):
+                picked.append(part.strip())
+            if len(picked) >= 5:
+                break
+        return picked[:5] or parts[:3]
+
     def ingest(self, source: str, tags: Optional[list[str]] = None) -> IngestResult:
         tags = tags or []
 
@@ -56,6 +99,8 @@ class URLIngester(BaseIngester):
                 tags=tags,
                 errors=[f"Could not extract content from: {source}"]
             )
+
+        tags = self._auto_tags(source, tags, title or "", text)
 
         # Chunk conservatively for embedding-model context safety.
         chunks = self._chunk_text(
@@ -108,12 +153,15 @@ class URLIngester(BaseIngester):
                 metadatas=metadatas,
             )
 
+        summary_note = self._summary_note(source, title or "", text, tags) if any(t in tags for t in ("college", "riverside", "school", "slides", "pdf", "screenshot")) else None
         return IngestResult(
             source=source,
             chunks_total=len(chunks),
             chunks_new=len(ids),
             collection=settings.collection_urls,
             tags=tags,
+            doc_kind="url",
+            summary_note=summary_note,
         )
 
     def _split_for_embedding(self, document: str) -> list[str]:

@@ -186,18 +186,38 @@ def api_debrief_generate():
 @app.route("/api/langfuse")
 @login_required
 def api_langfuse():
-    """Proxy to Langfuse API."""  
+    """Health/status proxy for Langfuse connectivity and config."""
     try:
         import httpx
         from second_brain.config import settings
-        response = httpx.get(f"{settings.langfuse_host}/api/metrics", headers={
-            "Authorization": f"Bearer {settings.langfuse_secret_key}"
-        })
-        response.raise_for_status()  # Raise an error for bad responses
-        data = response.json()
-        return jsonify(data)
+
+        host = settings.langfuse_host.rstrip("/")
+        headers = {}
+        if settings.langfuse_secret_key:
+            headers["Authorization"] = f"Bearer {settings.langfuse_secret_key}"
+
+        # Prefer the lightweight health endpoint; fall back to a simple HEAD/GET on the root.
+        for path in ("/api/public/health", "/api/health", "/health", ""):
+            url = f"{host}{path}"
+            try:
+                response = httpx.get(url, headers=headers, timeout=10.0)
+                if response.status_code == 404:
+                    continue
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "")
+                if "application/json" in content_type:
+                    payload = response.json()
+                else:
+                    payload = {"ok": True, "status_code": response.status_code, "body": response.text[:500]}
+                payload.setdefault("endpoint", path or "/")
+                payload.setdefault("host", host)
+                return jsonify(payload)
+            except httpx.HTTPStatusError as exc:
+                return jsonify({"ok": False, "host": host, "endpoint": path or "/", "status_code": exc.response.status_code, "error": str(exc)}), 502
+
+        return jsonify({"ok": False, "host": host, "error": "No Langfuse health endpoint responded"}), 502
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @app.route("/static/<path:filename>")
 @login_required

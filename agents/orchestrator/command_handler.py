@@ -29,6 +29,7 @@ import re
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
+import shutil
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -232,6 +233,50 @@ EXAMPLES
 
 Tip: use /pghelp anytime for this guide."""
 
+def _raw_upload_dir() -> Path:
+    d = Path.home() / "AgenticHub" / "Persgraph" / "data" / "raw_uploads"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _save_raw_upload(source: str) -> str | None:
+    path = Path(source)
+    if not path.exists():
+        return None
+    stamp = datetime.now(LOCAL_TZ).strftime("%Y-%m-%d-%H%M%S")
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", path.stem.lower()).strip("-") or "upload"
+    dest_dir = _raw_upload_dir() / datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / f"{stamp}-{slug}{path.suffix.lower()}"
+    shutil.copy2(path, dest)
+    return str(dest)
+
+
+def _college_temp_dir() -> Path:
+    d = Path.home() / ".openclaw" / "workspace" / "college_ingest_tmp"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _college_temp_store(source: str, summary: str, body: str, raw_path: str | None = None) -> Path:
+    stamp = datetime.now(LOCAL_TZ).strftime("%Y-%m-%d-%H%M%S")
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", Path(source).stem.lower()).strip("-") or "college"
+    path = _college_temp_dir() / f"{stamp}-{slug}.md"
+    content = (
+        "---\n"
+        "title: College ingest temp\n"
+        f"date: {datetime.now(LOCAL_TZ).isoformat()}\n"
+        f"source: {source}\n"
+        f"raw_path: {raw_path or ''}\n"
+        "tags: [college, temp-fallback]\n"
+        "---\n\n"
+        f"## Summary\n{summary}\n\n"
+        f"## Extracted text\n{body}\n"
+    )
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
 def cmd_ingest(args: str, user: dict | None = None) -> str:
     # Parse --user flag
     args, flag_user = _parse_user_flag(args)
@@ -310,6 +355,25 @@ def cmd_ingest(args: str, user: dict | None = None) -> str:
         return "⏳ Saved for retry\n🧠 Embedding backend not ready right now — will ingest automatically later\n🔗 {}".format(original_url)
 
     return f"❌ Ingestion failed: {errors}"
+
+def cmd_ingest_college(args: str, user: dict | None = None) -> str:
+    raw_path = _save_raw_upload(args.strip())
+    result = cmd_ingest(args, user=user)
+    if any(x in result.lower() for x in ("error", "failed", "unavailable")):
+        temp = _college_temp_store(args.strip() or "unknown", "Backend ingest unavailable; saved temp copy.", result, raw_path=raw_path)
+        suffix = f"\n\n📦 Saved temporary college ingest note: `{temp}`"
+        if raw_path:
+            suffix += f"\n📎 Raw upload saved at: `{raw_path}`"
+        return result + suffix
+    if raw_path:
+        return result + f"\n\n📎 Raw upload saved at: `{raw_path}`\n✅ College ingest routed for semantic storage."
+    return result + "\n\n✅ College ingest routed for semantic storage."
+
+
+def cmd_ask_college(question: str, user: dict | None = None) -> str:
+    scoped = f"Riverside college orientation school slides notes: {question.strip()}" if question.strip() else "Riverside college orientation school slides notes"
+    return cmd_ask(scoped, user=user)
+
 
 def cmd_ask(question: str, user: dict | None = None) -> str:
     """Retrieve relevant chunks from the brain. Claude synthesizes the answer."""
@@ -1326,7 +1390,7 @@ if LEARNING_HANDLERS_AVAILABLE:
     })
 
 # Commands that accept a user context
-USER_AWARE_COMMANDS = {"/ingest", "/ask"}
+USER_AWARE_COMMANDS = {"/ingest", "/ask", "/ingest-college", "/ask-college"}
 
 
 
@@ -1392,8 +1456,10 @@ def run(raw_input: str, sender_id: str | None = None) -> str:
         "sonnet": "smart",
         "fast": "fast",
         "smart": "smart",
+        "gpt5.5": "smart",
+        "gpt-5.5": "smart",
     }
-    model_hint = _hint_map.get(_model_raw, "fast")
+    model_hint = _hint_map.get(_model_raw, "smart")
 
     # ── Langfuse trace (v4 API) ───────────────────────────────────────────────
     try:

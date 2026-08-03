@@ -3,7 +3,7 @@
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
-
+import re
 from typing import Optional
 
 import pypdf
@@ -36,6 +36,7 @@ class PDFIngester(BaseIngester):
 
         # Extract text
         text = self._extract_text(path)
+        tags = self._auto_tags(path, tags, text)
         if not text.strip():
             return IngestResult(
                 source=source,
@@ -82,16 +83,53 @@ class PDFIngester(BaseIngester):
                 metadatas=metadatas,
             )
 
+        summary_note = self._summary_note(path, text, tags) if any(t in tags for t in ("college", "riverside", "school", "slides", "pdf", "screenshot")) else None
         return IngestResult(
             source=str(path),
             chunks_total=len(chunks),
             chunks_new=len(ids),
             collection=self._collection,
             tags=tags,
+            doc_kind="pdf",
+            summary_note=summary_note,
         )
 
     def _extract_text(self, path: Path) -> str:
         reader = pypdf.PdfReader(str(path))
-        return "\n".join(
-            page.extract_text() or "" for page in reader.pages
-        )
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+    def _auto_tags(self, path: Path, tags: list[str], text: str) -> list[str]:
+        inferred = set(tags)
+        blob = f"{path.name} {text[:5000]}".lower()
+        for tag, needles in {
+            "college": ["college", "orientation", "admissions", "campus", "enrollment", "riverside"],
+            "riverside": ["riverside"],
+            "school": ["school", "student", "parent", "teacher", "class", "district"],
+            "slides": ["slide", "slides", "deck", "presentation"],
+            "pdf": [".pdf", "pdf"],
+            "screenshot": ["screenshot", "screen shot"],
+        }.items():
+            if any(n in blob for n in needles):
+                inferred.add(tag)
+        return sorted(inferred)
+
+    def _summary_note(self, path: Path, text: str, tags: list[str]) -> str:
+        cleaned = re.sub(r"\s+", " ", text).strip()
+        parts = re.split(r"(?<=[.!?])\s+", cleaned) if cleaned else []
+        picks = []
+        for part in parts:
+            if any(k in part.lower() for k in ["date", "deadline", "contact", "email", "phone", "register", "signup", "orientation", "riverside", "college"]):
+                picks.append(part.strip())
+            if len(picks) >= 5:
+                break
+        if not picks:
+            picks = parts[:3] if parts else ["No extractable text found."]
+        return "\n".join([
+            f"# Ingest summary: {path.name}",
+            "",
+            f"Source: {path}",
+            f"Tags: {', '.join(tags) if tags else 'none'}",
+            "",
+            "## Key takeaways",
+            *[f"- {p}" for p in picks],
+        ])
